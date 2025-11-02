@@ -25,7 +25,7 @@ const VideoCall = ({ friend, onEnd }) => {
       })
       .catch((err) => {
         console.error('Failed to get user media:', err);
-        alert('Could not access camera/microphone');
+        alert('Could not access camera/microphone. Please enable camera/microphone permissions in your browser settings and reload the page.');
       });
 
     if (socket) {

@@ -85,6 +85,11 @@ io.on('connection', (socket) => {
   // Handle chat messages
   socket.on('send-message', async (data) => {
     try {
+      if (!socket.userId) {
+        socket.emit('error', { message: 'Not authenticated' });
+        return;
+      }
+
       const { receiverId, content } = data;
 
       const message = await Message.create({
@@ -105,11 +110,13 @@ io.on('connection', (socket) => {
       socket.emit('message-sent', message);
     } catch (error) {
       console.error('Message error:', error);
+      socket.emit('error', { message: 'Failed to send message' });
     }
   });
 
   // Handle typing indicators
   socket.on('typing', (data) => {
+    if (!socket.userId) return;
     const { receiverId } = data;
     const receiverSocketId = userSockets.get(receiverId);
     if (receiverSocketId) {
@@ -118,6 +125,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('stop-typing', (data) => {
+    if (!socket.userId) return;
     const { receiverId } = data;
     const receiverSocketId = userSockets.get(receiverId);
     if (receiverSocketId) {
@@ -127,6 +135,7 @@ io.on('connection', (socket) => {
 
   // WebRTC signaling for video/audio calls
   socket.on('call-user', (data) => {
+    if (!socket.userId) return;
     const { to, signal, from } = data;
     const toSocketId = userSockets.get(to);
     if (toSocketId) {
@@ -135,6 +144,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('accept-call', (data) => {
+    if (!socket.userId) return;
     const { to, signal } = data;
     const toSocketId = userSockets.get(to);
     if (toSocketId) {
@@ -143,6 +153,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reject-call', (data) => {
+    if (!socket.userId) return;
     const { to } = data;
     const toSocketId = userSockets.get(to);
     if (toSocketId) {
@@ -151,6 +162,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('end-call', (data) => {
+    if (!socket.userId) return;
     const { to } = data;
     const toSocketId = userSockets.get(to);
     if (toSocketId) {

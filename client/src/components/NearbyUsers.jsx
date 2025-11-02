@@ -25,10 +25,10 @@ const NearbyUsers = ({ onChatOpen }) => {
   const handleSendRequest = async (userId) => {
     try {
       await sendFriendRequest(userId);
-      alert('Friend request sent!');
+      setError('');
       loadNearbyUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to send request');
+      setError(err.response?.data?.message || 'Failed to send request');
     }
   };
 

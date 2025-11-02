@@ -35,9 +35,8 @@ const FriendRequests = () => {
   const handleAccept = async (requestId) => {
     try {
       await acceptFriendRequest(requestId);
-      alert('Friend request accepted!');
+      alert('Friend request accepted! Please refresh to see your updated friends list.');
       loadRequests();
-      window.location.reload(); // Reload to update friends list
     } catch (err) {
       alert('Failed to accept request');
     }
