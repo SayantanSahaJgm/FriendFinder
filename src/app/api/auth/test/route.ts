@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+
+// Mark as dynamic to prevent build-time execution
+export const dynamic = 'force-dynamic';
 
 /**
  * Test endpoint for NextAuth configuration
@@ -10,9 +12,6 @@ import { authOptions } from '@/lib/auth';
  */
 export async function GET() {
   try {
-    // Get current session
-    const session = await getServerSession(authOptions);
-    
     // Check environment variables
     const envCheck = {
       hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
@@ -22,10 +21,23 @@ export async function GET() {
       nodeEnv: process.env.NODE_ENV,
     };
 
+    // Only import authOptions at runtime to avoid build-time errors
+    let session = null;
+    let authConfigError = null;
+    
+    try {
+      const { authOptions } = await import('@/lib/auth');
+      session = await getServerSession(authOptions);
+    } catch (err) {
+      authConfigError = err instanceof Error ? err.message : 'Failed to load auth configuration';
+      console.error('Error loading auth config:', authConfigError);
+    }
+
     const authStatus = {
       isConfigured: envCheck.hasNextAuthSecret && envCheck.hasNextAuthUrl,
       googleOAuthReady: envCheck.hasGoogleClientId && envCheck.hasGoogleClientSecret,
       session: session || null,
+      configError: authConfigError,
       providers: ['credentials', 'google'],
     };
 

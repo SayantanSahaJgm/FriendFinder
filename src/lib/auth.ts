@@ -202,16 +202,8 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
+  // NextAuth will validate secret at runtime and provide helpful error messages
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 
   debug: process.env.NODE_ENV === 'development',
 };
-
-// Validate that secret is set
-if (!authOptions.secret) {
-  throw new Error(
-    'NEXTAUTH_SECRET is not set. Please add NEXTAUTH_SECRET to your .env.local file.\n' +
-    'Generate a secret by running: openssl rand -base64 32\n' +
-    'Or use: npx auth secret'
-  );
-}
