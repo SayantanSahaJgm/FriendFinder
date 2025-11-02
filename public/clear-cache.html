@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Browser Cache - FriendFinder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .step {
+            background: #f7f9fc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .step h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .instruction {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .keyboard {
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            display: inline-block;
+            margin: 0 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .button {
+            background: #667eea;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background: #5568d3;
+        }
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .browser-icons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .browser-icon {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Browser Cache</h1>
+        <p class="subtitle">Not seeing the latest updates? Follow these steps to clear your browser cache.</p>
+        
+        <div class="alert">
+            ⚠️ <strong>Important:</strong> Some browsers aggressively cache pages. A hard refresh ensures you see the latest version.
+        </div>
+
+        <div class="browser-icons">
+            <div class="browser-icon">
+                <div class="icon">🔵</div>
+                Chrome
+            </div>
+            <div class="browser-icon">
+                <div class="icon">🟠</div>
+                Firefox
+            </div>
+            <div class="browser-icon">
+                <div class="icon">🔷</div>
+                Edge
+            </div>
+            <div class="browser-icon">
+                <div class="icon">🔵</div>
+                Safari
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>
+                <span class="step-number">1</span>
+                Quick Hard Refresh
+            </h2>
+            <div class="instruction">
+                <strong>Windows/Linux:</strong> Press <span class="keyboard">Ctrl</span> + <span class="keyboard">F5</span>
+                <br>or <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">R</span>
+            </div>
+            <div class="instruction">
+                <strong>Mac:</strong> Press <span class="keyboard">Cmd</span> + <span class="keyboard">Shift</span> + <span class="keyboard">R</span>
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>
+                <span class="step-number">2</span>
+                Clear Browser Cache (Chrome/Edge)
+            </h2>
+            <div class="instruction">
+                1. Press <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Delete</span>
+                <br>2. Select "Cached images and files"
+                <br>3. Choose "All time" from the time range
+                <br>4. Click "Clear data"
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>
+                <span class="step-number">3</span>
+                Clear Browser Cache (Firefox)
+            </h2>
+            <div class="instruction">
+                1. Press <span class="keyboard">Ctrl</span> + <span class="keyboard">Shift</span> + <span class="keyboard">Delete</span>
+                <br>2. Select "Cache"
+                <br>3. Choose "Everything" from the time range
+                <br>4. Click "Clear Now"
+            </div>
+        </div>
+
+        <div class="step">
+            <h2>
+                <span class="step-number">4</span>
+                Open Developer Tools Console
+            </h2>
+            <div class="instruction">
+                1. Right-click on the page → "Inspect"
+                <br>2. Go to "Network" tab
+                <br>3. Check "Disable cache" checkbox
+                <br>4. Keep DevTools open while browsing
+            </div>
+        </div>
+
+        <button class="button" onclick="window.location.href='http://localhost:3000/dashboard/random-chat'">
+            ✅ Go to Random Chat (Fresh Load)
+        </button>
+
+        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 14px;">
+            <p>Still having issues? Try opening an <strong>Incognito/Private window</strong>.</p>
+            <p style="margin-top: 10px;">
+                Windows: <span class="keyboard">Ctrl + Shift + N</span> | Mac: <span class="keyboard">Cmd + Shift + N</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect with cache-busting after showing instructions for 3 seconds
+        setTimeout(() => {
+            const timestamp = Date.now();
+            window.location.href = `http://localhost:3000/dashboard/random-chat?v=${timestamp}`;
+        }, 5000);
+    </script>
+</body>
+</html>
