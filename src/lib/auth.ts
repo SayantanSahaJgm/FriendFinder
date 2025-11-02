@@ -71,18 +71,22 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
-    // Google OAuth provider
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      authorization: {
-        params: {
-          prompt: 'consent',
-          access_type: 'offline',
-          response_type: 'code',
-        },
-      },
-    }),
+    // Google OAuth provider - only include if credentials are provided
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            authorization: {
+              params: {
+                prompt: 'consent',
+                access_type: 'offline',
+                response_type: 'code',
+              },
+            },
+          }),
+        ]
+      : []),
   ],
 
   callbacks: {
@@ -198,7 +202,16 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 
   debug: process.env.NODE_ENV === 'development',
 };
+
+// Validate that secret is set
+if (!authOptions.secret) {
+  throw new Error(
+    'NEXTAUTH_SECRET is not set. Please add NEXTAUTH_SECRET to your .env.local file.\n' +
+    'Generate a secret by running: openssl rand -base64 32\n' +
+    'Or use: npx auth secret'
+  );
+}
