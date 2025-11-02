@@ -147,11 +147,16 @@ const VideoCall = ({ friend, onClose }) => {
     }
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
     }
     if (socket && friend) {
       socket.emit('end_call', { to: friend._id });
     }
-    window.location.reload();
+    // Reset states and close modal
+    setCallAccepted(false);
+    setCalling(false);
+    setReceivingCall(false);
+    onClose();
   };
 
   return (

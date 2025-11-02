@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { messageAPI } from '../services/api';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 
 const Chat = ({ selectedFriend, onClose }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const socket = useSocket();
+  const { user } = useAuth();
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -66,7 +68,7 @@ const Chat = ({ selectedFriend, onClose }) => {
       const tempMessage = {
         _id: Date.now(),
         content: messageContent,
-        sender: { _id: 'me' },
+        sender: { _id: user?.id },
         createdAt: new Date(),
       };
       setMessages((prev) => [...prev, tempMessage]);
@@ -110,26 +112,25 @@ const Chat = ({ selectedFriend, onClose }) => {
           <div className="text-center">Loading messages...</div>
         ) : (
           <>
-            {messages.map((message) => (
-              <div
-                key={message._id}
-                className={`flex ${
-                  message.sender._id === 'me' || message.sender._id !== selectedFriend._id
-                    ? 'justify-end'
-                    : 'justify-start'
-                }`}
-              >
+            {messages.map((message) => {
+              const isMyMessage = message.sender._id !== selectedFriend._id;
+              return (
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
-                    message.sender._id === 'me' || message.sender._id !== selectedFriend._id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-800'
-                  }`}
+                  key={message._id}
+                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p>{message.content}</p>
+                  <div
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                      isMyMessage
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    <p>{message.content}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}

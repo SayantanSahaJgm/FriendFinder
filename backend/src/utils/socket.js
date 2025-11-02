@@ -109,14 +109,27 @@ const initializeSocket = (server) => {
     });
 
     // WebRTC signaling for audio/video calls
-    socket.on('call_user', (data) => {
-      const { userToCall, signalData, from, name, callType } = data;
-      io.to(userToCall).emit('incoming_call', {
-        signal: signalData,
-        from,
-        name,
-        callType,
-      });
+    socket.on('call_user', async (data) => {
+      try {
+        const { userToCall, signalData, from, name, callType } = data;
+        
+        // Validate that caller is friends with the user they want to call
+        const caller = await User.findById(socket.userId);
+        if (!caller.friends.includes(userToCall)) {
+          socket.emit('call_error', { error: 'Can only call friends' });
+          return;
+        }
+        
+        io.to(userToCall).emit('incoming_call', {
+          signal: signalData,
+          from,
+          name,
+          callType,
+        });
+      } catch (error) {
+        console.error('Call user error:', error);
+        socket.emit('call_error', { error: 'Failed to initiate call' });
+      }
     });
 
     socket.on('answer_call', (data) => {
