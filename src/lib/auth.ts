@@ -202,8 +202,16 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  // NextAuth will validate secret at runtime and provide helpful error messages
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  // NextAuth secret - required for JWT encryption
+  // In production, this MUST be set via environment variable
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || (() => {
+    // Only use fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  Using fallback secret in development. Set NEXTAUTH_SECRET in .env.local');
+      return 'development-secret-change-in-production-' + Date.now();
+    }
+    return undefined;
+  })(),
 
   debug: process.env.NODE_ENV === 'development',
 };

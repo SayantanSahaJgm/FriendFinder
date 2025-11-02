@@ -13,6 +13,17 @@ import { authOptions } from '@/lib/auth';
  * - GET /api/auth/csrf
  * - GET /api/auth/providers
  */
+
+// Validate environment variables at route initialization
+if (!process.env.NEXTAUTH_SECRET && !process.env.AUTH_SECRET) {
+  console.error(
+    '\n❌ FATAL ERROR: NEXTAUTH_SECRET is not defined!\n' +
+    'Please ensure your .env.local file exists and contains:\n' +
+    'NEXTAUTH_SECRET=your-secret-key\n' +
+    '\nGenerate a secret with: openssl rand -base64 32\n'
+  );
+}
+
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
