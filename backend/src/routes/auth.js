@@ -2,12 +2,14 @@ const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// Register route
+// Register route with rate limiting
 router.post(
   '/register',
+  authLimiter,
   [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
@@ -18,9 +20,10 @@ router.post(
   authController.register
 );
 
-// Login route
+// Login route with rate limiting
 router.post(
   '/login',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').notEmpty().withMessage('Password is required'),

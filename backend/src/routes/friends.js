@@ -1,11 +1,12 @@
 const express = require('express');
 const friendController = require('../controllers/friendController');
 const auth = require('../middleware/auth');
+const { friendRequestLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// Send friend request
-router.post('/request', auth, friendController.sendFriendRequest);
+// Send friend request with rate limiting
+router.post('/request', auth, friendRequestLimiter, friendController.sendFriendRequest);
 
 // Get pending friend requests
 router.get('/requests/pending', auth, friendController.getPendingRequests);
