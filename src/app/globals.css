@@ -75,10 +75,13 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    /* border-border is a custom Tailwind color utility created via theme extensions.
+       Some build environments may not generate that utility during preprocessing.
+       Use a direct CSS fallback here so builds don't fail when the Tailwind
+       utility is not present. The CSS variable --border is defined above. */
+    border-color: var(--border);
+    /* Keep existing outline utility if available */
+    @apply outline-ring/50;
   }
   html {
     text-size-adjust: 100%;
