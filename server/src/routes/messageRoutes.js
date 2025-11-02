@@ -5,11 +5,13 @@ const {
   markAsRead,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/auth');
+const { apiLimiter, strictLimiter } = require('../middleware/rateLimiter');
+const { messageValidation } = require('../middleware/validation');
 
 const router = express.Router();
 
-router.get('/:userId', protect, getMessages);
-router.post('/', protect, sendMessage);
-router.put('/:userId/read', protect, markAsRead);
+router.get('/:userId', apiLimiter, protect, getMessages);
+router.post('/', strictLimiter, protect, messageValidation, sendMessage);
+router.put('/:userId/read', apiLimiter, protect, markAsRead);
 
 module.exports = router;
