@@ -3,7 +3,10 @@ import { v2 as cloudinary } from 'cloudinary';
 import dbConnect from '@/lib/mongoose';
 import Post from '@/models/Post';
 
-export const runtime = 'node';
+// Next.js expects the runtime segment config to be either 'edge' or 'nodejs'.
+// Older examples or typos sometimes used 'node' — change to 'nodejs' to match
+// Next.js accepted values so the route builds correctly on platforms like Render.
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
