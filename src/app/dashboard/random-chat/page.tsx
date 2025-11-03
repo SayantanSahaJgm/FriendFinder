@@ -154,17 +154,17 @@ export default function RandomChatPage() {
             <AlertDescription>{connectionError}</AlertDescription>
           </Alert>
         ) : (
-          <Alert>
-            <AlertTitle>Offline</AlertTitle>
-            <AlertDescription>
+          <Alert className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+            <AlertTitle className="text-yellow-900 dark:text-yellow-100">Offline</AlertTitle>
+            <AlertDescription className="text-yellow-800 dark:text-yellow-200">
               Unable to reach real-time chat servers. You can still use the app, but real-time features will be degraded. Try retrying the connection.
             </AlertDescription>
           </Alert>
         )}
         {/* Debug: show socket connectionState for troubleshooting */}
-        <div className="mt-4 p-3 bg-gray-50 rounded text-sm">
-          <div className="font-medium mb-2">Connection diagnostics</div>
-          <pre className="whitespace-pre-wrap text-xs">{JSON.stringify({
+        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+          <div className="font-medium mb-2 text-gray-900 dark:text-gray-100">Connection diagnostics</div>
+          <pre className="whitespace-pre-wrap text-xs text-gray-800 dark:text-gray-200">{JSON.stringify({
             isConnected,
             connectionError,
             connectionState: (connectionState as any) || null
