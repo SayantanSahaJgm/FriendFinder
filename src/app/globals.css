@@ -119,7 +119,7 @@
 
 /* dark-mode: keep white where text-white was intentionally used */
 .dark .text-white {
-  color: #181717 !important;
+  color: #ffffff !important;
 }
 
 /* Utility to force white text even in light mode (use on colored buttons/badges where white is required) */
