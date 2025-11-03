@@ -66,7 +66,7 @@ export default function StoryComposer({ onClose }: { onClose?: () => void }) {
       )}
 
       <div className="mt-3 flex items-center space-x-2">
-        <button onClick={submitStory} disabled={loading} className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1 rounded">
+  <button onClick={submitStory} disabled={loading} className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white ff-white px-3 py-1 rounded">
           {loading ? "Uploading..." : "Share Story"}
         </button>
         <button onClick={() => onClose?.()} className="text-sm text-gray-600">Cancel</button>

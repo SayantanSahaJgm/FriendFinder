@@ -152,7 +152,7 @@ export default function UserSearch({ initialQuery, onSendRequest }: UserSearchPr
       <button
         onClick={() => handleSendRequest(user.id)}
         disabled={isLoading[user.id]}
-        className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+  className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white ff-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <UserPlus className="w-4 h-4" />
         <span>{isLoading[user.id] ? "Sending..." : "Add"}</span>

@@ -20,7 +20,7 @@ export default function LoginScreen() {
           </label>
 
           <div className="flex items-center justify-between">
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Sign in</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white ff-white rounded">Sign in</button>
             <Link href="/register" className="text-sm text-blue-600">Create account</Link>
           </div>
         </form>

@@ -67,7 +67,7 @@ export default function NotificationCenter() {
       >
         <Bell className="w-6 h-6" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[1.25rem]">
+          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white ff-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[1.25rem]">
             {unreadCount}
           </span>
         )}
@@ -131,7 +131,7 @@ export default function NotificationCenter() {
                                 onClick={() =>
                                   handleAcceptRequest(notification.id)
                                 }
-                                className="flex items-center space-x-1 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                                className="flex items-center space-x-1 px-2 py-1 bg-green-500 text-white ff-white text-xs rounded hover:bg-green-600"
                               >
                                 <Check className="w-3 h-3" />
                                 <span>Accept</span>
@@ -140,7 +140,7 @@ export default function NotificationCenter() {
                                 onClick={() =>
                                   handleRejectRequest(notification.id)
                                 }
-                                className="flex items-center space-x-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                                className="flex items-center space-x-1 px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600"
                               >
                                 <X className="w-3 h-3" />
                                 <span>Reject</span>

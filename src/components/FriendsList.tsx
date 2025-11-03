@@ -178,9 +178,9 @@ export default function FriendsList({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center space-x-3">
+        onClick={() => setShowConfirmDelete(!showConfirmDelete)}
+        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+        title="Remove Friend"
                 <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                 <div className="flex-1">
                   <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
@@ -194,7 +194,7 @@ export default function FriendsList({
     );
   }
 
-  if (friendsError) {
+              className="px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center">
