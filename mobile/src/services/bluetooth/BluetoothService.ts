@@ -107,7 +107,7 @@ export class BluetoothService {
   }
 
   private setupBleStateListener(): void {
-    this.bleManager.onStateChange((state) => {
+    this.bleManager.onStateChange((state: State) => {
       this.onStateChangeCallback?.(state);
       if (state === State.PoweredOff) {
         this.stopScanning();
@@ -156,7 +156,7 @@ export class BluetoothService {
   async startScanning(): Promise<void> {
     if (this.isScanning) return;
     this.isScanning = true;
-    this.bleManager.startDeviceScan([FRIENDFINDER_SERVICE_UUID], { allowDuplicates: true }, (error, device) => {
+    this.bleManager.startDeviceScan([FRIENDFINDER_SERVICE_UUID], { allowDuplicates: true }, (error: Error | null, device: Device | null) => {
       if (error) return;
       if (device) this.handleDeviceFound(device);
     });
