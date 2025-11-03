@@ -5,6 +5,7 @@
 import { BleManager, Device, State } from 'react-native-ble-plx';
 import { Platform, PermissionsAndroid } from 'react-native';
 import { Buffer } from 'buffer';
+import { startAdvertising as nativeStartAdvertising, stopAdvertising as nativeStopAdvertising } from '../../native/BleAdvertiser';
 
 const FRIENDFINDER_SERVICE_UUID = '0000FFF0-0000-1000-8000-00805F9B34FB';
 
@@ -99,12 +100,26 @@ export class BluetoothService {
     if (this.isAdvertising) return;
     const payload = this.createBroadcastPayload(userID, username, status);
     const encoded = this.encodePayload(payload);
-    console.warn('Advertising requires native bridge. Payload:', encoded);
+    // Attempt to call native advertising bridge. If bridge is not available, warn and keep advertising flag for internal tracking.
+    try {
+      nativeStartAdvertising(FRIENDFINDER_SERVICE_UUID, encoded);
+      console.log('Native advertising started with payload');
+    } catch (err) {
+      console.warn('Native advertising bridge not available or failed to start. Payload:', encoded, err);
+    }
+
     this.isAdvertising = true;
   }
 
   stopAdvertising(): void {
     if (!this.isAdvertising) return;
+    try {
+      nativeStopAdvertising();
+      console.log('Native advertising stopped');
+    } catch (err) {
+      console.warn('Native advertising bridge stop failed or not available', err);
+    }
+
     this.isAdvertising = false;
   }
 
