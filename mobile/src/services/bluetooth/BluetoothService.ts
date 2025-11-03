@@ -102,24 +102,34 @@ export class BluetoothService {
     const encoded = this.encodePayload(payload);
     // Attempt to call native advertising bridge. If bridge is not available, warn and keep advertising flag for internal tracking.
     try {
-      nativeStartAdvertising(FRIENDFINDER_SERVICE_UUID, encoded);
-      console.log('Native advertising started with payload');
+      const ok = await nativeStartAdvertising(FRIENDFINDER_SERVICE_UUID, encoded);
+      if (ok) {
+        this.isAdvertising = true;
+        console.log('Native advertising started with payload');
+      } else {
+        this.isAdvertising = false;
+        console.warn('Native advertising bridge not available or returned failure. Payload:', encoded);
+      }
     } catch (err) {
-      console.warn('Native advertising bridge not available or failed to start. Payload:', encoded, err);
+      this.isAdvertising = false;
+      console.warn('Native advertising bridge threw an error. Payload:', encoded, err);
     }
-
-    this.isAdvertising = true;
   }
 
-  stopAdvertising(): void {
+  async stopAdvertising(): Promise<void> {
     if (!this.isAdvertising) return;
     try {
-      nativeStopAdvertising();
-      console.log('Native advertising stopped');
+      const ok = await nativeStopAdvertising();
+      if (ok) {
+        console.log('Native advertising stopped');
+      } else {
+        console.warn('Native advertising bridge stop failed or not available');
+      }
     } catch (err) {
-      console.warn('Native advertising bridge stop failed or not available', err);
+      console.warn('Native advertising bridge stop threw an error', err);
     }
 
+    // Ensure internal state is cleared even if native stop failed to avoid stale state
     this.isAdvertising = false;
   }
 
