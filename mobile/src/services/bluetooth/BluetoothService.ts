@@ -2,7 +2,7 @@
  * Copied BluetoothService for React Native mobile scaffold
  */
 
-import { BleManager, Device, State } from 'react-native-ble-plx';
+import { BleManager, Device, State, BleError } from 'react-native-ble-plx';
 import { Platform, PermissionsAndroid } from 'react-native';
 import { Buffer } from 'buffer';
 import { startAdvertising as nativeStartAdvertising, stopAdvertising as nativeStopAdvertising } from '../../native/BleAdvertiser';
@@ -156,7 +156,7 @@ export class BluetoothService {
   async startScanning(): Promise<void> {
     if (this.isScanning) return;
     this.isScanning = true;
-    this.bleManager.startDeviceScan([FRIENDFINDER_SERVICE_UUID], { allowDuplicates: true }, (error: Error | null, device: Device | null) => {
+    this.bleManager.startDeviceScan([FRIENDFINDER_SERVICE_UUID], { allowDuplicates: true }, (error: BleError | null, device: Device | null) => {
       if (error) return;
       if (device) this.handleDeviceFound(device);
     });
