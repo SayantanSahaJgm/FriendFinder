@@ -39,14 +39,14 @@ function Story({ name, img, isYourStory, onClick }: { name: string; img?: string
               <img src={img} alt={name} className="w-full h-full object-cover rounded-full" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white ff-white text-xl font-bold">{name.charAt(0).toUpperCase()}</span>
+                <span className="text-white ff-white ff-white text-xl font-bold">{name.charAt(0).toUpperCase()}</span>
               </div>
             )}
           </div>
         </div>
         {isYourStory && (
           <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center border-3 border-white dark:border-gray-800 shadow-lg">
-            <span className="text-white text-sm font-bold">+</span>
+            <span className="text-white ff-white text-sm font-bold">+</span>
           </div>
         )}
       </div>
@@ -68,12 +68,12 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
         <div className="flex items-center space-x-3">
           <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
             <AvatarImage src={author.image} alt={author.name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white ff-white font-semibold">
               {author.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-bold text-sm text-gray-900 dark:text-white">{author.name}</div>
+            <div className="font-bold text-sm text-gray-900 dark:text-white ff-white">{author.name}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">{timestamp}</div>
           </div>
         </div>
@@ -122,7 +122,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
         </div>
 
         {/* Likes Count */}
-        <div className="font-bold text-sm mb-2 text-gray-900 dark:text-white">
+        <div className="font-bold text-sm mb-2 text-gray-900 dark:text-white ff-white">
           {likes.toLocaleString()} likes
         </div>
 
@@ -205,7 +205,7 @@ export default function Feed() {
           >
             <Avatar className="w-9 h-9 ring-2 ring-gray-200 dark:ring-gray-600">
               <AvatarImage src={session?.user?.image || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white ff-white">
                 <User className="w-5 h-5" />
               </AvatarFallback>
             </Avatar>
@@ -220,7 +220,7 @@ export default function Feed() {
               <svg className="w-6 h-6 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center font-bold shadow-lg">2</span>
+              <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white ff-white text-[10px] flex items-center justify-center font-bold shadow-lg">2</span>
             </button>
             <button 
               onClick={() => router.push('/dashboard/messages')}
@@ -260,7 +260,7 @@ export default function Feed() {
           <div className="flex items-center space-x-3">
             <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
               <AvatarImage src={session?.user?.image || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white">
                 <User className="w-5 h-5" />
               </AvatarFallback>
             </Avatar>
@@ -346,7 +346,7 @@ export default function Feed() {
           </button>
           <button 
             onClick={() => router.push('/dashboard/create')}
-            className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-xl hover:shadow-2xl transition transform hover:scale-110 -mt-8"
+            className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white ff-white rounded-full shadow-xl hover:shadow-2xl transition transform hover:scale-110 -mt-8"
             aria-label="Create Post"
           >
             <PlusSquare className="w-7 h-7" />
@@ -370,3 +370,4 @@ export default function Feed() {
     </div>
   );
 }
+

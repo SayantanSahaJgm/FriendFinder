@@ -47,7 +47,7 @@ export default function FriendRequestsManager() {
           <p className="text-red-600 mb-4">{requestsError}</p>
           <button
             onClick={refreshRequests}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white ff-white rounded-lg hover:bg-blue-600"
           >
             Try Again
           </button>
@@ -138,3 +138,4 @@ export default function FriendRequestsManager() {
     </div>
   );
 }
+

@@ -552,7 +552,7 @@ export default function BluetoothPage() {
                     <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-accent/50 transition-colors">
                       <Avatar className="h-14 w-14 border-2 border-blue-200">
                         <AvatarImage src={user.profilePicture} alt={user.username} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white ff-white font-semibold">
                           {user.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -654,3 +654,4 @@ export default function BluetoothPage() {
     </div>
   );
 }
+

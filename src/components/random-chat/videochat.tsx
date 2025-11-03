@@ -168,12 +168,12 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
         {/* Remote Video */}
         <div className="relative bg-secondary rounded-lg overflow-hidden flex items-center justify-center">
           <video ref={remoteVideoRef} className="w-full h-full object-cover" autoPlay playsInline />
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white ff-white p-4">
               <VideoOff className="h-12 w-12 mb-4" />
               <p className="font-semibold">{session?.partner?.username || 'Stranger'}</p>
               <p className="text-sm text-center">Waiting for video connection...</p>
           </div>
-          <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
+          <div className="absolute bottom-2 left-2 bg-black/50 text-white ff-white px-2 py-1 rounded-md text-sm flex items-center gap-2">
             {session?.isAIBot && <span>🤖</span>}
             {session?.partner?.username || 'Stranger'}
           </div>
@@ -197,7 +197,7 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
               </AlertDescription>
             </Alert>
           )}
-          <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded-md text-sm">You (Mirror)</div>
+          <div className="absolute bottom-2 left-2 bg-black/50 text-white ff-white px-2 py-1 rounded-md text-sm">You (Mirror)</div>
           
           {/* Face Verification Overlay */}
           {hasCameraPermission && !verificationStatus.isVerified && verificationStatus.warningCount > 0 && (
@@ -217,3 +217,4 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
     </Card>
   );
 }
+

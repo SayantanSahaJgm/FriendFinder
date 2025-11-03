@@ -322,7 +322,7 @@ export default function MessagesPage() {
                       >
                         <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
                           <AvatarImage src={friend.profilePicture} />
-                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
+                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white ff-white font-medium">
                             {friend.username.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -352,7 +352,7 @@ export default function MessagesPage() {
                         </div>
                         {conversation?.unreadCount &&
                           conversation.unreadCount > 0 && (
-                            <Badge className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                            <Badge className="ml-2 bg-blue-500 text-white ff-white text-xs px-2 py-1 rounded-full">
                               {conversation.unreadCount}
                             </Badge>
                           )}
@@ -407,7 +407,7 @@ export default function MessagesPage() {
                     >
                       <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
                         <AvatarImage src={friend.profilePicture} />
-                        <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-medium">
+                        <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white ff-white font-medium">
                           {friend.username.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -470,7 +470,7 @@ export default function MessagesPage() {
                     src={selectedConversation.participant.profilePicture}
                     alt={selectedConversation.participant.username}
                   />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm">
+                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white text-sm">
                     {selectedConversation.participant.username
                       .charAt(0)
                       .toUpperCase()}
@@ -552,7 +552,7 @@ export default function MessagesPage() {
                 <AvatarImage
                   src={selectedConversation.participant.profilePicture}
                 />
-                <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white">
                   {selectedConversation.participant.username
                     .charAt(0)
                     .toUpperCase()}
@@ -579,7 +579,7 @@ export default function MessagesPage() {
               {/* Welcome message for desktop only */}
               <div className="mb-6">
                 <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                  <MessageCircle className="h-16 w-16 text-white" />
+                  <MessageCircle className="h-16 w-16 text-white ff-white" />
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-3">
                   Welcome to FriendFinder Messages
@@ -620,3 +620,4 @@ export default function MessagesPage() {
     </div>
   );
 }
+

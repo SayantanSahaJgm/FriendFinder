@@ -76,7 +76,7 @@ export default function PostModal() {
           <button
             onClick={submitPost}
             disabled={loading}
-            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-md shadow hover:opacity-95 disabled:opacity-60"
+            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white ff-white px-4 py-2 rounded-md shadow hover:opacity-95 disabled:opacity-60"
           >
             {loading ? "Posting..." : "Post"}
           </button>
@@ -109,3 +109,4 @@ export default function PostModal() {
     </div>
   );
 }
+

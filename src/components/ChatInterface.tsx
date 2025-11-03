@@ -719,10 +719,10 @@ export default function ChatInterface({
                             message.replyTo._id &&
                             message.replyTo.content
                 ? isCurrentUser
-                  ? "bg-blue-500 text-white ff-white rounded-b-2xl rounded-tr-2xl"
+                  ? "bg-blue-500 text-white ff-white ff-white rounded-b-2xl rounded-tr-2xl"
                   : "bg-gray-100 text-gray-900 rounded-b-2xl rounded-tl-2xl"
                               : isCurrentUser
-                              ? "bg-blue-500 text-white ff-white rounded-2xl rounded-br-md"
+                              ? "bg-blue-500 text-white ff-white ff-white rounded-2xl rounded-br-md"
                               : "bg-gray-100 text-gray-900 rounded-2xl rounded-bl-md"
                           }`}
                         >
@@ -908,7 +908,7 @@ export default function ChatInterface({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-white ff-white text-xs font-medium">
+                              <span className="text-white ff-white ff-white text-xs font-medium">
                                 {session?.user?.name
                                   ?.charAt(0)
                                   ?.toUpperCase() || "U"}
@@ -1180,7 +1180,7 @@ export default function ChatInterface({
               <button
                 onClick={handleSendMessage}
                 disabled={isSending}
-                className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 bg-blue-500 text-white ff-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 aria-label="Send message"
               >
                 <Send className="w-5 h-5" />
@@ -1188,7 +1188,7 @@ export default function ChatInterface({
             ) : (
               <button
                 onClick={() => setShowVoiceRecorder(true)}
-                className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                className="p-2 bg-blue-500 text-white ff-white rounded-full hover:bg-blue-600 transition-colors"
                 aria-label="Record voice message"
               >
                 <Mic className="w-5 h-5" />
@@ -1233,3 +1233,4 @@ export default function ChatInterface({
     </div>
   );
 }
+

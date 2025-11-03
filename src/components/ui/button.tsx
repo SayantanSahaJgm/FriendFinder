@@ -13,7 +13,7 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground shadow-enhanced-xs hover:bg-primary/90 hover:shadow-enhanced-sm gradient-primary",
         destructive:
-          "bg-destructive text-white ff-white shadow-enhanced-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 hover:shadow-enhanced-sm",
+          "bg-destructive text-white ff-white ff-white shadow-enhanced-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 hover:shadow-enhanced-sm",
         outline:
           "border bg-background shadow-enhanced-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 hover:shadow-enhanced-sm hover:border-brand-accent",
         secondary:
@@ -102,3 +102,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
+

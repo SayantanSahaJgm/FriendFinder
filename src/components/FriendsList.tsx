@@ -141,7 +141,7 @@ function FriendCard({ friend, onStartChat, onStartCall }: FriendCardProps) {
                   <button
                     onClick={handleRemoveFriend}
                     disabled={isLoading}
-                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+                    className="px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
                   >
                     {isLoading ? "Removing..." : "Remove"}
                   </button>
@@ -194,14 +194,14 @@ export default function FriendsList({
     );
   }
 
-              className="px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+              className="px-2 py-1 bg-red-500 text-white ff-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center">
           <p className="text-red-600 mb-4">{friendsError}</p>
           <button
             onClick={refreshFriends}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 bg-blue-500 text-white ff-white rounded-lg hover:bg-blue-600"
           >
             Try Again
           </button>
@@ -243,3 +243,4 @@ export default function FriendsList({
     </div>
   );
 }
+

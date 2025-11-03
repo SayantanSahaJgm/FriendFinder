@@ -150,7 +150,7 @@ export default function CallModal({
                 {/* No video overlay */}
                 {!remoteStream && !isRinging && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white">
+                    <div className="text-center text-white ff-white">
                       <Avatar className="w-24 h-24 mx-auto mb-4">
                         <AvatarImage src="" />
                         <AvatarFallback className="text-2xl">
@@ -165,7 +165,7 @@ export default function CallModal({
             ) : (
               /* Voice Call UI */
               <div className="flex items-center justify-center h-full">
-                <div className="text-center text-white">
+                <div className="text-center text-white ff-white">
                   <Avatar className="w-32 h-32 mx-auto mb-6">
                     <AvatarImage src="" />
                     <AvatarFallback className="text-4xl">
@@ -177,7 +177,7 @@ export default function CallModal({
                   </h2>
                   <Badge
                     variant="outline"
-                    className="text-white border-white/50"
+                    className="text-white ff-white border-white/50"
                   >
                     {callData.status === "ringing"
                       ? "Calling..."
@@ -193,7 +193,7 @@ export default function CallModal({
 
             {/* Top Bar */}
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
-              <div className="flex items-center justify-between text-white">
+              <div className="flex items-center justify-between text-white ff-white">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-8 h-8">
                     <AvatarImage src="" />
@@ -229,7 +229,7 @@ export default function CallModal({
                     variant="ghost"
                     size="sm"
                     onClick={toggleFullscreen}
-                    className="text-white hover:bg-white/20"
+                    className="text-white ff-white hover:bg-white/20"
                   >
                     {isFullscreen ? (
                       <Minimize2 className="w-4 h-4" />
@@ -241,7 +241,7 @@ export default function CallModal({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20"
+                    className="text-white ff-white hover:bg-white/20"
                   >
                     <MoreVertical className="w-4 h-4" />
                   </Button>
@@ -320,3 +320,4 @@ export default function CallModal({
     </div>
   );
 }
+

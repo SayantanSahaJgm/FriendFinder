@@ -82,7 +82,7 @@ export default function VoiceRecorder({ onSendVoiceMessage, onCancel }: VoiceRec
       {!isRecording && !audioBlob && (
         <button
           onClick={startRecording}
-          className="p-3 bg-blue-500 text-white ff-white rounded-full hover:bg-blue-600 transition-colors"
+          className="p-3 bg-blue-500 text-white ff-white ff-white rounded-full hover:bg-blue-600 transition-colors"
         >
           <Mic className="w-5 h-5" />
         </button>
@@ -92,7 +92,7 @@ export default function VoiceRecorder({ onSendVoiceMessage, onCancel }: VoiceRec
         <>
           <button
             onClick={stopRecording}
-            className="p-3 bg-red-500 text-white ff-white rounded-full hover:bg-red-600 transition-colors animate-pulse"
+            className="p-3 bg-red-500 text-white ff-white ff-white rounded-full hover:bg-red-600 transition-colors animate-pulse"
           >
             <MicOff className="w-5 h-5" />
           </button>
@@ -118,13 +118,13 @@ export default function VoiceRecorder({ onSendVoiceMessage, onCancel }: VoiceRec
           <div className="flex space-x-2">
             <button
               onClick={handleSend}
-              className="p-2 bg-green-500 text-white ff-white rounded-full hover:bg-green-600 transition-colors"
+              className="p-2 bg-green-500 text-white ff-white ff-white rounded-full hover:bg-green-600 transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>
             <button
               onClick={onCancel}
-              className="p-2 bg-gray-500 text-white ff-white rounded-full hover:bg-gray-600 transition-colors"
+              className="p-2 bg-gray-500 text-white ff-white ff-white rounded-full hover:bg-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -134,3 +134,4 @@ export default function VoiceRecorder({ onSendVoiceMessage, onCancel }: VoiceRec
     </div>
   );
 }
+

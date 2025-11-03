@@ -153,7 +153,7 @@ export default function FriendRequestCard({
               <button
                 onClick={handleAccept}
                 disabled={isLoading}
-                className="px-3 py-1.5 bg-green-500 text-white ff-white text-sm rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                className="px-3 py-1.5 bg-green-500 text-white ff-white ff-white text-sm rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
               >
                 <Check className="w-4 h-4" />
                 <span>Accept</span>
@@ -161,7 +161,7 @@ export default function FriendRequestCard({
               <button
                 onClick={handleReject}
                 disabled={isLoading}
-                className="px-3 py-1.5 bg-red-500 text-white ff-white text-sm rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                className="px-3 py-1.5 bg-red-500 text-white ff-white ff-white text-sm rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
               >
                 <X className="w-4 h-4" />
                 <span>Reject</span>
@@ -172,7 +172,7 @@ export default function FriendRequestCard({
             <button
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-3 py-1.5 bg-gray-500 text-white ff-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+              className="px-3 py-1.5 bg-gray-500 text-white ff-white ff-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
             >
               <UserMinus className="w-4 h-4" />
               <span>Cancel</span>
@@ -196,3 +196,4 @@ export default function FriendRequestCard({
     </div>
   );
 }
+

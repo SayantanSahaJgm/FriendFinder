@@ -19,7 +19,7 @@ export default function StoriesBar() {
           {/* Add story button */}
           <div className="flex-shrink-0">
             <button onClick={() => setOpenComposer(true)} className="flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white ff-white text-xl font-bold">+
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white ff-white ff-white text-xl font-bold">+
               </div>
               <span className="text-xs mt-1">Your Story</span>
             </button>
@@ -28,7 +28,7 @@ export default function StoriesBar() {
           {demoStories.map((s) => (
             <div key={s.id} className="flex-shrink-0">
               <Link href={`/dashboard/stories/${s.id}`} className="flex flex-col items-center">
-                <div className={`w-16 h-16 rounded-full ${s.color} flex items-center justify-center text-white ff-white`}>
+                <div className={`w-16 h-16 rounded-full ${s.color} flex items-center justify-center text-white ff-white ff-white`}>
                   {s.name.charAt(0)}
                 </div>
                 <span className="text-xs mt-1">{s.name}</span>
@@ -49,3 +49,4 @@ export default function StoriesBar() {
     </div>
   );
 }
+

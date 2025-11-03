@@ -145,7 +145,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center text-white">
+                  <div className="text-center text-white ff-white">
                     {isConnecting ? (
                       <>
                         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
@@ -190,7 +190,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
                   </div>
                   {!isVideoEnabled && (
                     <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
-                      <VideoOff className="h-6 w-6 text-white" />
+                      <VideoOff className="h-6 w-6 text-white ff-white" />
                     </div>
                   )}
                 </div>
@@ -200,7 +200,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
         ) : (
           /* Voice Call Interface */
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center text-white space-y-6">
+            <div className="text-center text-white ff-white space-y-6">
               <div className="w-24 h-24 mx-auto bg-white/10 rounded-full flex items-center justify-center">
                 {isConnecting ? (
                   <Loader2 className="h-12 w-12 animate-spin" />
@@ -211,7 +211,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
               
               <div>
                 <h3 className="text-xl font-medium mb-2">Voice Call</h3>
-                <p className="text-white/80">
+                <p className="text-white ff-white/80">
                   {isConnecting ? 'Connecting...' : 
                    connectionState === 'connected' ? 'Call in progress' :
                    'Setting up call...'}
@@ -240,7 +240,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
         {/* Connection Status Overlay */}
         {isConnecting && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-black/80 rounded-lg p-4 text-white text-center">
+            <div className="bg-black/80 rounded-lg p-4 text-white ff-white text-center">
               <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
               <p>Establishing connection...</p>
             </div>

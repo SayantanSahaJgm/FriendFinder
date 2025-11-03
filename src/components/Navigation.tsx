@@ -103,7 +103,7 @@ export default function Navigation() {
               href="/dashboard"
               className="flex items-center text-responsive-lg font-bold text-brand-primary hover:text-brand-secondary transition-all duration-200 hover:scale-105 group"
             >
-              <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-white ff-white text-sm font-bold mr-3 shadow-enhanced-sm group-hover:shadow-enhanced-md transition-all duration-200">
+              <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-white ff-white ff-white text-sm font-bold mr-3 shadow-enhanced-sm group-hover:shadow-enhanced-md transition-all duration-200">
                 FF
               </div>
               <span className="hidden sm:block">FriendFinder</span>
@@ -132,7 +132,7 @@ export default function Navigation() {
                     )} />
                     <span className="hidden xl:block">{item.label}</span>
                     {item.badge && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-toast-error text-white ff-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
                         {item.badge}
                       </span>
                     )}
@@ -204,7 +204,7 @@ export default function Navigation() {
               href="/dashboard"
               className="flex items-center text-xl font-bold text-brand-primary hover:text-brand-secondary transition-colors group"
             >
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center text-white ff-white font-bold mr-3 shadow-enhanced-md group-hover:shadow-enhanced-lg transition-all duration-200">
+              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center text-white ff-white ff-white font-bold mr-3 shadow-enhanced-md group-hover:shadow-enhanced-lg transition-all duration-200">
                 FF
               </div>
               FriendFinder
@@ -242,7 +242,7 @@ export default function Navigation() {
                   )} />
                   <span>{item.label}</span>
                   {item.badge && (
-                      <span className="ml-auto h-6 w-6 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                      <span className="ml-auto h-6 w-6 bg-toast-error text-white ff-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
                       {item.badge}
                     </span>
                   )}
@@ -269,7 +269,7 @@ export default function Navigation() {
             <Button
               variant="outline"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full gap-2 hover:bg-toast-error hover:text-white hover:border-toast-error transition-all duration-200"
+              className="w-full gap-2 hover:bg-toast-error hover:text-white ff-white hover:border-toast-error transition-all duration-200"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -311,7 +311,7 @@ export default function Navigation() {
                     {item.label}
                   </span>
                   {item.badge && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
@@ -332,3 +332,4 @@ export default function Navigation() {
     </>
   );
 }
+

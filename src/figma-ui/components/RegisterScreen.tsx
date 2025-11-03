@@ -25,7 +25,7 @@ export default function RegisterScreen() {
           </label>
 
           <div className="flex items-center justify-between">
-            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white ff-white rounded">Create account</button>
+            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white ff-white ff-white rounded">Create account</button>
             <Link href="/login" className="text-sm text-blue-600">Already have an account?</Link>
           </div>
         </form>
@@ -33,3 +33,4 @@ export default function RegisterScreen() {
     </div>
   );
 }
+

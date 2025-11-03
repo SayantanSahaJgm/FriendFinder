@@ -91,7 +91,7 @@ export default function DashboardLayout({
             <div className="flex h-16 items-center justify-between px-4 border-b">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">FF</span>
+                  <span className="text-white ff-white text-sm font-bold">FF</span>
                 </div>
                 <span className="text-lg font-bold text-gray-900">
                   FriendFinder
@@ -161,7 +161,7 @@ export default function DashboardLayout({
             {/* Desktop Brand Logo - show on lg+ screens */}
             <div className="hidden lg:flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">FF</span>
+                <span className="text-white ff-white text-sm font-bold">FF</span>
               </div>
               <span className="text-lg font-bold text-gray-900">
                 FriendFinder
@@ -197,7 +197,7 @@ export default function DashboardLayout({
             {/* Mobile brand logo - show on small screens only */}
             <div className="flex lg:hidden items-center space-x-2 flex-1">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">FF</span>
+                <span className="text-white ff-white text-sm font-bold">FF</span>
               </div>
               <span className="text-lg font-bold text-gray-900">
                 FriendFinder
@@ -213,7 +213,7 @@ export default function DashboardLayout({
               <div className="flex items-center space-x-2">
                 <Avatar className="h-9 w-9 lg:h-10 lg:w-10 ring-2 ring-gray-100">
                   <AvatarImage src={userImage || undefined} alt={displayName} />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold">
+                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-semibold">
                     {displayName
                       ? displayName
                           .split(" ")
@@ -256,3 +256,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+

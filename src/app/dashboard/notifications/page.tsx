@@ -71,7 +71,7 @@ export default function NotificationsPage() {
         {notifications.length === 0 ? (
           <div className="text-center py-20">
             <Bell className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No notifications yet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white ff-white mb-2">No notifications yet</h3>
             <p className="text-gray-600 dark:text-gray-400">When you get notifications, they'll show up here</p>
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
               >
                 <Avatar className="w-12 h-12 ring-2 ring-gray-200 dark:ring-gray-600">
                   <AvatarImage src={notif.from.image} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white">
                     {notif.from.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="text-sm">
-                        <span className="font-semibold text-gray-900 dark:text-white">{notif.from.name}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white ff-white">{notif.from.name}</span>
                         {' '}
                         <span className="text-gray-600 dark:text-gray-400">{notif.message}</span>
                       </p>
@@ -109,10 +109,10 @@ export default function NotificationsPage() {
                   
                   {notif.type === 'friend_request' && (
                     <div className="flex space-x-2 mt-3">
-                      <button className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition">
+                      <button className="px-4 py-1.5 bg-blue-600 text-white ff-white text-sm font-medium rounded-md hover:bg-blue-700 transition">
                         Accept
                       </button>
-                      <button className="px-4 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                      <button className="px-4 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white ff-white text-sm font-medium rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                         Decline
                       </button>
                     </div>
@@ -126,3 +126,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

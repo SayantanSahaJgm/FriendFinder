@@ -29,7 +29,7 @@ export default function HomeScreen() {
 
           <div className="flex justify-center space-x-4">
             <Link href="/register" className="inline-block">
-              <button className="rounded-full px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-medium">
+              <button className="rounded-full px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white ff-white font-medium">
                 Start Connecting
               </button>
             </Link>
@@ -72,3 +72,4 @@ function Feature({ title, desc }: { title: string; desc: string }) {
     </div>
   );
 }
+

@@ -34,12 +34,12 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
         <div className="flex items-center space-x-3">
           <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
             <AvatarImage src={author.image} alt={author.name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white font-semibold">
               {author.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-bold text-sm text-gray-900 dark:text-white">{author.name}</div>
+            <div className="font-bold text-sm text-gray-900 dark:text-white ff-white">{author.name}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">{timestamp}</div>
           </div>
         </div>
@@ -85,7 +85,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
           </button>
         </div>
 
-        <div className="font-bold text-sm mb-2 text-gray-900 dark:text-white">
+        <div className="font-bold text-sm mb-2 text-gray-900 dark:text-white ff-white">
           {likes.toLocaleString()} likes
         </div>
 
@@ -157,7 +157,7 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-3">
             <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
               <AvatarImage src={session?.user?.image || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white font-semibold">
                 {session?.user?.name?.charAt(0) || "U"}
               </AvatarFallback>
             </Avatar>
@@ -196,13 +196,13 @@ export default function DashboardPage() {
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center mb-6">
                 <Heart className="w-12 h-12 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">No posts yet</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white ff-white mb-3">No posts yet</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-8 max-w-xs">
                 Follow friends to see their posts in your feed or create your first post to share with others
               </p>
               <button
                 onClick={() => router.push('/dashboard/create')}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition shadow-lg"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white ff-white font-semibold rounded-lg transition shadow-lg"
               >
                 Create Your First Post
               </button>
@@ -217,3 +217,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

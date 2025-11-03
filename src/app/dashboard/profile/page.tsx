@@ -264,7 +264,7 @@ export default function ProfilePage() {
                       src={session?.user?.image || undefined}
                       alt={displayName}
                     />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-2xl">
+                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white text-2xl">
                       {displayName ? displayName.charAt(0).toUpperCase() : "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -826,3 +826,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

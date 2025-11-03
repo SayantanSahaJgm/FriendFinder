@@ -186,7 +186,7 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
               {stats.topSkills.map((skill, index) => (
                 <div key={skill} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ff-white font-semibold text-sm ${
                         index === 0 ? 'bg-yellow-500 ff-white' : 
                       index === 1 ? 'bg-gray-400' : 
                       index === 2 ? 'bg-orange-500' : 'bg-blue-500'
@@ -217,7 +217,7 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-6 bg-blue-50 rounded-xl border-2 border-blue-100">
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="w-6 h-6 text-white" />
+                <Users className="w-6 h-6 text-white ff-white" />
               </div>
               <p className="text-2xl font-bold text-blue-600 mb-1">{stats.totalApplications}</p>
               <p className="text-sm text-gray-600">Applications</p>
@@ -225,7 +225,7 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
             
             <div className="text-center p-6 bg-green-50 rounded-xl border-2 border-green-100">
               <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Eye className="w-6 h-6 text-white" />
+                <Eye className="w-6 h-6 text-white ff-white" />
               </div>
               <p className="text-2xl font-bold text-green-600 mb-1">{stats.totalInterviews}</p>
               <p className="text-sm text-gray-600">Interviews</p>
@@ -233,7 +233,7 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
             
             <div className="text-center p-6 bg-purple-50 rounded-xl border-2 border-purple-100">
               <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CheckCircle className="w-6 h-6 text-white" />
+                <CheckCircle className="w-6 h-6 text-white ff-white" />
               </div>
               <p className="text-2xl font-bold text-purple-600 mb-1">{stats.totalSelected}</p>
               <p className="text-sm text-gray-600">Selected</p>
@@ -241,7 +241,7 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
             
             <div className="text-center p-6 bg-red-50 rounded-xl border-2 border-red-100">
               <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <XCircle className="w-6 h-6 text-white" />
+                <XCircle className="w-6 h-6 text-white ff-white" />
               </div>
               <p className="text-2xl font-bold text-red-600 mb-1">{stats.totalRejected}</p>
               <p className="text-sm text-gray-600">Rejected</p>
@@ -252,3 +252,4 @@ export default function ApplicationStats({ stats }: ApplicationStatsProps) {
     </div>
   );
 }
+

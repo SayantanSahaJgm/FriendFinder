@@ -65,7 +65,7 @@ export default function JobCard({ job, onViewDetails, onEdit }: JobCardProps) {
               />
             ) : (
               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-white" />
+                <Briefcase className="w-6 h-6 text-white ff-white" />
               </div>
             )}
             
@@ -219,3 +219,4 @@ export default function JobCard({ job, onViewDetails, onEdit }: JobCardProps) {
     </Card>
   );
 }
+

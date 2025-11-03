@@ -61,7 +61,7 @@ export default function BottomNav() {
           className="flex flex-col items-center justify-center w-14 h-14 rounded-full shadow-xl transition transform hover:scale-110 -mt-8 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           aria-label="Create post"
         >
-          <Plus className="w-7 h-7 text-white" />
+          <Plus className="w-7 h-7 text-white ff-white" />
         </button>
         
         <button 
@@ -93,3 +93,4 @@ export default function BottomNav() {
     </nav>
   );
 }
+

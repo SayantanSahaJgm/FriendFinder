@@ -153,7 +153,7 @@ export function SocketHealthMonitor() {
                 <h3 className="text-sm font-semibold">Client Status</h3>
                 <Badge 
                   variant="secondary" 
-                  className={`${getStatusColor(connectionState.status)} text-white ff-white`}
+                  className={`${getStatusColor(connectionState.status)} text-white ff-white ff-white`}
                 >
                   <span className="flex items-center space-x-1">
                     {getStatusIcon(connectionState.status)}
@@ -232,7 +232,7 @@ export function SocketHealthMonitor() {
                 <h3 className="text-sm font-semibold">Server Status</h3>
                 <Badge 
                   variant="secondary" 
-                  className={`${getStatusColor(healthData?.server?.status || 'unknown')} text-white ff-white`}
+                  className={`${getStatusColor(healthData?.server?.status || 'unknown')} text-white ff-white ff-white`}
                 >
                   <span className="flex items-center space-x-1">
                     <Server className="h-4 w-4" />

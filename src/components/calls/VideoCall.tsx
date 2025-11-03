@@ -63,7 +63,7 @@ export default function VideoCall({ onClose }: VideoCallProps) {
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 bg-gray-900 text-white">
+      <div className="flex justify-between items-center p-4 bg-gray-900 text-white ff-white">
         <div>
           <h3 className="text-lg font-semibold">
             {currentCall.recipientName || currentCall.callerName}
@@ -92,7 +92,7 @@ export default function VideoCall({ onClose }: VideoCallProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                  <div className="text-center text-white">
+                  <div className="text-center text-white ff-white">
                     <Avatar className="w-32 h-32 mx-auto mb-4">
                       <AvatarFallback className="text-4xl bg-gray-600">
                         {(currentCall.recipientName || currentCall.callerName)
@@ -121,7 +121,7 @@ export default function VideoCall({ onClose }: VideoCallProps) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Avatar className="w-16 h-16">
-                    <AvatarFallback className="bg-gray-600 text-white">
+                    <AvatarFallback className="bg-gray-600 text-white ff-white">
                       You
                     </AvatarFallback>
                   </Avatar>
@@ -132,7 +132,7 @@ export default function VideoCall({ onClose }: VideoCallProps) {
         ) : (
           /* Audio Call Interface */
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-purple-900">
-            <div className="text-center text-white">
+            <div className="text-center text-white ff-white">
               <Avatar className="w-48 h-48 mx-auto mb-8">
                 <AvatarFallback className="text-6xl bg-white/20">
                   {(currentCall.recipientName || currentCall.callerName)
@@ -259,5 +259,6 @@ function CallTimer({ startTime }: { startTime?: Date }) {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  return <p className="text-white text-sm">{duration}</p>;
+  return <p className="text-white ff-white text-sm">{duration}</p>;
 }
+
