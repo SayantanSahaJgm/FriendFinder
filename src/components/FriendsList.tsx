@@ -166,35 +166,36 @@ interface FriendsListProps {
   onStartCall?: (friendId: string) => void;
 }
 
-export default function FriendsList({
-  onStartChat,
-  onStartCall,
-}: FriendsListProps) {
-  const { friends, friendsLoading, friendsError, refreshFriends } =
-    useFriends();
+export default function FriendsList({ onStartChat, onStartCall }: FriendsListProps) {
+  const { friends, friendsLoading, friendsError, refreshFriends } = useFriends();
 
   if (friendsLoading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse">
+        <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-        onClick={() => setShowConfirmDelete(!showConfirmDelete)}
-        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-        title="Remove Friend"
-                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
+
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-              className="px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+  if (friendsError) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center">
@@ -213,9 +214,7 @@ export default function FriendsList({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Friends ({friends.length})
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900">Friends ({friends.length})</h2>
       </div>
 
       <div className="p-4">
@@ -230,12 +229,7 @@ export default function FriendsList({
         ) : (
           <div className="space-y-4">
             {friends.map((friend) => (
-              <FriendCard
-                key={friend.id}
-                friend={friend}
-                onStartChat={onStartChat}
-                onStartCall={onStartCall}
-              />
+              <FriendCard key={friend.id} friend={friend} onStartChat={onStartChat} onStartCall={onStartCall} />
             ))}
           </div>
         )}
