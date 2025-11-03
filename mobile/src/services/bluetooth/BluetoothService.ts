@@ -6,6 +6,7 @@ import { BleManager, Device, State } from 'react-native-ble-plx';
 import { Platform, PermissionsAndroid } from 'react-native';
 import { Buffer } from 'buffer';
 import { startAdvertising as nativeStartAdvertising, stopAdvertising as nativeStopAdvertising } from '../../native/BleAdvertiser';
+import { isAdvertisingAvailable } from '../../native/BleAdvertiser';
 
 const FRIENDFINDER_SERVICE_UUID = '0000FFF0-0000-1000-8000-00805F9B34FB';
 
@@ -40,6 +41,13 @@ export class BluetoothService {
   constructor() {
     this.bleManager = new BleManager();
     this.setupBleStateListener();
+  }
+
+  /**
+   * Quick synchronous helper for UI code: is native advertising available on this device?
+   */
+  isAdvertisingAvailable(): boolean {
+    return isAdvertisingAvailable();
   }
 
   async initialize(): Promise<boolean> {
