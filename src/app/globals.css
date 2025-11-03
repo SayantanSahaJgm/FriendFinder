@@ -125,6 +125,15 @@
   color: #ffffff !important;
 }
 
+/* Ensure components that used the `ff-white` helper remain readable in light
+   mode by mapping it to the foreground color when page is not in dark mode.
+   This preserves the original white in dark mode while avoiding white-on-white
+   in light mode for components that accidentally used ff-white on light
+   backgrounds. */
+:not(.dark) .ff-white {
+  color: var(--ff-override-foreground) !important;
+}
+
 /* Animation for distance alert toasts */
 @keyframes slide-in {
   from {
