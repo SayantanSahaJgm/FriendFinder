@@ -16,10 +16,21 @@ const AdvertisingTestScreen: React.FC = () => {
   const append = (msg: string) => setLog((l) => [new Date().toISOString() + ' - ' + msg, ...l].slice(0, 50));
 
   const handleStart = async () => {
+    append('Requesting permissions...');
+    try {
+      const permsOk = await bt.requestPermissions();
+      append('Permissions granted: ' + permsOk);
+      if (!permsOk) {
+        append('Permissions denied, cannot start advertising');
+        return;
+      }
+    } catch (err) {
+      append('Permission request error: ' + String(err));
+      return;
+    }
+
     append('Starting advertising...');
     try {
-      // BluetoothService.startAdvertising may or may not return a boolean depending on
-      // native availability. We treat any truthy result as success.
       const result: any = await bt.startAdvertising('test-user-id', 'TestUser', 'online');
       const ok = !!result;
       setAdvertising(ok);

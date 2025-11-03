@@ -67,6 +67,18 @@ export class BluetoothService {
     }
   }
 
+  /**
+   * Public method to request platform permissions required for scanning/advertising.
+   * Returns true when permissions are granted or not required (iOS), false otherwise.
+   */
+  async requestPermissions(): Promise<boolean> {
+    if (Platform.OS === 'android') {
+      return await this.requestAndroidPermissions();
+    }
+    // iOS permission for Bluetooth is declared via Info.plist; runtime prompt is system-managed.
+    return true;
+  }
+
   private async requestAndroidPermissions(): Promise<boolean> {
     if (Platform.OS !== 'android') return true;
     const apiLevel = Platform.Version as number;
