@@ -222,20 +222,39 @@ RandomChatQueueSchema.statics.findNextMatch = async function(
 ) {
   // First try to find exact matches
   let matches = await (this as any).findPotentialMatches(userId, preferences);
-  
+
+  // If we found multiple matches, pick one at random to avoid always selecting the oldest
+  if (matches.length > 1) {
+    const idx = Math.floor(Math.random() * matches.length)
+    return matches[idx]
+  }
+
   if (matches.length === 0) {
     // If no exact matches, try with relaxed language preference
     const relaxedPreferences = { ...preferences };
     delete (relaxedPreferences as any).language;
     matches = await (this as any).findPotentialMatches(userId, relaxedPreferences);
   }
-
   if (matches.length === 0) {
     // If still no matches, try with relaxed interest preference
     const veryRelaxedPreferences = { ...preferences };
     delete (veryRelaxedPreferences as any).language;
     delete (veryRelaxedPreferences as any).interests;
     matches = await (this as any).findPotentialMatches(userId, veryRelaxedPreferences);
+  }
+
+  // Final fallback: if still no matches, try ANY active user (same chatType) regardless of preferences
+  if (matches.length === 0) {
+    matches = await this.find({
+      userId: { $ne: userId },
+      isActive: true,
+      'preferences.chatType': preferences.chatType,
+    }).limit(10).lean();
+  }
+
+  if (matches.length > 1) {
+    const idx = Math.floor(Math.random() * matches.length)
+    return matches[idx]
   }
 
   return matches.length > 0 ? matches[0] : null;

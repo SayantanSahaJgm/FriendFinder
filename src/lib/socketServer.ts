@@ -125,9 +125,18 @@ const performRandomChatMatching = async (io: SocketIOServer) => {
   try {
     await dbConnect()
     
-    // Get all active queue entries
-    const queueEntries = await RandomChatQueue.find({ isActive: true })
+    // Get all active queue entries and randomize order to avoid deterministic pairing
+    let queueEntries = await RandomChatQueue.find({ isActive: true })
       .sort({ priority: -1, joinedAt: 1 })
+      .lean();
+
+    // Fisher-Yates shuffle to randomize matching order slightly while still favoring priority
+    for (let i = queueEntries.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const temp = queueEntries[i]
+      queueEntries[i] = queueEntries[j]
+      queueEntries[j] = temp
+    }
     
     if (queueEntries.length < 2) {
       return // Need at least 2 people to match
