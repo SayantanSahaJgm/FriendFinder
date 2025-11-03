@@ -110,50 +110,70 @@
   --ff-override-foreground: var(--foreground);
 }
 
-/* light-mode override: make all text-white dark for legibility */
-:not(.dark) .text-white {
+/* UNIVERSAL FIX: All text in light mode is BLACK by default */
+:not(.dark) * {
   color: #0f172a !important;
 }
 
-/* dark-mode: keep white where text-white was intentionally used */
-.dark .text-white {
+/* EXCEPTION: Keep white text ONLY on colored/dark backgrounds */
+:not(.dark) .bg-slate-900,
+:not(.dark) .bg-slate-800,
+:not(.dark) .bg-slate-700,
+:not(.dark) .bg-blue-500,
+:not(.dark) .bg-blue-600,
+:not(.dark) .bg-blue-700,
+:not(.dark) .bg-green-500,
+:not(.dark) .bg-green-600,
+:not(.dark) .bg-green-700,
+:not(.dark) .bg-red-500,
+:not(.dark) .bg-red-600,
+:not(.dark) .bg-red-700,
+:not(.dark) .bg-purple-600,
+:not(.dark) .bg-purple-700,
+:not(.dark) .bg-indigo-600,
+:not(.dark) .bg-indigo-700,
+:not(.dark) .bg-gray-500,
+:not(.dark) .bg-gray-600,
+:not(.dark) .bg-orange-600,
+:not(.dark) .bg-orange-700,
+:not(.dark) [class*="bg-gradient"],
+:not(.dark) [class*="from-blue"],
+:not(.dark) [class*="from-green"],
+:not(.dark) [class*="from-purple"],
+:not(.dark) [class*="from-indigo"],
+:not(.dark) [class*="from-orange"],
+:not(.dark) [class*="from-red"] {
   color: #ffffff !important;
 }
 
-/* Utility to force white text even in light mode (use on colored buttons/badges where white is required) */
-.ff-white {
-  color: #ffffff !important;
-}
-
-/* Ensure components that used the `ff-white` helper remain readable in light
-   mode by mapping it to the foreground color when page is not in dark mode.
-   This preserves the original white in dark mode while avoiding white-on-white
-   in light mode for components that accidentally used ff-white on light
-   backgrounds. */
-:not(.dark) .ff-white {
-  color: #0f172a !important;
-}
-
-/* Override for elements that have BOTH text-white AND ff-white classes */
-:not(.dark) .text-white.ff-white,
-:not(.dark) .ff-white.text-white {
-  color: #0f172a !important;
-}
-
-/* Ensure colored backgrounds still have white text in light mode */
-:not(.dark) .bg-blue-500 .text-white,
-:not(.dark) .bg-blue-600 .text-white,
-:not(.dark) .bg-green-500 .text-white,
-:not(.dark) .bg-green-600 .text-white,
-:not(.dark) .bg-red-500 .text-white,
-:not(.dark) .bg-red-600 .text-white,
-:not(.dark) .bg-purple-600 .text-white,
-:not(.dark) .bg-indigo-600 .text-white,
-:not(.dark) .bg-gray-500 .text-white,
-:not(.dark) .bg-gray-600 .text-white,
-:not(.dark) .bg-orange-600 .text-white,
-:not(.dark) [class*="bg-gradient"] .text-white,
-:not(.dark) [class*="bg-gradient"] .ff-white {
+/* Ensure nested elements in colored backgrounds also get white */
+:not(.dark) .bg-slate-900 *,
+:not(.dark) .bg-slate-800 *,
+:not(.dark) .bg-slate-700 *,
+:not(.dark) .bg-blue-500 *,
+:not(.dark) .bg-blue-600 *,
+:not(.dark) .bg-blue-700 *,
+:not(.dark) .bg-green-500 *,
+:not(.dark) .bg-green-600 *,
+:not(.dark) .bg-green-700 *,
+:not(.dark) .bg-red-500 *,
+:not(.dark) .bg-red-600 *,
+:not(.dark) .bg-red-700 *,
+:not(.dark) .bg-purple-600 *,
+:not(.dark) .bg-purple-700 *,
+:not(.dark) .bg-indigo-600 *,
+:not(.dark) .bg-indigo-700 *,
+:not(.dark) .bg-gray-500 *,
+:not(.dark) .bg-gray-600 *,
+:not(.dark) .bg-orange-600 *,
+:not(.dark) .bg-orange-700 *,
+:not(.dark) [class*="bg-gradient"] *,
+:not(.dark) [class*="from-blue"] *,
+:not(.dark) [class*="from-green"] *,
+:not(.dark) [class*="from-purple"] *,
+:not(.dark) [class*="from-indigo"] *,
+:not(.dark) [class*="from-orange"] *,
+:not(.dark) [class*="from-red"] * {
   color: #ffffff !important;
 }
 
