@@ -244,8 +244,8 @@ export default function DashboardLayout({
         </div>
 
         {/* Page content */}
-        <main className="flex-1 bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 bg-white pb-20">
+          <div className="max-w-7xl mx-auto bg-white">
             {children}
           </div>
         </main>
