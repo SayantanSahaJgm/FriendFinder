@@ -8,6 +8,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.os.ParcelUuid;
+import android.util.Base64;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -64,11 +65,22 @@ public class BleAdvertiserModule extends ReactContextBaseJavaModule {
 
             ParcelUuid parcelUuid = ParcelUuid.fromString(serviceUuid);
 
-            AdvertiseData data = new AdvertiseData.Builder()
+            AdvertiseData.Builder dataBuilder = new AdvertiseData.Builder()
                     .addServiceUuid(parcelUuid)
-                    // Note: adding custom manufacturer data or service data would require bytes. Use base64Payload decoding in JS if needed.
-                    .setIncludeDeviceName(false)
-                    .build();
+                    .setIncludeDeviceName(false);
+
+            // Attach service data when a base64 payload was provided (keeps Java and iOS implementations compatible)
+            if (base64Payload != null && !base64Payload.isEmpty()) {
+                try {
+                    byte[] payloadBytes = Base64.decode(base64Payload, Base64.DEFAULT);
+                    // addServiceData maps the ParcelUuid to a byte[] payload
+                    dataBuilder.addServiceData(parcelUuid, payloadBytes);
+                } catch (IllegalArgumentException iae) {
+                    // fallback: ignore malformed base64
+                }
+            }
+
+            AdvertiseData data = dataBuilder.build();
 
             advertiseCallback = new AdvertiseCallback() {};
             advertiser.startAdvertising(settings, data, advertiseCallback);

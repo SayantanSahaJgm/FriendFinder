@@ -28,14 +28,25 @@ RCT_EXPORT_METHOD(isAdvertisingAvailable:(RCTPromiseResolveBlock)resolve rejecte
 }
 
 RCT_EXPORT_METHOD(startAdvertising:(NSString *)serviceUUID base64Payload:(NSString *)base64 resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-  // Simplified: advertise service UUID only. Payload handling can be added by decoding base64 and using CBAdvertisementDataServiceDataKey.
+  // Advertise service UUID and optional service data decoded from base64Payload
   if (_peripheralManager.state != CBPeripheralManagerStatePoweredOn) {
     resolve(@(NO));
     return;
   }
 
   CBUUID *uuid = [CBUUID UUIDWithString:serviceUUID];
-  NSDictionary *advertisement = @{CBAdvertisementDataServiceUUIDsKey: @[uuid]};
+  NSMutableDictionary *advertisement = [NSMutableDictionary dictionary];
+  advertisement[CBAdvertisementDataServiceUUIDsKey] = @[uuid];
+
+  if (base64 != nil && base64.length > 0) {
+    NSData *payloadData = [[NSData alloc] initWithBase64EncodedString:base64 options:0];
+    if (payloadData) {
+      // Service data expects a mapping from CBUUID to NSData
+      NSDictionary *serviceData = @{ uuid : payloadData };
+      advertisement[CBAdvertisementDataServiceDataKey] = serviceData;
+    }
+  }
+
   [_peripheralManager startAdvertising:advertisement];
   resolve(@(YES));
 }

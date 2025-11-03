@@ -19,10 +19,12 @@ export const startAdvertising = async (serviceUUID: string, payload: string): Pr
     // Some native implementations may be synchronous or return a value/promise.
     const result = BleAdvertiser.startAdvertising(serviceUUID, payload);
     if (result && typeof result.then === 'function') {
-      // native returned a promise
-      await result;
+      // native returned a promise that resolves to a boolean
+      const resolved = await result;
+      return !!resolved;
     }
-    return true;
+    // native call was synchronous - interpret truthy return value
+    return !!result;
   } catch (err) {
     console.warn('BleAdvertiser.startAdvertising failed:', err);
     return false;
@@ -40,9 +42,10 @@ export const stopAdvertising = async (): Promise<boolean> => {
   try {
     const result = BleAdvertiser.stopAdvertising();
     if (result && typeof result.then === 'function') {
-      await result;
+      const resolved = await result;
+      return !!resolved;
     }
-    return true;
+    return !!result;
   } catch (err) {
     console.warn('BleAdvertiser.stopAdvertising failed:', err);
     return false;
@@ -54,6 +57,18 @@ export const stopAdvertising = async (): Promise<boolean> => {
  */
 export const isAdvertisingAvailable = (): boolean => {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') return false;
+  // If the native module exposes an async availability check, prefer that. Otherwise fall back to presence check.
+  if (BleAdvertiser && typeof BleAdvertiser.isAdvertisingAvailable === 'function') {
+    // Note: native isAdvertisingAvailable likely returns a Promise; caller should use tryStartAdvertising/tryStopAdvertising for async checks.
+    // Here we return a presence-based fallback since this function is synchronous.
+    try {
+      // some platforms may expose a boolean directly
+      const avail = BleAdvertiser.isAdvertisingAvailable();
+      if (typeof avail === 'boolean') return avail;
+    } catch (e) {
+      // ignore - fall through to presence check
+    }
+  }
   return !!BleAdvertiser && typeof BleAdvertiser.startAdvertising === 'function' && typeof BleAdvertiser.stopAdvertising === 'function';
 };
 
