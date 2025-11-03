@@ -19,7 +19,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Bluetooth
+  Bluetooth,
+  MapPin
 } from "lucide-react";
 import { ThemeToggleCompact } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,7 @@ export default function Navigation() {
     { href: "/dashboard/friends", label: "Friends", icon: Users, badge: 2 },
     { href: "/dashboard/messages", label: "Messages", icon: MessageCircle, badge: 5 },
     { href: "/dashboard/random-chat", label: "Random Chat", icon: Shuffle },
+    { href: "/dashboard/map", label: "Map", icon: MapPin },
     { href: "/dashboard/bluetooth", label: "Bluetooth", icon: Bluetooth },
     { href: "/dashboard/discover", label: "Discover", icon: Search },
     { href: "/dashboard/profile", label: "Profile", icon: User },
@@ -286,8 +288,8 @@ export default function Navigation() {
               navigationItems[0], // Dashboard
               navigationItems[1], // Friends
               navigationItems[3], // Random Chat
-              navigationItems[4], // Bluetooth
-              navigationItems[5], // Discover
+              navigationItems[4], // Map
+              navigationItems[6], // Discover
             ].map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);

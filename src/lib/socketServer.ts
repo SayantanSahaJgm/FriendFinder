@@ -1,4 +1,4 @@
-import { Server as NetServer } from 'http'
+import { Server as NetServer, createServer } from 'http'
 import { Server as ServerIO } from 'socket.io'
 import { getToken } from 'next-auth/jwt'
 import mongoose from 'mongoose'
@@ -41,6 +41,11 @@ export interface ServerToClientEvents {
   // Partner verification event (broadcast when a participant verifies their face)
   'random-chat:partner-verified': (data: { sessionId: string; userAnonymousId?: string; isVerified: boolean; confidence?: number; timestamp?: number }) => void
   'error': (message: string) => void
+  // Location events
+  'location:changed'?: (data: any) => void
+  'location:updated'?: (data: any) => void
+  'location:unavailable'?: (data: { friendId: string }) => void
+  'location:response'?: (data: any) => void
 }
 
 export interface ClientToServerEvents {
@@ -72,6 +77,9 @@ export interface ClientToServerEvents {
   'random-chat:webrtc-ice-candidate': (data: { sessionId: string; candidate: RTCIceCandidate }) => void
   // Client emits verification results which server will forward to the session room
   'random-chat:verification': (data: { sessionId: string; userAnonymousId?: string; isVerified: boolean; confidence?: number; timestamp?: number }) => void
+  // Location events
+  'location:update'?: (data: { latitude: number; longitude: number; accuracy?: number }) => void
+  'location:request'?: (data: { friendId: string }) => void
 }
 
 export interface InterServerEvents {
@@ -274,9 +282,28 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
   >(server, {
     path: '/api/socket.io',
     addTrailingSlash: false,
+    // CORS: allow the official origins in production but be permissive during
+    // local development to avoid polling/XHR preflight problems while debugging.
     cors: {
-      origin: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-      methods: ['GET', 'POST'],
+      origin: (origin, callback) => {
+        // Log origin for debugging when present
+        if (origin) console.log('Socket.IO incoming origin:', origin)
+
+        if (process.env.NODE_ENV !== 'production') {
+          // Allow any origin in dev (convenience only)
+          return callback(null, true)
+        }
+
+        const allowed = [
+          process.env.NEXTAUTH_URL || 'http://localhost:3000',
+          process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3001'
+        ]
+
+        if (!origin) return callback(new Error('Origin missing'), false)
+        callback(null, allowed.includes(origin))
+      },
+      methods: ['GET', 'POST', 'OPTIONS'],
+      credentials: true,
     },
   })
 
@@ -654,6 +681,137 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
       }
     })
 
+    // Location Event Handlers
+    
+    // Handle location update broadcast
+    socket.on('location:update', async (data: { latitude: number; longitude: number; accuracy?: number }) => {
+      try {
+        const { latitude, longitude, accuracy } = data
+
+        // Validate coordinates
+        if (
+          typeof latitude !== 'number' ||
+          typeof longitude !== 'number' ||
+          latitude < -90 ||
+          latitude > 90 ||
+          longitude < -180 ||
+          longitude > 180
+        ) {
+          socket.emit('error', 'Invalid coordinates')
+          return
+        }
+
+        // Update location in database
+        await dbConnect()
+        const updatedUser = await User.findByIdAndUpdate(
+          user.id,
+          {
+            $set: {
+              location: {
+                type: 'Point',
+                coordinates: [longitude, latitude],
+                accuracy: accuracy || null,
+                lastUpdated: new Date(),
+              },
+              lastSeen: new Date(),
+            },
+          },
+          { new: true, select: 'friends username location' }
+        ).populate('friends', '_id')
+
+        if (!updatedUser) {
+          socket.emit('error', 'User not found')
+          return
+        }
+
+        // Broadcast location to all friends
+        const locationData = {
+          userId: user.id,
+          username: user.username,
+          location: {
+            lat: latitude,
+            lng: longitude,
+            accuracy: accuracy || null,
+          },
+          timestamp: new Date().toISOString(),
+        }
+
+        // Respect user's privacy settings before broadcasting
+        try {
+          const settings = (updatedUser as any).settings || {}
+
+          // If the user has disabled location sharing entirely, do not broadcast
+          if (settings.locationSharing === false) {
+            console.log(`Location update for ${user.username} suppressed due to locationSharing=false`)
+          } else {
+            // Build list of friend IDs (normalize to strings)
+            const friendIds: string[] = (updatedUser.friends || []).map((f: any) => {
+              // populated friend doc or raw ObjectId
+              return f && f._id ? f._id.toString() : (f ? f.toString() : '')
+            }).filter(Boolean)
+
+            // If an allow-list exists, restrict recipients to those included
+            let recipients = friendIds
+            if (Array.isArray(settings.locationVisibleTo) && settings.locationVisibleTo.length > 0) {
+              const allowSet = new Set(settings.locationVisibleTo.map((id: any) => (id.toString ? id.toString() : id)))
+              recipients = friendIds.filter(id => allowSet.has(id))
+            }
+
+            // Emit to each allowed friend
+            recipients.forEach((friendId) => {
+              io.to(`user:${friendId}`).emit('location:changed', locationData)
+            })
+
+            console.log(`Location updated for ${user.username} and broadcast to ${recipients.length} friends`)
+          }
+        } catch (err) {
+          console.error('Error while applying location-sharing settings:', err)
+        }
+      } catch (error) {
+        console.error('Error handling location update:', error)
+        socket.emit('error', 'Failed to update location')
+      }
+    })
+
+    // Handle location request (get specific friend's location)
+    socket.on('location:request', async (data: { friendId: string }) => {
+      try {
+        const { friendId } = data
+
+        await dbConnect()
+        
+        // Verify friendship
+        const currentUser = await User.findById(user.id).select('friends')
+        if (!currentUser || !currentUser.friends.some((fId: any) => fId.toString() === friendId)) {
+          socket.emit('error', 'Not friends with this user')
+          return
+        }
+
+        // Get friend's location
+        const friend = await User.findById(friendId).select('username location lastSeen isOnline')
+        if (!friend || !friend.location) {
+          socket.emit('location:unavailable', { friendId })
+          return
+        }
+
+        // Send location to requester
+        socket.emit('location:response', {
+          userId: friendId,
+          username: friend.username,
+          location: {
+            lat: friend.location.coordinates[1],
+            lng: friend.location.coordinates[0],
+            accuracy: friend.location.accuracy || null,
+            lastUpdated: friend.location.lastUpdated,
+          },
+          isOnline: friend.isOnline || false,
+        })
+      } catch (error) {
+        console.error('Error handling location request:', error)
+        socket.emit('error', 'Failed to get location')
+      }
+    })
+
     // Handle disconnection
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user.username} (${socket.id})`)
@@ -678,7 +836,79 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
   // Start random chat matching service
   startRandomChatMatching(io)
 
+  // Start a small debug HTTP endpoint for random chat (queue/session inspection)
+  try {
+    startRandomChatDebugServer(io)
+  } catch (err) {
+    console.error('Failed to start random chat debug server:', err)
+  }
+
   return io
+}
+
+// Debug HTTP endpoint to inspect random chat queue and active sessions
+function startRandomChatDebugServer(io: SocketIOServer) {
+  const port = parseInt(process.env.RANDOM_CHAT_DEBUG_PORT || '3010', 10)
+
+  const server = createServer(async (req, res) => {
+    try {
+      if (!req.url || req.method !== 'GET') {
+        res.writeHead(404)
+        res.end('Not Found')
+        return
+      }
+
+      if (req.url.startsWith('/debug/random-chat')) {
+        // Gather data
+        await dbConnect()
+
+        const queueCount = await RandomChatQueue.countDocuments({ isActive: true })
+        const queuePreviewDocs = await RandomChatQueue.find({ isActive: true })
+          .sort({ joinedAt: 1 })
+          .limit(20)
+          .select('userId anonymousId preferences joinedAt retryCount')
+          .lean()
+
+        const sessionsCount = await RandomChatSession.countDocuments({ status: 'active' })
+        const sessionsPreview = await RandomChatSession.find({ status: 'active' })
+          .sort({ 'metadata.startTime': -1 })
+          .limit(20)
+          .select('sessionId participants chatType metadata')
+          .lean()
+
+        const payload = {
+          timestamp: new Date().toISOString(),
+          queue: {
+            count: queueCount,
+            preview: queuePreviewDocs,
+          },
+          sessions: {
+            count: sessionsCount,
+            preview: sessionsPreview,
+          },
+          onlineUsers: Array.from(onlineUsers.keys()).slice(0, 50),
+        }
+
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        })
+        res.end(JSON.stringify(payload, null, 2))
+        return
+      }
+
+      res.writeHead(404)
+      res.end('Not Found')
+    } catch (err) {
+      console.error('Error in debug endpoint:', err)
+      res.writeHead(500)
+      res.end(JSON.stringify({ error: String(err) }))
+    }
+  })
+
+  server.listen(port, () => {
+    console.log(`Random chat debug endpoint listening at http://localhost:${port}/debug/random-chat`)
+  })
 }
 
 // Helper function to notify friends about online status changes

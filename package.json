@@ -35,6 +35,8 @@
     "postinstall": "node -e \"process.exit(0)\""
   },
   "dependencies": {
+    "@googlemaps/markerclusterer": "^2.6.2",
+    "@googlemaps/react-wrapper": "^1.2.0",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-label": "^2.1.7",
@@ -48,6 +50,7 @@
     "cloudinary": "^1.41.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "idb": "^8.0.3",
     "lucide-react": "^0.540.0",
     "mongoose": "^8.17.2",
     "next": "15.5.0",
@@ -61,6 +64,8 @@
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "workbox-strategies": "^7.3.0",
+    "workbox-window": "^7.3.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {
@@ -71,6 +76,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^2.4.6",
+    "@types/google.maps": "^3.58.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",

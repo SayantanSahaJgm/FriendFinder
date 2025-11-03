@@ -43,6 +43,10 @@ export function useSocket() {
   const isConnected = connectionState.status === 'connected'
 
   // Socket URL configuration
+  // Default to port 3000 where the Socket.IO server runs in this repo
+  // The standalone Socket.IO server in this repo listens on 3004 by default
+  // (see server.js). Prefer an explicit NEXT_PUBLIC_SOCKET_PORT, otherwise
+  // fall back to 3004 instead of 3000 to match the dev server.
   const socketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || '3004'
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://localhost:${socketPort}`
 
@@ -73,7 +77,8 @@ export function useSocket() {
 
     try {
       const newSocket = io(socketUrl, {
-        path: '/socket.io/',
+          // Server.js exposes the Socket.IO endpoint at /socket.io/
+          path: '/socket.io/',
         // Prefer polling first to improve reliability in environments where
         // raw WebSocket connections are blocked. Socket.IO will upgrade to
         // websocket when possible.

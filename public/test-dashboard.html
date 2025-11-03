@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3 Testing Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .test-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        .test-item.checked {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .test-item.checked .checkbox {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        .test-text {
+            flex: 1;
+            color: #333;
+        }
+        .progress {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 10px 10px 0 0;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 5px 0;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        .quick-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Phase 3 Map Features Testing Dashboard</h1>
+            <p>Test Google Maps integration, real-time location sharing, and friend interactions</p>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h2>📋 Setup (Choose One)</h2>
+                <div class="test-item" onclick="window.open('http://localhost:3001/register', '_blank')">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Register <code>maptest1@test.com</code></div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Register <code>maptest2@test.com</code> (incognito)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Make users friends with each other</div>
+                </div>
+                <div class="quick-links">
+                    <a href="http://localhost:3001/register" target="_blank" class="btn">Register User 1</a>
+                    <a href="http://localhost:3001/dashboard/friends" target="_blank" class="btn">Add Friends</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🗺️ Map Loading</h2>
+                <div class="test-item" onclick="window.open('http://localhost:3001/dashboard/map', '_blank')">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Open map in Window 1</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Allow location permission</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Blue marker appears (your location)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Bottom-left panel shows coordinates</div>
+                </div>
+                <div class="quick-links">
+                    <a href="http://localhost:3001/dashboard/map" target="_blank" class="btn">Open Map</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>👥 Friend Markers</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Open map in Window 2 (incognito)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Green friend marker appears on both</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">"Friends Nearby" panel shows count</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Distance displayed correctly</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>💬 InfoWindow Popup</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Click friend marker → popup appears</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Shows friend name & online status</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Shows distance & last updated</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Chat button visible (blue)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Call button visible (green)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Get Directions button visible</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Action Buttons</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Chat button opens chat interface</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Call button opens call interface</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Get Directions opens Google Maps</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">X button closes InfoWindow</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔄 Real-Time Updates</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Run location update in console</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Other browser sees update (&lt;10s)</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Distance updates automatically</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">No console errors appear</div>
+                </div>
+                <button class="btn" onclick="copyCode('update')">Copy Update Code</button>
+            </div>
+
+            <div class="card">
+                <h2>🔔 Distance Alerts</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Move within 500m of friend</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Toast notification appears</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Bell badge shows at top</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Alert auto-dismisses after 10s</div>
+                </div>
+                <button class="btn" onclick="copyCode('alert')">Copy Alert Code</button>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Socket.IO Check</h2>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Socket.IO health check passes</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">Console shows "Socket.IO connected"</div>
+                </div>
+                <div class="test-item" onclick="toggleCheck(this)">
+                    <div class="checkbox"></div>
+                    <div class="test-text">No connection errors in console</div>
+                </div>
+                <button class="btn" onclick="copyCode('socket')">Copy Socket Check</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✅ Testing Complete!</h2>
+            <p id="statusText" class="status pending">Status: In Progress</p>
+            <div class="quick-links">
+                <a href="http://localhost:3001/dashboard/map" target="_blank" class="btn btn-success">Open Map</a>
+                <a href="QUICK_TEST_GUIDE.md" target="_blank" class="btn">Full Guide</a>
+                <button class="btn" onclick="resetAll()">Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <textarea id="clipboardHelper" style="position:absolute;left:-9999px;"></textarea>
+
+    <script>
+        const codes = {
+            update: `// Simulate location update
+navigator.geolocation.getCurrentPosition(pos => {
+  fetch('/api/location/update', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      latitude: pos.coords.latitude + 0.001,
+      longitude: pos.coords.longitude,
+      accuracy: 10
+    })
+  }).then(r => r.json()).then(d => console.log('Location updated:', d))
+})`,
+            alert: `// Simulate moving close to friend
+fetch('/api/location/friends')
+  .then(r => r.json())
+  .then(data => {
+    const friend = data.friends[0];
+    fetch('/api/location/update', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        latitude: friend.location.lat + 0.003,
+        longitude: friend.location.lng,
+        accuracy: 10
+      })
+    }).then(r => r.json()).then(d => console.log('Moved close to friend:', d))
+  })`,
+            socket: `// Check Socket.IO health
+fetch('/api/socket-health')
+  .then(r => r.json())
+  .then(d => console.log('Socket.IO Status:', d))`
+        };
+
+        function toggleCheck(element) {
+            element.classList.toggle('checked');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const items = document.querySelectorAll('.test-item');
+            const checked = document.querySelectorAll('.test-item.checked');
+            const progress = (checked.length / items.length) * 100;
+            
+            const bar = document.getElementById('progressBar');
+            bar.style.width = progress + '%';
+            bar.textContent = Math.round(progress) + '%';
+
+            const statusText = document.getElementById('statusText');
+            if (progress === 100) {
+                statusText.className = 'status complete';
+                statusText.textContent = '✅ Status: All Tests Complete!';
+            } else {
+                statusText.className = 'status pending';
+                statusText.textContent = `⏳ Status: ${checked.length}/${items.length} tests completed`;
+            }
+        }
+
+        function copyCode(type) {
+            const code = codes[type];
+            const helper = document.getElementById('clipboardHelper');
+            helper.value = code;
+            helper.select();
+            document.execCommand('copy');
+            alert('Code copied to clipboard! Paste in browser console (F12)');
+        }
+
+        function resetAll() {
+            document.querySelectorAll('.test-item.checked').forEach(item => {
+                item.classList.remove('checked');
+            });
+            updateProgress();
+        }
+
+        // Initialize progress
+        updateProgress();
+    </script>
+</body>
+</html>

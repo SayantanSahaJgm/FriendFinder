@@ -78,7 +78,11 @@ export interface IUser extends Document {
   isOnline?: boolean;
 
   // User Settings
-  settings?: Record<string, any>;
+  settings?: {
+    locationSharing?: boolean; // global toggle: allow friends to see your location
+    locationVisibleTo?: mongoose.Types.ObjectId[]; // explicit allow-list of friend IDs; empty -> all friends
+    [key: string]: any
+  };
 
   // Timestamps
   createdAt: Date;
@@ -310,6 +314,17 @@ const UserSchema = new Schema<IUser>({
   preferredLanguages: {
     type: [String],
     default: ['en'],
+  },
+  // User-level settings container
+  settings: {
+    locationSharing: {
+      type: Boolean,
+      default: true,
+    },
+    locationVisibleTo: [{
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    }],
   },
 }, {
   timestamps: true,
