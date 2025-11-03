@@ -46,7 +46,7 @@ export default function TopHeader() {
         </div>
 
         {/* Desktop Navigation tabs (hidden on mobile) */}
-  <nav className="hidden lg:flex items-center space-x-6 border-t border-gray-200 pt-2">
+  <nav className="hidden lg:flex w-full justify-center items-center space-x-6 border-t border-gray-200 pt-2">
           <Link href={session?.user ? "/dashboard" : "/login"} className="flex items-center space-x-2 hover:text-blue-400 transition-colors text-gray-700">
             <Home className="w-5 h-5" />
             <span className="text-sm">Dashboard</span>

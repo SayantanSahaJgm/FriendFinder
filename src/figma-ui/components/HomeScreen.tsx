@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import TopHeader from "./TopHeader";
-import StoriesBar from "./StoriesBar";
 import BottomNavigation from "./BottomNavigation";
 
 export default function HomeScreen() {
@@ -9,7 +8,7 @@ export default function HomeScreen() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50">
       <TopHeader />
 
-  <StoriesBar />
+
 
   <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-4xl mx-auto">
