@@ -80,6 +80,8 @@
        Use a direct CSS fallback here so builds don't fail when the Tailwind
        utility is not present. The CSS variable --border is defined above. */
     border-color: var(--border);
+    /* Force all text to black for readability */
+    color: #000000 !important;
   }
   html {
     text-size-adjust: 100%;
@@ -110,71 +112,28 @@
   --ff-override-foreground: var(--foreground);
 }
 
-/* UNIVERSAL FIX: All text in light mode is BLACK by default */
-:not(.dark) * {
-  color: #0f172a !important;
+/* light-mode override: make all text-white dark for legibility */
+:not(.dark) .text-white {
+  color: var(--ff-override-foreground) !important;
 }
 
-/* EXCEPTION: Keep white text ONLY on colored/dark backgrounds */
-:not(.dark) .bg-slate-900,
-:not(.dark) .bg-slate-800,
-:not(.dark) .bg-slate-700,
-:not(.dark) .bg-blue-500,
-:not(.dark) .bg-blue-600,
-:not(.dark) .bg-blue-700,
-:not(.dark) .bg-green-500,
-:not(.dark) .bg-green-600,
-:not(.dark) .bg-green-700,
-:not(.dark) .bg-red-500,
-:not(.dark) .bg-red-600,
-:not(.dark) .bg-red-700,
-:not(.dark) .bg-purple-600,
-:not(.dark) .bg-purple-700,
-:not(.dark) .bg-indigo-600,
-:not(.dark) .bg-indigo-700,
-:not(.dark) .bg-gray-500,
-:not(.dark) .bg-gray-600,
-:not(.dark) .bg-orange-600,
-:not(.dark) .bg-orange-700,
-:not(.dark) [class*="bg-gradient"],
-:not(.dark) [class*="from-blue"],
-:not(.dark) [class*="from-green"],
-:not(.dark) [class*="from-purple"],
-:not(.dark) [class*="from-indigo"],
-:not(.dark) [class*="from-orange"],
-:not(.dark) [class*="from-red"] {
+/* dark-mode: keep white where text-white was intentionally used */
+.dark .text-white {
+  color: #181717 !important;
+}
+
+/* Utility to force white text even in light mode (use on colored buttons/badges where white is required) */
+.ff-white {
   color: #ffffff !important;
 }
 
-/* Ensure nested elements in colored backgrounds also get white */
-:not(.dark) .bg-slate-900 *,
-:not(.dark) .bg-slate-800 *,
-:not(.dark) .bg-slate-700 *,
-:not(.dark) .bg-blue-500 *,
-:not(.dark) .bg-blue-600 *,
-:not(.dark) .bg-blue-700 *,
-:not(.dark) .bg-green-500 *,
-:not(.dark) .bg-green-600 *,
-:not(.dark) .bg-green-700 *,
-:not(.dark) .bg-red-500 *,
-:not(.dark) .bg-red-600 *,
-:not(.dark) .bg-red-700 *,
-:not(.dark) .bg-purple-600 *,
-:not(.dark) .bg-purple-700 *,
-:not(.dark) .bg-indigo-600 *,
-:not(.dark) .bg-indigo-700 *,
-:not(.dark) .bg-gray-500 *,
-:not(.dark) .bg-gray-600 *,
-:not(.dark) .bg-orange-600 *,
-:not(.dark) .bg-orange-700 *,
-:not(.dark) [class*="bg-gradient"] *,
-:not(.dark) [class*="from-blue"] *,
-:not(.dark) [class*="from-green"] *,
-:not(.dark) [class*="from-purple"] *,
-:not(.dark) [class*="from-indigo"] *,
-:not(.dark) [class*="from-orange"] *,
-:not(.dark) [class*="from-red"] * {
-  color: #ffffff !important;
+/* Ensure components that used the `ff-white` helper remain readable in light
+   mode by mapping it to the foreground color when page is not in dark mode.
+   This preserves the original white in dark mode while avoiding white-on-white
+   in light mode for components that accidentally used ff-white on light
+   backgrounds. */
+:not(.dark) .ff-white {
+  color: var(--ff-override-foreground) !important;
 }
 
 /* Animation for distance alert toasts */
