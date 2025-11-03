@@ -48,3 +48,21 @@ export const stopAdvertising = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Synchronous availability check for UI. Returns true if native module exists and exposes methods.
+ */
+export const isAdvertisingAvailable = (): boolean => {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') return false;
+  return !!BleAdvertiser && typeof BleAdvertiser.startAdvertising === 'function' && typeof BleAdvertiser.stopAdvertising === 'function';
+};
+
+// Small compatibility shim: some native modules may return nothing. Provide a helper
+// that attempts to call startAdvertising and returns a boolean indicating success.
+export const tryStartAdvertising = async (serviceUUID: string, payload: string): Promise<boolean> => {
+  return await startAdvertising(serviceUUID, payload);
+};
+
+export const tryStopAdvertising = async (): Promise<boolean> => {
+  return await stopAdvertising();
+};
