@@ -145,7 +145,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pb-6">
+    <div className="bg-white min-h-screen pb-6">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Stories Section */}
         <div className="mb-6">
