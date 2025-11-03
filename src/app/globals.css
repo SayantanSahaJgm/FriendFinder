@@ -96,3 +96,27 @@
     display: none;
   }
 }
+
+/*
+  Make elements that use the `text-white` utility readable in light mode by
+  mapping them to the foreground color, while preserving white in dark mode.
+  This is a minimal, project-wide fix to make text visible on light
+  backgrounds without requiring hundreds of manual edits.
+*/
+/* When the page is NOT in dark mode, render `text-white` as the --foreground
+   color (dark). When `.dark` is present, keep the original white color. */
+:root {
+  /* ensure variable available */
+  --ff-override-foreground: var(--foreground);
+}
+
+/* light-mode override: make all text-white dark for legibility */
+:not(.dark) .text-white {
+  color: var(--ff-override-foreground) !important;
+}
+
+/* dark-mode: keep white where text-white was intentionally used */
+.dark .text-white {
+  color: #ffffff !important;
+}
+
