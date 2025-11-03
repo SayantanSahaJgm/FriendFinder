@@ -62,7 +62,7 @@ export default function JobDetailsModal({ isOpen, onClose, job }: JobDetailsModa
       {/* Modal */}
       <div className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-  <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white ff-white ff-white">
+  <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white ff-white">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -88,7 +88,7 @@ export default function JobDetailsModal({ isOpen, onClose, job }: JobDetailsModa
               <p className="text-blue-100 text-lg mb-3">{job.company}</p>
               
               <div className="flex flex-wrap gap-3">
-                <Badge variant="secondary" className="bg-white/20 text-white ff-white ff-white border-white/30">
+                <Badge variant="secondary" className="bg-white/20 text-white ff-white border-white/30">
                   <MapPin className="w-3 h-3 mr-1" />
                   {job.location}
                 </Badge>

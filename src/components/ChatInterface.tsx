@@ -719,10 +719,10 @@ export default function ChatInterface({
                             message.replyTo._id &&
                             message.replyTo.content
                 ? isCurrentUser
-                  ? "bg-blue-500 text-white ff-white ff-white rounded-b-2xl rounded-tr-2xl"
+                  ? "bg-blue-500 text-white ff-white rounded-b-2xl rounded-tr-2xl"
                   : "bg-gray-100 text-gray-900 rounded-b-2xl rounded-tl-2xl"
                               : isCurrentUser
-                              ? "bg-blue-500 text-white ff-white ff-white rounded-2xl rounded-br-md"
+                              ? "bg-blue-500 text-white ff-white rounded-2xl rounded-br-md"
                               : "bg-gray-100 text-gray-900 rounded-2xl rounded-bl-md"
                           }`}
                         >
@@ -908,7 +908,7 @@ export default function ChatInterface({
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-white ff-white ff-white text-xs font-medium">
+                              <span className="text-white ff-white text-xs font-medium">
                                 {session?.user?.name
                                   ?.charAt(0)
                                   ?.toUpperCase() || "U"}

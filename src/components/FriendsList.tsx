@@ -194,7 +194,7 @@ export default function FriendsList({
     );
   }
 
-              className="px-2 py-1 bg-red-500 text-white ff-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+              className="px-2 py-1 bg-red-500 text-white ff-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center">

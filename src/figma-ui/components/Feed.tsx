@@ -39,7 +39,7 @@ function Story({ name, img, isYourStory, onClick }: { name: string; img?: string
               <img src={img} alt={name} className="w-full h-full object-cover rounded-full" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white ff-white ff-white text-xl font-bold">{name.charAt(0).toUpperCase()}</span>
+                <span className="text-white ff-white text-xl font-bold">{name.charAt(0).toUpperCase()}</span>
               </div>
             )}
           </div>
@@ -68,7 +68,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
         <div className="flex items-center space-x-3">
           <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
             <AvatarImage src={author.image} alt={author.name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white ff-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white font-semibold">
               {author.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -205,7 +205,7 @@ export default function Feed() {
           >
             <Avatar className="w-9 h-9 ring-2 ring-gray-200 dark:ring-gray-600">
               <AvatarImage src={session?.user?.image || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white ff-white">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white">
                 <User className="w-5 h-5" />
               </AvatarFallback>
             </Avatar>
