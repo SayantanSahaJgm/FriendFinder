@@ -112,7 +112,7 @@
 
 /* light-mode override: make all text-white dark for legibility */
 :not(.dark) .text-white {
-  color: var(--ff-override-foreground) !important;
+  color: #0f172a !important;
 }
 
 /* dark-mode: keep white where text-white was intentionally used */
@@ -131,7 +131,30 @@
    in light mode for components that accidentally used ff-white on light
    backgrounds. */
 :not(.dark) .ff-white {
-  color: var(--ff-override-foreground) !important;
+  color: #0f172a !important;
+}
+
+/* Override for elements that have BOTH text-white AND ff-white classes */
+:not(.dark) .text-white.ff-white,
+:not(.dark) .ff-white.text-white {
+  color: #0f172a !important;
+}
+
+/* Ensure colored backgrounds still have white text in light mode */
+:not(.dark) .bg-blue-500 .text-white,
+:not(.dark) .bg-blue-600 .text-white,
+:not(.dark) .bg-green-500 .text-white,
+:not(.dark) .bg-green-600 .text-white,
+:not(.dark) .bg-red-500 .text-white,
+:not(.dark) .bg-red-600 .text-white,
+:not(.dark) .bg-purple-600 .text-white,
+:not(.dark) .bg-indigo-600 .text-white,
+:not(.dark) .bg-gray-500 .text-white,
+:not(.dark) .bg-gray-600 .text-white,
+:not(.dark) .bg-orange-600 .text-white,
+:not(.dark) [class*="bg-gradient"] .text-white,
+:not(.dark) [class*="bg-gradient"] .ff-white {
+  color: #ffffff !important;
 }
 
 /* Animation for distance alert toasts */
