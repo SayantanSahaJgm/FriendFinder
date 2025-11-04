@@ -1,6 +1,7 @@
-'use client'
+ 'use client'
 
 import { MessageCircle, Phone, Navigation, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { formatDistance } from '@/hooks/useGeolocation'
 
 interface FriendInfoWindowProps {
@@ -24,6 +25,7 @@ export default function FriendInfoWindow({
   onCall,
   onClose,
 }: FriendInfoWindowProps) {
+  const router = useRouter()
   const getLastUpdatedText = () => {
     const now = new Date()
     const diffMs = now.getTime() - lastUpdated.getTime()
@@ -106,11 +108,16 @@ export default function FriendInfoWindow({
       {/* View Profile */}
       <button
         onClick={() => {
+          if (!friendId) {
+            console.error('Attempted to view profile but friendId is missing')
+            return
+          }
+
+          // Use client-side navigation for a smoother transition and fewer runtime edge-cases
           try {
-            // navigate to the public profile page for this friend
-            window.location.href = `/dashboard/profile/${friendId}`
+            router.push(`/dashboard/profile/${friendId}`)
           } catch (e) {
-            // fallback: open in new tab
+            // Fallback to opening in a new tab if router navigation fails
             window.open(`/dashboard/profile/${friendId}`, '_blank')
           }
         }}
