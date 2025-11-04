@@ -76,14 +76,19 @@ export function useSocket() {
     }
 
     try {
+      // On production (deployed sites), use polling-only to avoid WebSocket errors.
+      // WebSocket upgrades often fail on free-tier hosting (Render, Railway) due to
+      // proxy/load balancer limitations. Polling works reliably and performs well.
+      const isProduction = process.env.NODE_ENV === 'production' || 
+                           socketUrl.includes('render.com') || 
+                           socketUrl.includes('railway.app');
+      
       const newSocket = io(socketUrl, {
           // Server.js exposes the Socket.IO endpoint at /socket.io/
           path: '/socket.io/',
-        // Start with polling to avoid WebSocket upgrade errors on platforms like Render.
-        // Socket.IO will attempt to upgrade to WebSocket after initial connection succeeds.
-        // Setting upgrade: false disables automatic upgrade (use this if WebSocket is blocked).
-        transports: ['polling', 'websocket'],
-        upgrade: true, // Allow upgrade to websocket after polling connects
+        // Use polling-only on production to avoid WebSocket handshake failures
+        transports: isProduction ? ['polling'] : ['polling', 'websocket'],
+        upgrade: !isProduction, // Only allow upgrade to websocket in development
         timeout: 20000,
         reconnection: false, // We handle reconnection manually
         autoConnect: true,
