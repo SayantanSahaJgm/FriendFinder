@@ -100,7 +100,12 @@ const io = new Server(socketServer, {
     // Guard allowRequest to never call the callback more than once and
     // normalize origins for loose matching (strip trailing slashes, compare origin strings).
     try {
-      const originHeader = req.headers.origin || '';
+  const originHeader = req.headers.origin || '';
+  // If origin is missing, try to reconstruct it from common proxy headers
+  // (some hosting providers strip the Origin header on websocket upgrades)
+  const forwardedHost = req.headers['x-forwarded-host'] || req.headers['x-forwarded-server'] || '';
+  const forwardedProto = req.headers['x-forwarded-proto'] || req.headers['x-forwarded-protocol'] || '';
+  const reconstructedOrigin = (forwardedProto && forwardedHost) ? `${forwardedProto}://${forwardedHost}` : '';
 
       const normalize = (u) => {
         if (!u) return '';
@@ -120,7 +125,8 @@ const io = new Server(socketServer, {
         }
       };
 
-      const origin = normalize(originHeader);
+  // Prefer the real Origin header; fall back to reconstructed origin if present
+  const origin = normalize(originHeader || reconstructedOrigin);
 
   const normalizedAllowed = allowedOrigins.map(normalize).filter(Boolean);
   // Debug: print normalized allowed origins occasionally (will show during allowRequest calls)
@@ -130,7 +136,9 @@ const io = new Server(socketServer, {
       const allowAll = normalizedAllowed.includes('*');
 
   const isLocalhost = isDevelopment && origin.includes('localhost');
-  const isAllowed = allowAll || !origin || isLocalhost || normalizedAllowed.some(a => a === origin.toLowerCase());
+  // Allow missing origin when explicitly enabled (trusted proxy scenario)
+  const allowMissing = Boolean(process.env.SOCKET_ALLOW_MISSING_ORIGIN === '1');
+  const isAllowed = allowAll || !origin && allowMissing || !origin || isLocalhost || normalizedAllowed.some(a => a === origin.toLowerCase());
 
       console.log(`Socket.IO connection request from ${originHeader || '<no-origin>'}: ${isAllowed ? 'ALLOWED' : 'DENIED'}`);
 
@@ -1001,27 +1009,38 @@ socketServer.listen(SOCKET_PORT, (err) => {
 // Create a simple HTTP health server on a different port
 const healthPort = parseInt(SOCKET_PORT) + 1;
 const healthServer = createServer((req, res) => {
+  // Helper to respond safely and log stack traces when a write is attempted after end
+  function safeRespond(statusCode, bodyObj, headers = {}) {
+    if (res.writableEnded) {
+      console.error('Attempted to write response after it was ended (ERR_HTTP_HEADERS_SENT). Stack:');
+      console.error(new Error().stack);
+      return false;
+    }
+    try {
+      res.writeHead(statusCode, Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, headers));
+      res.end(JSON.stringify(bodyObj));
+      return true;
+    } catch (err) {
+      console.error('Error while writing response in safeRespond:', err);
+      try { if (!res.writableEnded) res.end(); } catch (e) { /* ignore */ }
+      return false;
+    }
+  }
   // Basic health endpoint
   if (req.url === '/health' && req.method === 'GET') {
-    if (!res.writableEnded) {
-      res.writeHead(200, {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      });
-      res.end(JSON.stringify({
-        status: 'healthy',
-        socketServer: {
-          port: SOCKET_PORT,
-          path: '/socket.io/',
-          totalConnections: connectionHealth.totalConnections,
-          activeConnections: connectionHealth.activeConnections,
-          errorCount: connectionHealth.errorCount,
-          lastError: connectionHealth.lastError,
-          uptime: Date.now() - connectionHealth.uptime
-        },
-        timestamp: new Date().toISOString()
-      }));
-    }
+    safeRespond(200, {
+      status: 'healthy',
+      socketServer: {
+        port: SOCKET_PORT,
+        path: '/socket.io/',
+        totalConnections: connectionHealth.totalConnections,
+        activeConnections: connectionHealth.activeConnections,
+        errorCount: connectionHealth.errorCount,
+        lastError: connectionHealth.lastError,
+        uptime: Date.now() - connectionHealth.uptime
+      },
+      timestamp: new Date().toISOString()
+    });
     return;
   }
 
@@ -1041,56 +1060,32 @@ const healthServer = createServer((req, res) => {
               const target = payload.targetUserId;
               io.to(`user:${target}`).emit(type, data);
               io.to(`user-${target}`).emit(type, data);
-              if (!res.writableEnded) {
-                res.writeHead(200, {
-                  'Content-Type': 'application/json',
-                  'Access-Control-Allow-Origin': '*'
-                });
-                res.end(JSON.stringify({ ok: true, emitted: type, target }));
-              }
+              safeRespond(200, { ok: true, emitted: type, target });
               return;
             } catch (emitErr) {
               console.error('Error emitting to target user room:', emitErr);
-              if (!res.writableEnded) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Failed to emit to target user' }));
-              }
+              safeRespond(500, { error: 'Failed to emit to target user' });
               return;
             }
           } else {
             // Re-emit to all connected clients
             try {
               io.emit(type, data);
-              if (!res.writableEnded) {
-                res.writeHead(200, {
-                  'Content-Type': 'application/json',
-                  'Access-Control-Allow-Origin': '*'
-                });
-                res.end(JSON.stringify({ ok: true, emitted: type }));
-              }
+              safeRespond(200, { ok: true, emitted: type });
               return;
             } catch (emitErr) {
               console.error('Error emitting to all clients:', emitErr);
-              if (!res.writableEnded) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Failed to emit to clients' }));
-              }
+              safeRespond(500, { error: 'Failed to emit to clients' });
               return;
             }
           }
         } else {
-          if (!res.writableEnded) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid payload: missing type' }));
-          }
+          safeRespond(400, { error: 'Invalid payload: missing type' });
           return;
         }
       } catch (err) {
         console.error('Invalid JSON in /emit:', err && err.message);
-        if (!res.writableEnded) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Invalid JSON' }));
-        }
+        safeRespond(400, { error: 'Invalid JSON' });
         return;
       }
     });
