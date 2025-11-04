@@ -50,19 +50,20 @@ export async function GET(
       return NextResponse.json({ error: 'Not authorized to view this profile' }, { status: 403 })
     }
 
+    // Return only plain-serializable values to avoid client-side parsing/runtime errors
     return NextResponse.json({
       success: true,
       user: {
-        id: targetUser._id,
+        id: targetUser._id?.toString(),
         username: targetUser.username,
         bio: targetUser.bio || null,
         profilePicture: targetUser.profilePicture || null,
-        location: isSelf || isFriend ? targetUser.location || null : null,
-        createdAt: targetUser.createdAt,
-        lastSeen: targetUser.lastSeen,
+        location: isSelf || isFriend ? (targetUser.location || null) : null,
+        createdAt: targetUser.createdAt ? new Date(targetUser.createdAt).toISOString() : null,
+        lastSeen: targetUser.lastSeen ? new Date(targetUser.lastSeen).toISOString() : null,
         isDiscoveryEnabled: !!targetUser.isDiscoveryEnabled,
-        isFriend
-      }
+        isFriend: !!isFriend,
+      },
     })
   } catch (error) {
     console.error('Error fetching user profile:', error)
