@@ -28,7 +28,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-3 shadow-sm">
+  <div className="bg-white border border-gray-200 rounded-lg mb-3 shadow-sm">
       {/* Post Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
@@ -50,7 +50,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
 
       {/* Post Image */}
       {image && (
-        <div className="w-full aspect-square bg-gray-100 dark:bg-gray-900">
+  <div className="w-full aspect-square bg-gray-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="post" className="w-full h-full object-cover" />
         </div>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Post Composer */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 shadow-sm">
+  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
           <div className="flex items-center space-x-3">
             <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-600">
               <AvatarImage src={session?.user?.image || undefined} />
@@ -163,19 +163,19 @@ export default function DashboardPage() {
             </Avatar>
             <button 
               onClick={() => router.push('/dashboard/create')}
-              className="flex-1 text-left px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition font-medium"
+              className="flex-1 text-left px-4 py-2.5 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition font-medium"
             >
               What's on your mind?
             </button>
             <button 
               onClick={() => router.push('/dashboard/create')}
-              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"
+              className="p-2.5 hover:bg-gray-100 rounded-full transition"
             >
               <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </button>
             <button 
               onClick={() => router.push('/dashboard/discover')}
-              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"
+              className="p-2.5 hover:bg-gray-100 rounded-full transition"
             >
               <MapPin className="w-5 h-5 text-red-600 dark:text-red-400" />
             </button>
@@ -185,19 +185,19 @@ export default function DashboardPage() {
         {/* Feed */}
         <div className="space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center justify-center py-20 bg-white rounded-lg">
               <div className="flex flex-col items-center space-y-3">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                <div className="text-gray-600 dark:text-gray-300 font-medium">Loading...</div>
+                <div className="text-gray-600 font-medium">Loading...</div>
               </div>
             </div>
           ) : posts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white dark:bg-gray-800 rounded-lg">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center mb-6">
-                <Heart className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+            <div className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white rounded-lg">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-6">
+                <Heart className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white ff-white mb-3">No posts yet</h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mb-8 max-w-xs">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">No posts yet</h3>
+              <p className="text-gray-600 text-sm mb-8 max-w-xs">
                 Follow friends to see their posts in your feed or create your first post to share with others
               </p>
               <button
