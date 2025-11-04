@@ -45,6 +45,9 @@ const allowedOrigins = isDevelopment
     ]
   : [...defaultProdOrigins, ...envOrigins].filter(Boolean);
 
+// Log computed allowed origins so runtime logs show which client origins were permitted.
+console.log('Socket.IO allowed origins:', allowedOrigins);
+
 console.log('Socket.IO CORS origins:', allowedOrigins);
 
 const io = new Server(socketServer, {
