@@ -17,6 +17,26 @@ console.log('Starting Socket.IO server...');
 // Create HTTP server for Socket.IO only
 const socketServer = createServer();
 
+// Temporary debug: log raw HTTP upgrade requests so we can inspect WebSocket handshakes
+// (Keep this only while troubleshooting; remove once root cause is identified.)
+socketServer.on('upgrade', (req, socket, head) => {
+  try {
+    // Log a trimmed set of headers to avoid leaking secrets in logs
+    const headers = {
+      upgrade: req.headers.upgrade,
+      connection: req.headers.connection,
+      origin: req.headers.origin,
+      host: req.headers.host,
+      'sec-websocket-key': req.headers['sec-websocket-key'],
+      'sec-websocket-version': req.headers['sec-websocket-version'],
+      'sec-websocket-protocol': req.headers['sec-websocket-protocol']
+    };
+    console.log('HTTP upgrade request:', req.url, headers);
+  } catch (e) {
+    console.log('HTTP upgrade request received (unable to log headers)');
+  }
+});
+
 // Initialize Socket.IO with enhanced configuration
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
