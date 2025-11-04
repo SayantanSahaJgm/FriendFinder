@@ -233,7 +233,7 @@ export default function MapPage() {
 
   return (
     // Force a white background for this page (override dark mode) so the map and panels appear on white
-    <div className="flex flex-col h-screen bg-white dark:bg-white text-black">
+  <div data-force-light className="flex flex-col h-screen bg-white dark:bg-white text-black">
       {/* Distance Alert Manager */}
       {latitude && longitude && (
         <DistanceAlertManager

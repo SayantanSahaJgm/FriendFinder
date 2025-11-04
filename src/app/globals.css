@@ -152,6 +152,25 @@
   animation: slide-in 0.3s ease-out;
 }
 
+/* Page-scoped force-light helper
+   Use by adding the attribute `data-force-light` to a container element. This
+   forces a light background and dark foreground for all descendants and
+   overrides any `dark:` utilities that may apply on the page. Useful for
+   pages that must remain readable even when a global dark mode is active.
+*/
+[data-force-light],
+[data-force-light] * {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Ensure elements that used text-white still render dark inside force-light */
+[data-force-light] .text-white {
+  color: #0f172a !important;
+}
+
+
 
 
 
