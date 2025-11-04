@@ -232,7 +232,8 @@ export default function MapPage() {
   ]
 
   return (
-    <div className="flex flex-col h-screen">
+    // Force a white background for this page (override dark mode) so the map and panels appear on white
+    <div className="flex flex-col h-screen bg-white dark:bg-white text-black">
       {/* Distance Alert Manager */}
       {latitude && longitude && (
         <DistanceAlertManager
@@ -243,7 +244,7 @@ export default function MapPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+  <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -383,7 +384,7 @@ export default function MapPage() {
         )}
 
         {/* Friends List Panel */}
-        <div className="absolute top-6 right-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-xs max-h-96 overflow-y-auto">
+  <div className="absolute top-6 right-6 bg-white dark:bg-white rounded-lg shadow-lg p-4 max-w-xs max-h-96 overflow-y-auto">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
             <span>Friends Nearby</span>
             <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
@@ -438,7 +439,7 @@ export default function MapPage() {
         </div>
 
         {/* Info Panel */}
-        <div className="absolute bottom-6 left-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-sm">
+  <div className="absolute bottom-6 left-6 bg-white dark:bg-white rounded-lg shadow-lg p-4 max-w-sm">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
             Your Location
           </h3>
