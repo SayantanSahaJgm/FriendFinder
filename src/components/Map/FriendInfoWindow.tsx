@@ -28,7 +28,15 @@ export default function FriendInfoWindow({
   const router = useRouter()
   const getLastUpdatedText = () => {
     const now = new Date()
-    const diffMs = now.getTime() - lastUpdated.getTime()
+    // Coerce lastUpdated to a Date if it's a string or number to avoid runtime errors
+    const last =
+      lastUpdated instanceof Date
+        ? lastUpdated
+        : lastUpdated
+        ? new Date(lastUpdated as any)
+        : new Date(0)
+
+    const diffMs = now.getTime() - last.getTime()
     const diffSec = Math.floor(diffMs / 1000)
     
     if (diffSec < 60) return 'Just now'
