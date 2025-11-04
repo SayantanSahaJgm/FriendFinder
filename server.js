@@ -19,17 +19,31 @@ const socketServer = createServer();
 
 // Initialize Socket.IO with enhanced configuration
 const isDevelopment = process.env.NODE_ENV !== 'production';
-const allowedOrigins = isDevelopment 
+
+// Allow configuring allowed client origins via environment variable. Use a
+// comma-separated list in `SOCKET_ALLOWED_ORIGINS` or `NEXT_PUBLIC_CLIENT_ORIGINS`.
+const envOriginsRaw = process.env.SOCKET_ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_CLIENT_ORIGINS || '';
+const envOrigins = envOriginsRaw
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+// Keep the project's historical production origins but include the new
+// friendfinder-vscode domain so deployed frontends can connect by default.
+const defaultProdOrigins = [
+  'https://friendfinder-0i02.onrender.com',
+  process.env.NEXTAUTH_URL,
+  'https://friendfinder-vscode.onrender.com'
+].filter(Boolean);
+
+const allowedOrigins = isDevelopment
   ? [
-      "http://localhost:3000",
-      "http://localhost:3001", 
-      "http://localhost:3002",
-      "http://localhost:3003",
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:3003'
     ]
-  : [
-      "https://friendfinder-0i02.onrender.com",
-      process.env.NEXTAUTH_URL,
-    ].filter(Boolean);
+  : [...defaultProdOrigins, ...envOrigins].filter(Boolean);
 
 console.log('Socket.IO CORS origins:', allowedOrigins);
 
