@@ -57,10 +57,10 @@ const io = new Server(socketServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  // Allow both transports; clients will start with polling and upgrade to websocket
-  transports: ["polling", "websocket"],
+  // Support WebSocket and polling; WebSocket is now properly supported on Render/Railway
+  transports: ["websocket", "polling"],
   allowEIO3: true,
-  // Increase upgrade timeout for slower connections (Render free tier can be slow)
+  // WebSocket upgrade timeout
   upgradeTimeout: 30000,
   pingTimeout: 60000,
   pingInterval: 25000,

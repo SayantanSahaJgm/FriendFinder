@@ -196,15 +196,11 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     if (anonSocket) return
     const id = anonId || ensureAnonId()
     try {
-      // Use polling-only on production to avoid WebSocket errors on Render/Railway
-      const isProduction = process.env.NODE_ENV === 'production' || 
-                           socketUrl.includes('render.com') || 
-                           socketUrl.includes('railway.app');
-      
       const s = io(socketUrl, {
         path: '/socket.io/',
-        transports: isProduction ? ['polling'] : ['polling', 'websocket'],
-        upgrade: !isProduction,
+        // Allow both transports; Render and Railway support WebSocket natively
+        transports: ['polling', 'websocket'],
+        upgrade: true,
         timeout: 20000,
         autoConnect: true,
         forceNew: true,
