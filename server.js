@@ -119,6 +119,18 @@ io.on("connection", (socket) => {
   connectionHealth.totalConnections++;
   connectionHealth.activeConnections++;
 
+  // Check for anonymous handshake (from RandomChatContext anonymous socket)
+  const handshake = socket.handshake || {};
+  const auth = handshake.auth || {};
+  if (auth.anonymous && auth.anonymousId) {
+    socket.isAnonymous = true;
+    socket.anonymousId = auth.anonymousId;
+    socket.userId = auth.anonymousId; // Use anonymousId as userId for queue tracking
+    console.log(`Anonymous user connected: ${socket.anonymousId} (${socket.id})`);
+    // Join a room so we can emit to this anonymous user later
+    socket.join(`user:anon:${socket.anonymousId}`);
+  }
+
   // Instrument emits for debugging: wrap socket.emit, socket.to(...).emit, broadcast and io.emit
   try {
     // Wrap per-socket emits
@@ -183,16 +195,23 @@ io.on("connection", (socket) => {
   // User registration with error handling
   socket.on("user-register", (userData) => {
     try {
-      socket.userId = userData.userId;
-      socket.username = userData.username;
-      socket.join(`user-${userData.userId}`);
-      console.log(`User registered: ${userData.username} (${userData.userId})`);
+      // If already marked anonymous, update username but keep anonymousId
+      if (socket.isAnonymous) {
+        socket.username = userData.username || userData.anonymousName || socket.anonymousId;
+        console.log(`Anonymous user registered: ${socket.username} (${socket.anonymousId})`);
+      } else {
+        socket.userId = userData.userId;
+        socket.username = userData.username;
+        socket.join(`user-${userData.userId}`);
+        console.log(`User registered: ${userData.username} (${userData.userId})`);
+      }
       
       // Send connection confirmation
       socket.emit('connection-confirmed', {
         socketId: socket.id,
         timestamp: new Date().toISOString(),
-        userId: userData.userId
+        userId: socket.userId || socket.anonymousId,
+        isAnonymous: socket.isAnonymous || false
       });
     } catch (error) {
       console.error('Error in user-register:', error);
@@ -390,21 +409,35 @@ io.on("connection", (socket) => {
   // Random Chat Events
   socket.on("random-chat:join-queue", async (preferences) => {
     try {
+      // Use socket.userId for authenticated users or socket.anonymousId for anonymous
+      const userIdentifier = socket.userId || socket.anonymousId || socket.id;
+      const displayName = socket.username || socket.anonymousId || 'Anonymous';
+      
       console.log(
         "User joining random chat queue:",
-        socket.userId,
-        preferences
+        userIdentifier,
+        displayName,
+        preferences,
+        socket.isAnonymous ? '(anonymous)' : '(authenticated)'
       );
 
+      // Assign an anonymousId if not already set (for display purposes)
+      if (!socket.anonymousId) {
+        socket.anonymousId = `User${Math.random().toString(36).substr(2, 4)}`;
+      }
+
       // Add user to queue
-      randomChatQueue.set(socket.userId, {
+      randomChatQueue.set(userIdentifier, {
         socket,
         preferences,
-        joinTime: new Date().toISOString()
+        joinTime: new Date().toISOString(),
+        anonymousId: socket.anonymousId,
+        username: displayName,
+        isAnonymous: socket.isAnonymous || false
       });
 
       // Send queue position
-      const queuePosition = Array.from(randomChatQueue.keys()).indexOf(socket.userId) + 1;
+      const queuePosition = Array.from(randomChatQueue.keys()).indexOf(userIdentifier) + 1;
       socket.emit("random-chat:queue-position", {
         position: queuePosition,
         estimatedWait: Math.max(30, queuePosition * 15),
@@ -669,8 +702,11 @@ function tryMatchUsers() {
       const [userId1, user1] = queueEntries[i];
       const [userId2, user2] = queueEntries[j];
       
-      // Check if preferences are compatible
-      if (user1.preferences.chatType === user2.preferences.chatType) {
+      // Check if preferences are compatible (default to 'text' if not specified)
+      const chatType1 = user1.preferences?.chatType || 'text';
+      const chatType2 = user2.preferences?.chatType || 'text';
+      
+      if (chatType1 === chatType2) {
         // Create session
         const sessionId = generateSessionId();
         const session = {
@@ -678,16 +714,19 @@ function tryMatchUsers() {
           user1: {
             userId: userId1,
             socket: user1.socket,
-            anonymousId: `User${Math.random().toString(36).substr(2, 4)}`,
+            // Use the anonymousId already assigned (from queue entry)
+            anonymousId: user1.anonymousId || `User${Math.random().toString(36).substr(2, 4)}`,
+            username: user1.username || user1.anonymousId || 'Anonymous',
             isActive: true
           },
           user2: {
             userId: userId2,
             socket: user2.socket,
-            anonymousId: `User${Math.random().toString(36).substr(2, 4)}`,
+            anonymousId: user2.anonymousId || `User${Math.random().toString(36).substr(2, 4)}`,
+            username: user2.username || user2.anonymousId || 'Anonymous',
             isActive: true
           },
-          chatType: user1.preferences.chatType,
+          chatType: chatType1,
           startTime: new Date().toISOString(),
           messagesCount: 0
         };
@@ -715,6 +754,7 @@ function tryMatchUsers() {
           ...sessionData,
           partner: {
             anonymousId: session.user2.anonymousId,
+            username: session.user2.username,
             isActive: session.user2.isActive
           }
         });
@@ -723,11 +763,12 @@ function tryMatchUsers() {
           ...sessionData,
           partner: {
             anonymousId: session.user1.anonymousId,
+            username: session.user1.username,
             isActive: session.user1.isActive
           }
         });
         
-        console.log(`✅ Matched users ${userId1} and ${userId2} in session ${sessionId}`);
+        console.log(`✅ Matched users ${userId1} (${session.user1.username}) and ${userId2} (${session.user2.username}) in session ${sessionId}`);
         return; // Exit after first match
       }
     }
