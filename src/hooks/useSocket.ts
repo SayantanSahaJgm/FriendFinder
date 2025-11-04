@@ -79,10 +79,11 @@ export function useSocket() {
       const newSocket = io(socketUrl, {
           // Server.js exposes the Socket.IO endpoint at /socket.io/
           path: '/socket.io/',
-        // Prefer polling first to improve reliability in environments where
-        // raw WebSocket connections are blocked. Socket.IO will upgrade to
-        // websocket when possible.
+        // Start with polling to avoid WebSocket upgrade errors on platforms like Render.
+        // Socket.IO will attempt to upgrade to WebSocket after initial connection succeeds.
+        // Setting upgrade: false disables automatic upgrade (use this if WebSocket is blocked).
         transports: ['polling', 'websocket'],
+        upgrade: true, // Allow upgrade to websocket after polling connects
         timeout: 20000,
         reconnection: false, // We handle reconnection manually
         autoConnect: true,

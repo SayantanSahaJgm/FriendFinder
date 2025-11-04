@@ -57,13 +57,18 @@ const io = new Server(socketServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket", "polling"],
+  // Allow both transports; clients will start with polling and upgrade to websocket
+  transports: ["polling", "websocket"],
   allowEIO3: true,
+  // Increase upgrade timeout for slower connections (Render free tier can be slow)
+  upgradeTimeout: 30000,
   pingTimeout: 60000,
   pingInterval: 25000,
   connectTimeout: 20000,
-  upgradeTimeout: 10000,
   maxHttpBufferSize: 1e6,
+  // Explicitly allow upgrades
+  allowUpgrades: true,
+  perMessageDeflate: false, // Disable compression to reduce upgrade handshake issues
   allowRequest: (req, callback) => {
     const origin = req.headers.origin;
     const isAllowed = !origin || allowedOrigins.some(allowed => 
