@@ -103,6 +103,22 @@ export default function FriendInfoWindow({
       </div>
 
       {/* Get Directions */}
+      {/* View Profile */}
+      <button
+        onClick={() => {
+          try {
+            // navigate to the public profile page for this friend
+            window.location.href = `/dashboard/profile/${friendId}`
+          } catch (e) {
+            // fallback: open in new tab
+            window.open(`/dashboard/profile/${friendId}`, '_blank')
+          }
+        }}
+        className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors font-medium text-sm"
+      >
+        View Profile
+      </button>
+
       <button
         onClick={() => {
           // This will open in Google Maps
