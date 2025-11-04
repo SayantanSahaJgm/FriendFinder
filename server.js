@@ -16,26 +16,33 @@ console.log('Starting Socket.IO server...');
 
 // Create HTTP server for Socket.IO only
 const socketServer = createServer();
-
-// Temporary debug: log raw HTTP upgrade requests so we can inspect WebSocket handshakes
-// (Keep this only while troubleshooting; remove once root cause is identified.)
-socketServer.on('upgrade', (req, socket, head) => {
-  try {
-    // Log a trimmed set of headers to avoid leaking secrets in logs
-    const headers = {
-      upgrade: req.headers.upgrade,
-      connection: req.headers.connection,
-      origin: req.headers.origin,
-      host: req.headers.host,
-      'sec-websocket-key': req.headers['sec-websocket-key'],
-      'sec-websocket-version': req.headers['sec-websocket-version'],
-      'sec-websocket-protocol': req.headers['sec-websocket-protocol']
-    };
-    console.log('HTTP upgrade request:', req.url, headers);
-  } catch (e) {
-    console.log('HTTP upgrade request received (unable to log headers)');
-  }
-});
+// Upgrade logger is noisy; enable it only when debugging via env var
+// Set SOCKET_DEBUG_UPGRADE=1 or SOCKET_DEBUG=1 to enable.
+const enableUpgradeLogger = Boolean(
+  process.env.SOCKET_DEBUG_UPGRADE === '1' || process.env.SOCKET_DEBUG === '1'
+);
+if (enableUpgradeLogger) {
+  // Temporary debug: log raw HTTP upgrade requests so we can inspect WebSocket handshakes
+  // (Keep this only while troubleshooting; remove once root cause is identified.)
+  socketServer.on('upgrade', (req, socket, head) => {
+    try {
+      // Log a trimmed set of headers to avoid leaking secrets in logs
+      const headers = {
+        upgrade: req.headers.upgrade,
+        connection: req.headers.connection,
+        origin: req.headers.origin,
+        host: req.headers.host,
+        'sec-websocket-key': req.headers['sec-websocket-key'],
+        'sec-websocket-version': req.headers['sec-websocket-version'],
+        'sec-websocket-protocol': req.headers['sec-websocket-protocol']
+      };
+      console.log('HTTP upgrade request:', req.url, headers);
+    } catch (e) {
+      console.log('HTTP upgrade request received (unable to log headers)');
+    }
+  });
+}
+console.log(`Socket.IO upgrade logger: ${enableUpgradeLogger ? 'ENABLED' : 'disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)'}`);
 
 // Initialize Socket.IO with enhanced configuration
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -90,12 +97,46 @@ const io = new Server(socketServer, {
   allowUpgrades: true,
   perMessageDeflate: false, // Disable compression to reduce upgrade handshake issues
   allowRequest: (req, callback) => {
-    const origin = req.headers.origin;
-    const isAllowed = !origin || allowedOrigins.some(allowed => 
-      origin === allowed || (isDevelopment && origin.includes('localhost'))
-    );
-    console.log(`Socket.IO connection request from ${origin}: ${isAllowed ? 'ALLOWED' : 'DENIED'}`);
-    callback(null, isAllowed);
+    // Guard allowRequest to never call the callback more than once and
+    // normalize origins for loose matching (strip trailing slashes, compare origin strings).
+    try {
+      const originHeader = req.headers.origin || '';
+
+      const normalize = (u) => {
+        if (!u) return '';
+        try {
+          // Keep only the origin portion (scheme + host + port)
+          const parsed = new URL(u);
+          return `${parsed.protocol}//${parsed.host}`.replace(/\/$/, '');
+        } catch (e) {
+          // Fallback: trim and remove trailing slash
+          return String(u).trim().replace(/\/$/, '');
+        }
+      };
+
+      const origin = normalize(originHeader);
+
+      const normalizedAllowed = allowedOrigins.map(normalize).filter(Boolean);
+
+      // If any allowed origin is a wildcard '*' then accept all origins
+      const allowAll = normalizedAllowed.includes('*');
+
+      const isLocalhost = isDevelopment && origin.includes('localhost');
+      const isAllowed = allowAll || !origin || isLocalhost || normalizedAllowed.some(a => a === origin);
+
+      console.log(`Socket.IO connection request from ${originHeader || '<no-origin>'}: ${isAllowed ? 'ALLOWED' : 'DENIED'}`);
+
+      // Ensure callback is invoked exactly once
+      try {
+        callback(null, Boolean(isAllowed));
+      } catch (cbErr) {
+        // If callback throws, log it but do not attempt to call again
+        console.error('Error while invoking allowRequest callback:', cbErr);
+      }
+    } catch (err) {
+      console.error('Error in allowRequest origin check:', err);
+      try { callback(null, false); } catch (e) { /* ignore */ }
+    }
   }
 });
 
@@ -954,23 +995,25 @@ const healthPort = parseInt(SOCKET_PORT) + 1;
 const healthServer = createServer((req, res) => {
   // Basic health endpoint
   if (req.url === '/health' && req.method === 'GET') {
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    });
-    res.end(JSON.stringify({
-      status: 'healthy',
-      socketServer: {
-        port: SOCKET_PORT,
-        path: '/socket.io/',
-        totalConnections: connectionHealth.totalConnections,
-        activeConnections: connectionHealth.activeConnections,
-        errorCount: connectionHealth.errorCount,
-        lastError: connectionHealth.lastError,
-        uptime: Date.now() - connectionHealth.uptime
-      },
-      timestamp: new Date().toISOString()
-    }));
+    if (!res.writableEnded) {
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        status: 'healthy',
+        socketServer: {
+          port: SOCKET_PORT,
+          path: '/socket.io/',
+          totalConnections: connectionHealth.totalConnections,
+          activeConnections: connectionHealth.activeConnections,
+          errorCount: connectionHealth.errorCount,
+          lastError: connectionHealth.lastError,
+          uptime: Date.now() - connectionHealth.uptime
+        },
+        timestamp: new Date().toISOString()
+      }));
+    }
     return;
   }
 
@@ -987,35 +1030,60 @@ const healthServer = createServer((req, res) => {
           if (payload.targetUserId) {
             try {
               // Support both room naming conventions used in this project
-              const target = payload.targetUserId
-              io.to(`user:${target}`).emit(type, data)
-              io.to(`user-${target}`).emit(type, data)
-              res.writeHead(200, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              })
-              res.end(JSON.stringify({ ok: true, emitted: type, target }))
+              const target = payload.targetUserId;
+              io.to(`user:${target}`).emit(type, data);
+              io.to(`user-${target}`).emit(type, data);
+              if (!res.writableEnded) {
+                res.writeHead(200, {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*'
+                });
+                res.end(JSON.stringify({ ok: true, emitted: type, target }));
+              }
+              return;
             } catch (emitErr) {
-              console.error('Error emitting to target user room:', emitErr)
-              res.writeHead(500, { 'Content-Type': 'application/json' })
-              res.end(JSON.stringify({ error: 'Failed to emit to target user' }))
+              console.error('Error emitting to target user room:', emitErr);
+              if (!res.writableEnded) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Failed to emit to target user' }));
+              }
+              return;
             }
           } else {
             // Re-emit to all connected clients
-            io.emit(type, data);
-            res.writeHead(200, {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*'
-            });
-            res.end(JSON.stringify({ ok: true, emitted: type }));
+            try {
+              io.emit(type, data);
+              if (!res.writableEnded) {
+                res.writeHead(200, {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*'
+                });
+                res.end(JSON.stringify({ ok: true, emitted: type }));
+              }
+              return;
+            } catch (emitErr) {
+              console.error('Error emitting to all clients:', emitErr);
+              if (!res.writableEnded) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Failed to emit to clients' }));
+              }
+              return;
+            }
           }
         } else {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Invalid payload: missing type' }));
+          if (!res.writableEnded) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid payload: missing type' }));
+          }
+          return;
         }
       } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        console.error('Invalid JSON in /emit:', err && err.message);
+        if (!res.writableEnded) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        }
+        return;
       }
     });
     return;
