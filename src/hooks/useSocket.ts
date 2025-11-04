@@ -240,16 +240,33 @@ export function useSocket() {
   // Health check
   const startHealthCheck = useCallback(() => {
     stopHealthCheck()
+
+    // Determine a production-friendly health URL:
+    // 1. NEXT_PUBLIC_SOCKET_HEALTH_URL (explicit)
+    // 2. derive from socketUrl (e.g. https://host -> https://host/health)
+    // 3. fallback to localhost:(socketPort+1)/health (dev)
+    const explicitHealth = process.env.NEXT_PUBLIC_SOCKET_HEALTH_URL
+    let healthUrl = ''
+    if (explicitHealth) {
+      healthUrl = explicitHealth
+    } else {
+      try {
+        const u = new URL(socketUrl)
+        healthUrl = `${u.origin.replace(/\/$/, '')}/health`
+      } catch (e) {
+        const healthPort = parseInt(socketPort) + 1
+        healthUrl = `http://localhost:${healthPort}/health`
+      }
+    }
+
     healthCheckIntervalRef.current = setInterval(async () => {
       try {
-        const healthPort = parseInt(socketPort) + 1
-        const response = await fetch(`http://localhost:${healthPort}/health`)
+        const response = await fetch(healthUrl)
         if (!response.ok) {
-          console.warn('Socket server health check failed')
+          console.warn('Socket server health check failed', healthUrl)
         }
       } catch (error) {
         // Silently handle health check errors to avoid console spam
-        // console.warn('Socket server health check error:', error)
       }
     }, 30000) // Check every 30 seconds
   }, [socketPort])
