@@ -33,6 +33,8 @@ import WebRTCInterface from "@/components/random-chat/WebRTCInterface";
 import ReportModal from "@/components/random-chat/ReportModal";
 import type { ChatPreferences } from "@/context/RandomChatContext";
 import RandomChatClient from "@/components/random-chat/RandomChatClient";
+import GuestNamePrompt from '@/components/random-chat/GuestNamePrompt'
+import { useSession } from 'next-auth/react'
 
 export default function RandomChatPage() {
   const {
@@ -176,6 +178,8 @@ export default function RandomChatPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Show guest name prompt for unauthenticated users without a saved guest name */}
+      <GuestNamePrompt />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

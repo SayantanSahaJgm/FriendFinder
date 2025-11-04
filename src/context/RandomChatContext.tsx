@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
+import io from 'socket.io-client'
 import { toast } from "sonner";
 
 // Types
@@ -99,6 +100,8 @@ export interface RandomChatContextType {
   // Session management
   refreshSession: () => Promise<void>;
   joinActiveSession: (sessionId: string) => void;
+  // Allow UI to set a guest display name for anonymous users
+  setAnonName?: (name: string) => void;
 }
 
 const RandomChatContext = createContext<RandomChatContextType | undefined>(
@@ -114,6 +117,12 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     connectionError: socketConnectionError,
     reconnect: socketReconnect,
   } = useSocket();
+
+  // Local anonymous socket for unauthenticated users
+  const [anonSocket, setAnonSocket] = useState<any>(null)
+  const [anonConnected, setAnonConnected] = useState(false)
+  const [anonId, setAnonId] = useState<string | null>(null)
+  const [anonName, setAnonNameState] = useState<string | null>(null)
 
   // State
   const [queueStatus, setQueueStatus] = useState<QueueStatus>({
@@ -144,9 +153,98 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     setConnectionError(socketConnectionError);
   }, [socketConnectionError]);
 
+  // Determine which socket to use for random chat events: prefer authenticated socket
+  const commSocket = socket || anonSocket
+  const commConnected = isConnected || anonConnected
+
+  // Socket URL config (same defaults as useSocket)
+  const socketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || '3004'
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://localhost:${socketPort}`
+
+  // Ensure we have a persistent anonymous id per client
+  const ensureAnonId = () => {
+    try {
+      const key = 'randomChatAnonId'
+      let id = localStorage.getItem(key)
+      if (!id) {
+        id = `anon_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`
+        localStorage.setItem(key, id)
+      }
+      setAnonId(id)
+      return id
+    } catch (e) {
+      const fallback = `anon_${Math.random().toString(36).substr(2, 9)}`
+      setAnonId(fallback)
+      return fallback
+    }
+  }
+
+  // Ensure guest display name is present in localStorage and state
+  const ensureAnonName = () => {
+    try {
+      const key = 'randomChatAnonName'
+      let name = localStorage.getItem(key)
+      if (!name) return null
+      setAnonNameState(name)
+      return name
+    } catch (e) {
+      return null
+    }
+  }
+
+  const connectAnon = async () => {
+    if (anonSocket) return
+    const id = anonId || ensureAnonId()
+    try {
+      const s = io(socketUrl, {
+        path: '/socket.io/',
+        transports: ['polling', 'websocket'],
+        timeout: 20000,
+        autoConnect: true,
+        forceNew: true,
+        withCredentials: true,
+        auth: { anonymous: true, anonymousId: id }
+      })
+
+      s.on('connect', () => {
+        console.log('Anonymous socket connected', s.id)
+        setAnonConnected(true)
+        // register anonymous user for convenience; include friendly guest name if available
+        const name = anonName || ensureAnonName() || id
+        s.emit('user-register', {
+          userId: `anon:${id}`,
+          username: name || id,
+        })
+      })
+
+      s.on('disconnect', () => {
+        console.log('Anonymous socket disconnected')
+        setAnonConnected(false)
+      })
+
+      s.on('connect_error', (err: any) => {
+        console.warn('Anonymous socket connect error', err)
+      })
+
+      setAnonSocket(s)
+    } catch (err) {
+      console.error('Failed to connect anonymous socket', err)
+    }
+  }
+
+  const disconnectAnon = () => {
+    if (anonSocket) {
+      try {
+        anonSocket.disconnect()
+      } catch (e) {}
+      setAnonSocket(null)
+      setAnonConnected(false)
+    }
+  }
+
   // If socket is not available, use polling for updates
   useEffect(() => {
-    if (!isConnected && (queueStatus.inQueue || activeSession)) {
+    if (!commConnected && (queueStatus.inQueue || activeSession)) {
       // Start polling for updates when socket is not available
       pollingIntervalRef.current = setInterval(() => {
         if (queueStatus.inQueue) {
@@ -163,7 +261,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
         }
       };
     }
-  }, [isConnected, queueStatus.inQueue, activeSession]);
+  }, [commConnected, queueStatus.inQueue, activeSession]);
 
   // Function to check queue status via HTTP
   const checkQueueStatus = async () => {
@@ -241,10 +339,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
   // Also load persisted state when socket connects
   useEffect(() => {
-    if (socket && isConnected && session?.user && !activeSession) {
+    if (commSocket && commConnected && session?.user && !activeSession) {
       loadPersistedState();
     }
-  }, [socket, isConnected, session]);
+  }, [commSocket, commConnected, session]);
 
   // Load persisted state when component mounts or becomes visible
   useEffect(() => {
@@ -305,8 +403,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
           }
           
           // Rejoin the session room if socket is connected
-          if (socket && isConnected) {
-            socket.emit("random-chat:join-session", parsedSession.sessionId);
+          if (commSocket && commConnected) {
+            commSocket.emit("random-chat:join-session", parsedSession.sessionId);
           }
         } else {
           // Clear old session and its messages
@@ -346,7 +444,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
   // Socket event listeners
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (!commSocket || !commConnected) return;
 
     const handleMatchFound = (data: any) => {
       console.log("Random chat match found:", data);
@@ -376,8 +474,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
       // Store session in localStorage for persistence
       localStorage.setItem('randomChatSession', JSON.stringify(newSession));
 
-      // Join session room
-      socket.emit("random-chat:join-session", data.sessionId);
+  // Join session room
+  if (commSocket) commSocket.emit("random-chat:join-session", data.sessionId);
 
       toast.success(
         `Match found! You're now chatting with ${data.partner.anonymousId}`
@@ -503,31 +601,31 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
       toast.error(message);
     };
 
-    // Register event listeners
-    socket.on("random-chat:match-found", handleMatchFound);
-    socket.on("random-chat:message-received", handleMessageReceived);
-    socket.on("random-chat:partner-typing", handlePartnerTyping);
-    socket.on("random-chat:partner-stopped-typing", handlePartnerStoppedTyping);
-    socket.on("random-chat:partner-left", handlePartnerLeft);
-    socket.on("random-chat:session-ended", handleSessionEnded);
-    socket.on("random-chat:queue-position", handleQueuePosition);
-    socket.on("error", handleError);
+  // Register event listeners
+  commSocket.on("random-chat:match-found", handleMatchFound);
+  commSocket.on("random-chat:message-received", handleMessageReceived);
+  commSocket.on("random-chat:partner-typing", handlePartnerTyping);
+  commSocket.on("random-chat:partner-stopped-typing", handlePartnerStoppedTyping);
+  commSocket.on("random-chat:partner-left", handlePartnerLeft);
+  commSocket.on("random-chat:session-ended", handleSessionEnded);
+  commSocket.on("random-chat:queue-position", handleQueuePosition);
+  commSocket.on("error", handleError);
 
     return () => {
       // Cleanup event listeners
-      socket.off("random-chat:match-found", handleMatchFound);
-      socket.off("random-chat:message-received", handleMessageReceived);
-      socket.off("random-chat:partner-typing", handlePartnerTyping);
-      socket.off(
+      commSocket.off("random-chat:match-found", handleMatchFound);
+      commSocket.off("random-chat:message-received", handleMessageReceived);
+      commSocket.off("random-chat:partner-typing", handlePartnerTyping);
+      commSocket.off(
         "random-chat:partner-stopped-typing",
         handlePartnerStoppedTyping
       );
-      socket.off("random-chat:partner-left", handlePartnerLeft);
-      socket.off("random-chat:session-ended", handleSessionEnded);
-      socket.off("random-chat:queue-position", handleQueuePosition);
-      socket.off("error", handleError);
+      commSocket.off("random-chat:partner-left", handlePartnerLeft);
+      commSocket.off("random-chat:session-ended", handleSessionEnded);
+      commSocket.off("random-chat:queue-position", handleQueuePosition);
+      commSocket.off("error", handleError);
     };
-  }, [socket, isConnected]);
+  }, [commSocket, commConnected]);
 
   // Load initial state (queue status and active session)
   const loadInitialState = async () => {
@@ -562,8 +660,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
           setMessages(data.messages || []);
 
           // Join session room
-          if (socket) {
-            socket.emit("random-chat:join-session", data.sessionId);
+          if (commSocket) {
+            commSocket.emit("random-chat:join-session", data.sessionId);
           }
         }
       }
@@ -581,63 +679,93 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     try {
       setIsJoiningQueue(true);
       setConnectionError(null);
+      // If user is authenticated, use the existing HTTP queue endpoint (server-backed)
+      if (session?.user) {
+        const response = await fetch("/api/random-chat/queue", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chatType: preferences.chatType,
+            preferences,
+          }),
+        });
 
-      const response = await fetch("/api/random-chat/queue", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chatType: preferences.chatType,
-          preferences,
-        }),
-      });
+        const data = await response.json();
 
-      const data = await response.json();
+        if (data.success) {
+          if (data.data.type === "match_found") {
+            // Immediate match
+            const newSession: RandomChatSession = {
+              sessionId: data.data.sessionId,
+              partner: data.data.partner,
+              userAnonymousId: data.data.anonymousId,
+              status: "active",
+              chatType: data.data.chatType,
+              startTime: new Date(),
+              messagesCount: 0,
+              messages: [],
+            };
 
-      if (data.success) {
-        if (data.data.type === "match_found") {
-          // Immediate match
-          const newSession: RandomChatSession = {
-            sessionId: data.data.sessionId,
-            partner: data.data.partner,
-            userAnonymousId: data.data.anonymousId,
-            status: "active",
-            chatType: data.data.chatType,
-            startTime: new Date(),
-            messagesCount: 0,
-            messages: [],
-          };
+            setActiveSession(newSession);
+            setMessages([]);
 
-          setActiveSession(newSession);
-          setMessages([]);
+            if (socket) {
+              socket.emit("random-chat:join-session", data.data.sessionId);
+            }
 
-          if (socket) {
-            socket.emit("random-chat:join-session", data.data.sessionId);
+            toast.success(
+              `Match found! You're now chatting with ${data.data.partner.anonymousId}`
+            );
+          } else {
+            // Added to queue
+            setQueueStatus({
+              inQueue: true,
+              queueId: data.data.queueId,
+              anonymousId: data.data.anonymousId,
+              position: data.data.position,
+              estimatedWaitTime: data.data.estimatedWaitTime,
+              chatType: preferences.chatType,
+              joinedAt: new Date(),
+            });
+
+            toast.info(`Added to queue. Position: ${data.data.position}`);
           }
 
-          toast.success(
-            `Match found! You're now chatting with ${data.data.partner.anonymousId}`
-          );
+          return { success: true };
         } else {
-          // Added to queue
-          setQueueStatus({
-            inQueue: true,
-            queueId: data.data.queueId,
-            anonymousId: data.data.anonymousId,
-            position: data.data.position,
-            estimatedWaitTime: data.data.estimatedWaitTime,
-            chatType: preferences.chatType,
-            joinedAt: new Date(),
-          });
-
-          toast.info(`Added to queue. Position: ${data.data.position}`);
+          return { success: false, error: data.error };
         }
-
-        return { success: true };
-      } else {
-        return { success: false, error: data.error };
       }
+
+      // Anonymous/unauthed path: use anonymous socket queue
+      await connectAnon()
+      // wait briefly for connect to settle
+      await new Promise((r) => setTimeout(r, 200))
+
+      if (!anonSocket) {
+        return { success: false, error: 'Failed to establish anonymous connection' }
+      }
+
+      // Emit join-queue on the anonymous socket
+      anonSocket.emit('random-chat:join-queue', {
+        chatType: preferences.chatType,
+        preferences,
+      })
+
+      // Update UI queue state optimistically; server will emit precise queue-position
+      setQueueStatus(prev => ({
+        ...prev,
+        inQueue: true,
+        anonymousId: anonId || localStorage.getItem('randomChatAnonId') || undefined,
+        chatType: preferences.chatType,
+        joinedAt: new Date(),
+      }))
+
+      toast.info('Searching for a random chat partner...')
+
+      return { success: true }
     } catch (error) {
       console.error("Error joining queue:", error);
       return { success: false, error: "Failed to join queue" };
@@ -653,25 +781,40 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   }> => {
     try {
       setIsLeavingQueue(true);
-
-      const response = await fetch("/api/random-chat/queue", {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setQueueStatus({
-          inQueue: false,
-          position: 0,
-          estimatedWaitTime: 0,
+      if (session?.user) {
+        const response = await fetch("/api/random-chat/queue", {
+          method: "DELETE",
         });
 
-        toast.success("Left the queue");
-        return { success: true };
-      } else {
-        return { success: false, error: data.error };
+        const data = await response.json();
+
+        if (data.success) {
+          setQueueStatus({
+            inQueue: false,
+            position: 0,
+            estimatedWaitTime: 0,
+          });
+
+          toast.success("Left the queue");
+          return { success: true };
+        } else {
+          return { success: false, error: data.error };
+        }
       }
+
+      // Anonymous path: emit leave-queue on anonSocket
+      if (anonSocket) {
+        anonSocket.emit('random-chat:leave-queue')
+      }
+
+      setQueueStatus({
+        inQueue: false,
+        position: 0,
+        estimatedWaitTime: 0,
+      })
+
+      toast.success('Left the queue')
+      return { success: true }
     } catch (error) {
       console.error("Error leaving queue:", error);
       return { success: false, error: "Failed to leave queue" };
@@ -694,8 +837,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
     try {
       // Try socket first, fallback to HTTP
-      if (socket && isConnected) {
-        socket.emit("random-chat:message-send", {
+      if (commSocket && commConnected) {
+        commSocket.emit("random-chat:message-send", {
           sessionId: activeSession.sessionId,
           content: content.trim(),
           type: "text",
@@ -783,10 +926,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
   // Start typing
   const startTyping = () => {
-    if (!activeSession || !socket || isTyping) return;
+    if (!activeSession || !commSocket || isTyping) return;
 
     setIsTyping(true);
-    socket.emit("random-chat:typing-start", activeSession.sessionId);
+    commSocket.emit("random-chat:typing-start", activeSession.sessionId);
 
     // Auto-stop typing after 3 seconds
     if (typingTimeoutRef.current) {
@@ -800,10 +943,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
   // Stop typing
   const stopTyping = () => {
-    if (!activeSession || !socket || !isTyping) return;
+    if (!activeSession || !commSocket || !isTyping) return;
 
     setIsTyping(false);
-    socket.emit("random-chat:typing-stop", activeSession.sessionId);
+    commSocket.emit("random-chat:typing-stop", activeSession.sessionId);
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -821,8 +964,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
     try {
       // End via socket first if available
-      if (socket && isConnected) {
-        socket.emit("random-chat:end-session", activeSession.sessionId);
+      if (commSocket && commConnected) {
+        commSocket.emit("random-chat:end-session", activeSession.sessionId);
       }
 
       // Clear local state immediately for better UX
@@ -918,8 +1061,8 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
 
   // Join active session (for reconnection)
   const joinActiveSession = (sessionId: string) => {
-    if (socket) {
-      socket.emit("random-chat:join-session", sessionId);
+    if (commSocket) {
+      commSocket.emit("random-chat:join-session", sessionId);
     }
   };
 
@@ -948,10 +1091,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     partnerTyping,
     isLoadingSession,
 
-    // Connection state
-    isConnected,
-    connectionError,
-    connectionState,
+  // Connection state (includes anonymous fallback)
+  isConnected: commConnected,
+  connectionError,
+  connectionState,
   // expose reconnect so UI can programmatically attempt reconnects
   reconnect: socketReconnect,
 
@@ -965,6 +1108,15 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     reportUser,
     refreshSession,
     joinActiveSession,
+    // expose anon name setter for UI components
+    setAnonName: (name: string) => {
+      try {
+        localStorage.setItem('randomChatAnonName', name)
+        setAnonNameState(name)
+      } catch (e) {
+        console.error('Failed to set anon name', e)
+      }
+    }
   };
 
   return (

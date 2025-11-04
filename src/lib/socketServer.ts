@@ -1,5 +1,13 @@
 import { Server as NetServer, createServer } from 'http'
 import { Server as ServerIO } from 'socket.io'
+// Lazily require ioredis to avoid hard compile-time failure when module isn't installed
+let IORedis: any = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  IORedis = require('ioredis')
+} catch (err) {
+  IORedis = null
+}
 import { getToken } from 'next-auth/jwt'
 import mongoose from 'mongoose'
 import dbConnect from '@/lib/mongoose'
@@ -101,6 +109,97 @@ export type SocketIOSocket = Parameters<Parameters<SocketIOServer['on']>[1]>[0]
 
 // Store online users
 const onlineUsers = new Map<string, SocketUser>()
+
+// In-memory anonymous queue and sessions for quick anonymous matching (no DB changes)
+const anonymousQueue: Map<string, {
+  socketId: string;
+  anonymousId: string;
+  preferences: any;
+  joinedAt: number;
+}> = new Map()
+
+const anonymousSessions: Map<string, {
+  sessionId: string;
+  participants: string[]; // socketIds
+  createdAt: number;
+  preferences: any;
+}> = new Map()
+
+// Optional Redis client for distributed anonymous queue/session storage
+let redisClient: any = null
+const useRedis = !!process.env.REDIS_URL
+if (useRedis) {
+  try {
+    redisClient = new IORedis(process.env.REDIS_URL as string)
+    redisClient.on('error', (err: any) => console.error('Redis error:', err))
+    console.log('Connected to Redis for anonymous matching')
+  } catch (err: any) {
+    console.error('Failed to initialize Redis client:', err)
+    redisClient = null
+  }
+}
+
+async function pushAnonQueueRedis(chatType: string, payloadStr: string) {
+  if (!redisClient) return
+  const key = `anonQueue:${chatType}`
+  await redisClient.rpush(key, payloadStr)
+}
+
+// Attempt to pop two entries atomically from the Redis list for chatType
+async function tryPopPairFromRedis(chatType: string) {
+  if (!redisClient) return null
+  const key = `anonQueue:${chatType}`
+  const multi = redisClient.multi()
+  multi.lpop(key)
+  multi.lpop(key)
+  const res = await multi.exec()
+  if (!res) return null
+  const [a, b] = (res as any).map((r: any) => Array.isArray(r) && r[1] ? r[1] : null)
+  if (a && b) {
+    try {
+      return [JSON.parse(a), JSON.parse(b)]
+    } catch (e) {
+      return null
+    }
+  }
+  // If not both available, push back any popped entry
+  if (a) await redisClient.lpush(key, a)
+  if (b) await redisClient.lpush(key, b)
+  return null
+}
+
+async function removeAnonQueueEntryRedis(chatType: string, payloadStr: string) {
+  if (!redisClient) return
+  const key = `anonQueue:${chatType}`
+  try {
+    await redisClient.lrem(key, 0, payloadStr)
+  } catch (e) {
+    console.warn('Redis LREM failed', e)
+  }
+}
+
+async function storeAnonSessionRedis(sessionId: string, sessionObj: any) {
+  if (!redisClient) return
+  const key = `anonSession:${sessionId}`
+  try {
+    await redisClient.set(key, JSON.stringify(sessionObj), 'EX', 60 * 60) // 1 hour TTL
+  } catch (e) {
+    console.warn('Failed to store anon session in redis', e)
+  }
+}
+
+async function getAnonSessionRedis(sessionId: string) {
+  if (!redisClient) return null
+  const key = `anonSession:${sessionId}`
+  try {
+    const val = await redisClient.get(key)
+    if (!val) return null
+    return JSON.parse(val)
+  } catch (e) {
+    console.warn('Failed to read anon session from redis', e)
+    return null
+  }
+}
 
 // Random Chat Matching Service
 let matchingInterval: NodeJS.Timeout | null = null
@@ -310,43 +409,60 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
   // Authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.headers.authorization
+      // Allow authenticated clients (with JWT) OR anonymous clients that set
+      // socket.handshake.auth.anonymous = true and provide anonymousId.
+      const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization
+      if (token) {
+        // Authenticated path
+        const decoded = await getToken({
+          req: {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          } as any,
+          secret: process.env.NEXTAUTH_SECRET,
+        })
 
-      if (!token) {
-        return next(new Error('Authentication token required'))
+        if (!decoded?.email) {
+          return next(new Error('Invalid token'))
+        }
+
+        // Get user from database
+        await dbConnect()
+        const user = await User.findOne({ email: decoded.email }).select('username email')
+
+        if (!user) {
+          return next(new Error('User not found'))
+        }
+
+        // Store user data in socket
+        socket.data.user = {
+          id: (user._id as any).toString(),
+          username: user.username,
+          email: user.email,
+          socketId: socket.id,
+        }
+
+        return next()
       }
 
-      // Verify JWT token
-      const decoded = await getToken({
-        req: {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        } as any,
-        secret: process.env.NEXTAUTH_SECRET,
-      })
+      // Anonymous path: allow socket to connect if client explicitly requests it
+      const isAnonymous = socket.handshake.auth?.anonymous === true
+      const anonymousId = socket.handshake.auth?.anonymousId || socket.handshake.query?.anonymousId
 
-      if (!decoded?.email) {
-        return next(new Error('Invalid token'))
+      if (isAnonymous && anonymousId) {
+        // Create a synthetic user id using a prefix so it doesn't collide with real DB ids
+        socket.data.user = {
+          id: `anon:${anonymousId}`,
+          username: anonymousId,
+          email: '',
+          socketId: socket.id,
+        }
+
+        return next()
       }
 
-      // Get user from database
-      await dbConnect()
-      const user = await User.findOne({ email: decoded.email }).select('username email')
-
-      if (!user) {
-        return next(new Error('User not found'))
-      }
-
-      // Store user data in socket
-      socket.data.user = {
-        id: (user._id as any).toString(),
-        username: user.username,
-        email: user.email,
-        socketId: socket.id,
-      }
-
-      next()
+      return next(new Error('Authentication token required'))
     } catch (error) {
       console.error('Socket authentication error:', error)
       next(new Error('Authentication failed'))
@@ -523,14 +639,41 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
     // Join user to random chat session room
     socket.on('random-chat:join-session', async (sessionId: string) => {
       try {
-        const session = await RandomChatSession.findOne({
-          sessionId,
-          'participants.userId': user.id,
-        })
-        
-        if (session) {
+        // For authenticated sessions, verify DB session.
+        if (!user.id.toString().startsWith('anon:')) {
+          const session = await RandomChatSession.findOne({
+            sessionId,
+            'participants.userId': user.id,
+          })
+          if (session) {
+            socket.join(`random-chat:${sessionId}`)
+            console.log(`User ${user.username} joined random chat session: ${sessionId}`)
+          }
+          return
+        }
+
+        // Anonymous sessions are held in-memory
+        let anonSession = anonymousSessions.get(sessionId)
+        if (!anonSession && redisClient) {
+          // Try to load session descriptor from Redis
+          const stored = await getAnonSessionRedis(sessionId)
+          if (stored) {
+            // attach light-weight local entry so we can accept joins
+            anonSession = {
+              sessionId: stored.sessionId,
+              participants: [],
+              createdAt: stored.createdAt,
+              preferences: stored.preferences,
+            }
+            anonymousSessions.set(sessionId, anonSession)
+          }
+        }
+
+        if (anonSession) {
+          // Allow socket to join the session room if they are one of the participants
+          // For Redis-backed sessions, we trust the match-found emission and let the client join
           socket.join(`random-chat:${sessionId}`)
-          console.log(`User ${user.username} joined random chat session: ${sessionId}`)
+          console.log(`Anonymous socket ${socket.id} joined anon session ${sessionId}`)
         }
       } catch (error) {
         console.error('Error joining random chat session:', error)
@@ -542,26 +685,54 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
       try {
         const { sessionId, content, type = 'text' } = data
 
-        // Find the session
-        const session = await RandomChatSession.findOne({
-          sessionId,
-          'participants.userId': user.id,
-          status: 'active',
-        })
+        // For authenticated sessions, use DB session. For anonymous sessions, use in-memory store.
+        let isAnonSession = false
+        let session: any = null
+        if (user.id.toString().startsWith('anon:')) {
+          const anonSession = anonymousSessions.get(sessionId)
+          if (!anonSession) {
+            socket.emit('error', 'Session not found or inactive')
+            return
+          }
+          isAnonSession = true
+          session = anonSession
+        } else {
+          session = await RandomChatSession.findOne({
+            sessionId,
+            'participants.userId': user.id,
+            status: 'active',
+          })
 
-        if (!session) {
-          socket.emit('error', 'Session not found or inactive')
-          return
+          if (!session) {
+            socket.emit('error', 'Session not found or inactive')
+            return
+          }
         }
 
-        // Convert user.id to ObjectId
-        const userId = new mongoose.Types.ObjectId(user.id)
-        
-        // Get user's anonymous ID
-        const anonymousId = session.getAnonymousId(userId)
-        if (!anonymousId) {
-          socket.emit('error', 'Invalid session state')
-          return
+        let anonymousId = ''
+        if (isAnonSession) {
+          anonymousId = socket.data.user.username || socket.data.user.id
+          // If we don't have the anon session in-memory, try redis
+          if (!session && redisClient) {
+            const stored = await getAnonSessionRedis(sessionId)
+            if (stored) {
+              // prepare a local placeholder so message relaying can happen for sockets on this instance
+              anonymousSessions.set(sessionId, {
+                sessionId: stored.sessionId,
+                participants: [],
+                createdAt: stored.createdAt,
+                preferences: stored.preferences,
+              })
+              session = anonymousSessions.get(sessionId) as any
+            }
+          }
+        } else {
+          const userId = new mongoose.Types.ObjectId(user.id)
+          anonymousId = session.getAnonymousId(userId)
+          if (!anonymousId) {
+            socket.emit('error', 'Invalid session state')
+            return
+          }
         }
 
         // Basic content filtering
@@ -578,26 +749,48 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
           return
         }
 
-        // Add message to session (use moderated content)
-        await session.addMessage(userId, anonymousId, moderationResult.filteredContent || filteredContent, type)
+        // For authenticated sessions, persist message. For anonymous sessions, relay in-memory.
+        if (!isAnonSession) {
+          const userId = new mongoose.Types.ObjectId(user.id)
+          await session.addMessage(userId, anonymousId, moderationResult.filteredContent || filteredContent, type)
 
-        const messageData = {
-          messageId: session.messages[session.messages.length - 1].messageId,
-          sessionId,
-          anonymousId,
-          content: moderationResult.filteredContent || filteredContent,
-          timestamp: new Date(),
-          type,
-          isOwn: false, // Will be set to true for sender
+          const messageData = {
+            messageId: session.messages[session.messages.length - 1].messageId,
+            sessionId,
+            anonymousId,
+            content: moderationResult.filteredContent || filteredContent,
+            timestamp: new Date(),
+            type,
+            isOwn: false,
+          }
+
+          socket.to(`random-chat:${sessionId}`).emit('random-chat:message-received', messageData)
+          socket.emit('random-chat:message-received', { ...messageData, isOwn: true })
+          console.log(`Random chat message sent in session ${sessionId}`)
+        } else {
+          // Anonymous: relay message to other participant sockets in the anon session
+          const msgPayload = {
+            messageId: `anon_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+            sessionId,
+            anonymousId,
+            content: moderationResult.filteredContent || filteredContent,
+            timestamp: new Date(),
+            type,
+            isOwn: false,
+          }
+
+          // Emit to other sockets in this anon session
+          const participants = session.participants || []
+          participants.forEach((sId: string) => {
+            if (sId !== socket.id) {
+              io.to(sId).emit('random-chat:message-received', msgPayload)
+            }
+          })
+
+          // Echo to sender with isOwn flag
+          socket.emit('random-chat:message-received', { ...msgPayload, isOwn: true })
+          console.log(`Relayed anon random chat message in session ${sessionId}`)
         }
-
-        // Send to all participants in the session
-        socket.to(`random-chat:${sessionId}`).emit('random-chat:message-received', messageData)
-        
-        // Send back to sender with isOwn flag
-        socket.emit('random-chat:message-received', { ...messageData, isOwn: true })
-
-        console.log(`Random chat message sent in session ${sessionId}`)
       } catch (error) {
         console.error('Error sending random chat message:', error)
         socket.emit('error', 'Failed to send message')
@@ -611,6 +804,140 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
 
     socket.on('random-chat:typing-stop', (sessionId: string) => {
       socket.to(`random-chat:${sessionId}`).emit('random-chat:partner-stopped-typing')
+    })
+
+    // Anonymous: join queue via socket (authenticated users use REST API)
+    socket.on('random-chat:join-queue', async (preferences: any) => {
+      try {
+        if (!socket.data.user || !socket.data.user.id.toString().startsWith('anon:')) {
+          // Only handle anonymous queue via socket here
+          return
+        }
+
+        const anonId = socket.data.user.username || socket.data.user.id.replace('anon:', '')
+        const chatType = preferences?.chatType || 'text'
+
+        // If Redis is configured, push into Redis queue and attempt to pop a pair atomically
+        if (redisClient) {
+          const payload = { anonId, joinedAt: Date.now(), chatType, preferences: preferences || {} }
+          const payloadStr = JSON.stringify(payload)
+          await pushAnonQueueRedis(chatType, payloadStr)
+
+          // Try to pop pair
+          const pair = await tryPopPairFromRedis(chatType)
+          if (pair && pair.length === 2) {
+            const a = pair[0]
+            const b = pair[1]
+            // Create session
+            const sessionId = `anon_session_${Date.now()}_${Math.random().toString(36).slice(2,6)}`
+            const sessionObj = {
+              sessionId,
+              participants: [a.anonId, b.anonId],
+              createdAt: Date.now(),
+              preferences: a.preferences,
+            }
+
+            // Store session in Redis for cross-instance retrieval (TTL 1 hour)
+            await storeAnonSessionRedis(sessionId, sessionObj)
+
+            // Also keep local copy if both sockets are on this instance
+            anonymousSessions.set(sessionId, {
+              sessionId,
+              participants: [],
+              createdAt: Date.now(),
+              preferences: a.preferences,
+            })
+
+            // Notify participants by their user room (works across instances if adapter is configured)
+            io.to(`user:anon:${a.anonId}`).emit('random-chat:match-found', { sessionId, partner: { anonymousId: b.anonId, username: b.anonId }, chatType: a.chatType })
+            io.to(`user:anon:${b.anonId}`).emit('random-chat:match-found', { sessionId, partner: { anonymousId: a.anonId, username: a.anonId }, chatType: a.chatType })
+
+            console.log(`Redis anonymous match created: ${a.anonId} <-> ${b.anonId} (session ${sessionId})`)
+            return
+          }
+
+          // No immediate match; send queue position info (best-effort)
+          try {
+            const len = await redisClient.llen(`anonQueue:${chatType}`)
+            socket.emit('random-chat:queue-position', { position: len, estimatedWait: 30 })
+          } catch (e) {
+            socket.emit('random-chat:queue-position', { position: 1, estimatedWait: 30 })
+          }
+
+          return
+        }
+
+        // Fallback: in-memory first-fit matching (single-instance)
+        // Add to in-memory queue
+        anonymousQueue.set(anonId, {
+          socketId: socket.id,
+          anonymousId: anonId,
+          preferences: preferences || { chatType: 'text' },
+          joinedAt: Date.now(),
+        })
+
+        // Try to find a match: simple first-fit for same chatType
+        const entries = Array.from(anonymousQueue.values())
+        const me = entries.find(e => e.socketId === socket.id)
+        if (!me) return
+
+        const match = entries.find(e => e.socketId !== socket.id && e.preferences?.chatType === me.preferences?.chatType)
+        if (match) {
+          // Create anonymous session
+          const sessionId = `anon_session_${Date.now()}_${Math.random().toString(36).slice(2,6)}`
+          anonymousSessions.set(sessionId, {
+            sessionId,
+            participants: [me.socketId, match.socketId],
+            createdAt: Date.now(),
+            preferences: me.preferences,
+          })
+
+          // Join sockets to room
+          socket.join(`random-chat:${sessionId}`)
+          const otherSocket = io.sockets.sockets.get(match.socketId)
+          if (otherSocket) otherSocket.join(`random-chat:${sessionId}`)
+
+          // Remove from queue
+          anonymousQueue.delete(me.anonymousId)
+          anonymousQueue.delete(match.anonymousId)
+
+          // Notify both participants
+          const payloadA = { sessionId, partner: { anonymousId: match.anonymousId, username: match.anonymousId }, chatType: me.preferences.chatType }
+          const payloadB = { sessionId, partner: { anonymousId: me.anonymousId, username: me.anonymousId }, chatType: me.preferences.chatType }
+
+          socket.emit('random-chat:match-found', payloadA)
+          if (otherSocket) otherSocket.emit('random-chat:match-found', payloadB)
+
+          console.log(`Anonymous match created: ${me.anonymousId} <-> ${match.anonymousId} (session ${sessionId})`)
+        } else {
+          // Send queue position
+          const pos = entries.filter(e => e.preferences?.chatType === me.preferences?.chatType).length
+          socket.emit('random-chat:queue-position', { position: pos, estimatedWait: 30 })
+        }
+      } catch (err) {
+        console.error('Error handling anon join-queue:', err)
+      }
+    })
+
+    // Anonymous: leave queue
+    socket.on('random-chat:leave-queue', () => {
+      try {
+        if (!socket.data.user || !socket.data.user.id.toString().startsWith('anon:')) return
+        const anonId = socket.data.user.username || socket.data.user.id.replace('anon:', '')
+        if (redisClient) {
+          // remove any matching entries from Redis lists across chat types (best-effort)
+          // We don't know chatType here; try common types
+          const typesToTry = ['text', 'voice', 'video']
+          typesToTry.forEach(async (t) => {
+            const payload = JSON.stringify({ anonId, joinedAt: 0, chatType: t, preferences: {} })
+            await removeAnonQueueEntryRedis(t, payload)
+          })
+        }
+
+        anonymousQueue.delete(anonId)
+      } catch (err) {
+        console.error('Error handling anon leave-queue:', err)
+      }
     })
 
     // Handle ending random chat session
@@ -816,17 +1143,52 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${user.username} (${socket.id})`)
       
+      // If anonymous, clean up in-memory queue and sessions
+      try {
+        if (socket.data.user && socket.data.user.id && socket.data.user.id.toString().startsWith('anon:')) {
+          const anonId = socket.data.user.username || socket.data.user.id.replace('anon:', '')
+          // Remove from Redis-backed queue if present
+          if (redisClient) {
+            const typesToTry = ['text', 'voice', 'video']
+            typesToTry.forEach(async (t) => {
+              const payload = JSON.stringify({ anonId, joinedAt: 0, chatType: t, preferences: {} })
+              await removeAnonQueueEntryRedis(t, payload)
+            })
+          }
+          anonymousQueue.delete(anonId)
+
+          // End any anonymous session involving this socket
+          for (const [sid, srec] of Array.from(anonymousSessions.entries())) {
+            if (srec.participants.includes(socket.id)) {
+              // Notify other participant
+              srec.participants.forEach((psid) => {
+                if (psid !== socket.id) {
+                  io.to(psid).emit('random-chat:partner-left')
+                  io.to(psid).emit('random-chat:session-ended', 'partner_left')
+                }
+              })
+              anonymousSessions.delete(sid)
+              console.log(`Anonymous session ${sid} ended because ${anonId} disconnected`)
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error cleaning up anonymous state on disconnect:', err)
+      }
+
       // Remove from online users
       onlineUsers.delete(user.id)
       
-      // Update last seen
+      // Update last seen for authenticated users
       try {
-        await User.findByIdAndUpdate(user.id, { lastSeen: new Date() })
-        
-        // Notify friends that user is offline
-        await notifyFriendsOnlineStatus(user.id, false)
-        
-        console.log(`User ${user.username} is now offline`)
+        if (!socket.data.user.id.toString().startsWith('anon:')) {
+          await User.findByIdAndUpdate(user.id, { lastSeen: new Date() })
+          
+          // Notify friends that user is offline
+          await notifyFriendsOnlineStatus(user.id, false)
+          
+          console.log(`User ${user.username} is now offline`)
+        }
       } catch (error) {
         console.error('Error updating last seen:', error)
       }
