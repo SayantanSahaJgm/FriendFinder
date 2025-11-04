@@ -105,24 +105,32 @@ const io = new Server(socketServer, {
       const normalize = (u) => {
         if (!u) return '';
         try {
-          // Keep only the origin portion (scheme + host + port)
+          // Keep only the origin portion (scheme + host), and drop default ports
           const parsed = new URL(u);
-          return `${parsed.protocol}//${parsed.host}`.replace(/\/$/, '');
+          const protocol = parsed.protocol; // includes trailing ':'
+          const hostname = parsed.hostname; // no port
+          const port = parsed.port; // empty if default
+          // Remove default ports (80 for http, 443 for https) from normalization
+          const defaultPort = protocol === 'http:' ? '80' : protocol === 'https:' ? '443' : '';
+          const portPart = port && port !== defaultPort ? `:${port}` : '';
+          return `${protocol}//${hostname}${portPart}`.replace(/\/$/, '').toLowerCase();
         } catch (e) {
           // Fallback: trim and remove trailing slash
-          return String(u).trim().replace(/\/$/, '');
+          return String(u).trim().replace(/\/$/, '').toLowerCase();
         }
       };
 
       const origin = normalize(originHeader);
 
-      const normalizedAllowed = allowedOrigins.map(normalize).filter(Boolean);
+  const normalizedAllowed = allowedOrigins.map(normalize).filter(Boolean);
+  // Debug: print normalized allowed origins occasionally (will show during allowRequest calls)
+  // console.log('Normalized allowed origins:', normalizedAllowed);
 
       // If any allowed origin is a wildcard '*' then accept all origins
       const allowAll = normalizedAllowed.includes('*');
 
-      const isLocalhost = isDevelopment && origin.includes('localhost');
-      const isAllowed = allowAll || !origin || isLocalhost || normalizedAllowed.some(a => a === origin);
+  const isLocalhost = isDevelopment && origin.includes('localhost');
+  const isAllowed = allowAll || !origin || isLocalhost || normalizedAllowed.some(a => a === origin.toLowerCase());
 
       console.log(`Socket.IO connection request from ${originHeader || '<no-origin>'}: ${isAllowed ? 'ALLOWED' : 'DENIED'}`);
 
