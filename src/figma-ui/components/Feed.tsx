@@ -155,34 +155,65 @@ export default function Feed() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch real posts from API
-        const res = await fetch('/api/posts');
-        const data = await res.json();
-        
+
+        // Fetch stories and feed posts in parallel. The posts API may return a populated
+        // `author` object (when available) or a raw id string. Be defensive and prefer
+        // author.name / author.username and author.profilePicture when present.
+        const [storiesRes, postsRes] = await Promise.all([
+          fetch('/api/posts?stories=1'),
+          fetch('/api/posts'),
+        ]);
+
+        const storiesData = await storiesRes.json().catch(() => ({ results: [] }));
+        const postsData = await postsRes.json().catch(() => ({ results: [] }));
+
         const userStory: StoryData = {
           userId: session?.user?.id || '',
           name: 'Your Story',
           image: session?.user?.image || undefined,
-          isYourStory: true
+          isYourStory: true,
         };
-        setStories([userStory]);
-        
-        // Map API posts to PostData format
-        const mappedPosts: PostData[] = (data.results || []).map((p: any) => ({
-          id: p._id,
-          author: {
-            id: p.author || 'anon',
-            name: p.author || 'Anonymous',
-            image: undefined,
-          },
-          content: p.text || '',
-          image: p.media && p.media.length > 0 ? p.media[0].url : undefined,
-          likes: Math.floor(Math.random() * 100),
-          comments: Math.floor(Math.random() * 20),
-          timestamp: new Date(p.createdAt).toLocaleDateString(),
-          isLiked: false,
-          isSaved: false,
-        }));
+
+        // Map returned story items (if any) into the story UI model
+        const mappedStories: StoryData[] = (storiesData.results || []).map((s: any) => {
+          const a = s.author || {};
+          const authorObj = typeof a === 'object' && a ? a : { _id: a, name: a };
+          return {
+            userId: authorObj._id || authorObj.id || String(authorObj.name || ''),
+            name: authorObj.name || authorObj.username || 'Anonymous',
+            image: authorObj.profilePicture || authorObj.image || undefined,
+            isYourStory: session?.user?.id && (String(authorObj._id || authorObj.id || authorObj.name) === String(session.user.id)),
+          };
+        });
+
+        setStories([userStory, ...mappedStories]);
+
+        // Map API posts to PostData format (use populated author when present)
+        const mappedPosts: PostData[] = (postsData.results || []).map((p: any) => {
+          const a = p.author || {};
+          const authorObj = typeof a === 'object' && a ? a : { _id: a, name: a };
+
+          const authorId = authorObj._id || authorObj.id || String(authorObj.name || 'anon');
+          const authorName = authorObj.name || authorObj.username || 'Anonymous';
+          const authorImage = authorObj.profilePicture || authorObj.image || undefined;
+
+          return {
+            id: p._id,
+            author: {
+              id: authorId,
+              name: authorName,
+              image: authorImage,
+            },
+            content: p.text || p.caption || '',
+            image: p.media && p.media.length > 0 ? p.media[0].url : undefined,
+            likes: Math.floor(Math.random() * 100),
+            comments: Math.floor(Math.random() * 20),
+            timestamp: new Date(p.createdAt).toLocaleDateString(),
+            isLiked: false,
+            isSaved: false,
+          };
+        });
+
         setPosts(mappedPosts);
       } catch (error) {
         console.error('Error fetching feed data:', error);

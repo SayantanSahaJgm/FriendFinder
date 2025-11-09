@@ -78,3 +78,5 @@ test-api.js
 test-friend-request-with-auth.js
 test-friend-requests.js
 test-settings-persistence.js
+server.log
+ui-smoke.png

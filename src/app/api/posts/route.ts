@@ -132,8 +132,28 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     await dbConnect();
-    // return most recent non-story posts
-    const posts = await Post.find({ isStory: false }).sort({ createdAt: -1 }).limit(50).lean();
+    const url = new URL(request.url);
+    const storiesOnly = url.searchParams.get('stories');
+
+    if (storiesOnly) {
+      // return active stories (not expired), most recent first, populated author
+      const now = new Date();
+      const stories = await Post.find({ isStory: true, $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .populate('author', 'username name profilePicture')
+        .lean();
+
+      return NextResponse.json({ ok: true, results: stories });
+    }
+
+    // return most recent non-story posts with populated author info
+    const posts = await Post.find({ isStory: false })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate('author', 'username name profilePicture')
+      .lean();
+
     return NextResponse.json({ ok: true, results: posts });
   } catch (err) {
     console.error('/api/posts GET error:', err);
