@@ -34,7 +34,7 @@ import aiBotService from '@/services/ai-bot-service';
 
 export default function RandomChatClient() {
   const { data: session } = useSession();
-  const { socket, isConnected, connect } = useSocket();
+  const { socket, isConnected } = useSocket();
   
   const [selectedMode, setSelectedMode] = useState<ChatMode>('text');
   const [status, setStatus] = useState<ConnectionStatus>('idle');
@@ -53,14 +53,6 @@ export default function RandomChatClient() {
 
   const REQUEUE_COOLDOWN_MS = 1500; // minimum wait before auto re-searching
   const MATCH_DEBOUNCE_MS = 1000; // ignore duplicate match events within 1s
-
-  // Auto-connect on mount for Omegle-style experience (no login required)
-  useEffect(() => {
-    if (!isConnected && !socket) {
-      console.log('Auto-connecting for guest random chat...');
-      connect();
-    }
-  }, [isConnected, socket, connect]);
 
   // Log connection status for debugging
   useEffect(() => {

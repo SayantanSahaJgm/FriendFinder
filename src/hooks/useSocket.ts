@@ -352,7 +352,8 @@ export function useSocket() {
       clearReconnectTimeout()
       stopHealthCheck()
     }
-  }, [session?.user?.email, status, connect, disconnect, clearReconnectTimeout, stopHealthCheck])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.email, status])
 
   // HTTP Fallback functions
   const sendMessageFallback = useCallback(async (data: any) => {
