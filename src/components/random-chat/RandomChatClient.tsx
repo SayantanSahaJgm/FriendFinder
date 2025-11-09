@@ -34,7 +34,7 @@ import aiBotService from '@/services/ai-bot-service';
 
 export default function RandomChatClient() {
   const { data: session } = useSession();
-  const { socket, isConnected } = useSocket();
+  const { socket, isConnected, connect } = useSocket();
   
   const [selectedMode, setSelectedMode] = useState<ChatMode>('text');
   const [status, setStatus] = useState<ConnectionStatus>('idle');
@@ -53,6 +53,14 @@ export default function RandomChatClient() {
 
   const REQUEUE_COOLDOWN_MS = 1500; // minimum wait before auto re-searching
   const MATCH_DEBOUNCE_MS = 1000; // ignore duplicate match events within 1s
+
+  // Auto-connect on mount for Omegle-style experience (no login required)
+  useEffect(() => {
+    if (!isConnected && !socket) {
+      console.log('Auto-connecting for guest random chat...');
+      connect();
+    }
+  }, [isConnected, socket, connect]);
 
   // Log connection status for debugging
   useEffect(() => {
@@ -492,15 +500,14 @@ export default function RandomChatClient() {
                 Connect with strangers instantly via text, audio, or video
               </CardDescription>
             </div>
-            {isConnected && (
-              <Badge variant="outline" className="flex items-center gap-1 border-green-500 text-green-700 bg-green-50">
+            {isConnected ? (
+              <Badge variant="outline" className="flex items-center gap-1 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-300 dark:border-green-700">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 Online
               </Badge>
-            )}
-            {!isConnected && (
-              <Badge variant="outline" className="flex items-center gap-1 border-yellow-500 text-yellow-700 bg-yellow-50">
-                <div className="h-2 w-2 rounded-full bg-yellow-500" />
+            ) : (
+              <Badge variant="outline" className="flex items-center gap-1 border-orange-500 text-orange-700 bg-orange-50 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
+                <Loader2 className="h-3 w-3 animate-spin" />
                 Connecting...
               </Badge>
             )}
@@ -611,11 +618,21 @@ export default function RandomChatClient() {
           </Tabs>
 
           {!isConnected && status === 'idle' && (
+            <Alert variant="default" className="border-blue-500 bg-blue-50">
+              <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+              <AlertTitle className="text-blue-800">Connecting...</AlertTitle>
+              <AlertDescription className="text-blue-700">
+                Connecting to chat servers. This should only take a moment...
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!isConnected && status !== 'idle' && (
             <Alert variant="default" className="border-yellow-500 bg-yellow-50">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <AlertTitle className="text-yellow-800">Connecting...</AlertTitle>
+              <AlertTitle className="text-yellow-800">Connection Issue</AlertTitle>
               <AlertDescription className="text-yellow-700">
-                Establishing connection to real-time services. Please wait...
+                Having trouble connecting. Make sure the Socket.IO server is running on port 3004.
               </AlertDescription>
             </Alert>
           )}
