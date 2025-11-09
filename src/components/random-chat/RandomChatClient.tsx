@@ -226,25 +226,19 @@ export default function RandomChatClient() {
       });
     }
 
-    // Reset and prepare to start new search, but apply a small cooldown to avoid UI flash
+    // Reset and return to idle - user must manually start next search
     aiBotService.reset();
     setCurrentSession(null);
     setMessages([]);
     setStatus('idle');
     actionCooldownRef.current = Date.now();
 
-    // mark searching ref false so startSearch may run after cooldown
+    // mark searching ref false so startSearch may run when user clicks Start
     isSearchingRef.current = false;
 
-    // Auto-start search after brief delay but respect cooldown
-    setTimeout(() => {
-      if (selectedMode === 'video' && !verifiedSelfie) {
-        setStatus('verifying-face');
-      } else {
-        startSearch();
-      }
-    }, REQUEUE_COOLDOWN_MS);
-  }, [currentSession, socket, selectedMode, verifiedSelfie, startSearch]);
+    // No automatic re-search - user must click Start button to search again
+    toast.info('Click "Start" to find another person');
+  }, [currentSession, socket]);
 
   // Stop chat and return to idle
   const handleStop = useCallback(() => {
@@ -350,14 +344,15 @@ export default function RandomChatClient() {
 
     // Partner disconnected
     socket.on('random-chat:partner-disconnected', () => {
-      // brief UX: notify and then gracefully transition to next after cooldown
-      toast.info('Stranger disconnected — re-queuing shortly');
+      // Notify user but don't automatically re-search - let them decide
+      toast.info('Stranger disconnected. Click "Next" or "Start" to find another person.');
       actionCooldownRef.current = Date.now();
       isSearchingRef.current = false;
-
-      setTimeout(() => {
-        handleNext();
-      }, REQUEUE_COOLDOWN_MS);
+      
+      // Return to idle state - user must manually initiate next search
+      setCurrentSession(null);
+      setMessages([]);
+      setStatus('idle');
     });
 
     return () => {
@@ -368,7 +363,7 @@ export default function RandomChatClient() {
       socket.off('random-chat:message');
       socket.off('random-chat:partner-disconnected');
     };
-  }, [socket, selectedMode, handleNext]);
+  }, [socket, selectedMode]);
 
   // Cleanup on unmount
   useEffect(() => {
