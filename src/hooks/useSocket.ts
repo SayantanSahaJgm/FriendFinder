@@ -336,23 +336,23 @@ export function useSocket() {
     }
   }, [isConnected, connectionState, connectionError])
 
-  // Effect to handle connection/disconnection based on session
+  // Effect to handle connection for both authenticated and anonymous users.
+  // We want anonymous (unauthenticated) users to remain connected so features
+  // like guest random-chat work immediately after face verification.
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
+    // Connect when authenticated or when explicitly unauthenticated (anonymous guest)
+    if ((status === 'authenticated' && session?.user?.email) || status === 'unauthenticated') {
       connect()
-    } else if (status === 'unauthenticated') {
-      disconnect()
     }
 
-    // Only cleanup on unmount, not on dependency changes
+    // Cleanup only on unmount to avoid tearing down the socket during normal
+    // session state changes. This ensures anonymous flows remain connected.
     return () => {
-      if (status === 'unauthenticated') {
-        disconnect()
-        clearReconnectTimeout()
-        stopHealthCheck()
-      }
+      disconnect()
+      clearReconnectTimeout()
+      stopHealthCheck()
     }
-  }, [session?.user?.email, status]) // Removed connect, disconnect from dependencies
+  }, [session?.user?.email, status, connect, disconnect, clearReconnectTimeout, stopHealthCheck])
 
   // HTTP Fallback functions
   const sendMessageFallback = useCallback(async (data: any) => {
