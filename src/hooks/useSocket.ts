@@ -52,9 +52,12 @@ export function useSocket() {
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {
-    if (!session?.user?.email || status !== 'authenticated') {
-      console.log('No authenticated session, skipping socket connection')
-      return
+    // Allow anonymous connections when there is no authenticated session.
+    // This enables guest random-chat flows where users are not signed in.
+    const isAuthenticated = Boolean(session?.user && status === 'authenticated');
+
+    if (!isAuthenticated) {
+      console.log('No authenticated session — connecting as anonymous guest');
     }
 
     if (connectionState.status === 'connecting' || connectionState.status === 'connected') {
@@ -76,6 +79,26 @@ export function useSocket() {
     }
 
     try {
+      // Build auth payload for socket handshake: include anonymous info when unauthenticated
+      let authPayload: any = {};
+      if (isAuthenticated) {
+        // Authenticated flows can rely on session for identity on server
+        authPayload = { token: undefined };
+      } else {
+        // Ensure anonymousId is stable across reloads for guest matching
+        let anonId = null;
+        try {
+          anonId = window.localStorage.getItem('ff:anonId');
+          if (!anonId) {
+            anonId = `anon-${Math.random().toString(36).slice(2, 9)}`;
+            window.localStorage.setItem('ff:anonId', anonId);
+          }
+        } catch (e) {
+          anonId = `anon-${Math.random().toString(36).slice(2, 9)}`;
+        }
+        authPayload = { anonymous: true, anonymousId: anonId };
+      }
+
       const newSocket = io(socketUrl, {
           // Server.js exposes the Socket.IO endpoint at /socket.io/
           path: '/socket.io/',
@@ -89,6 +112,7 @@ export function useSocket() {
         forceNew: true,
         // Send credentials so the server can accept authenticated connections
         withCredentials: true,
+        auth: authPayload,
       })
 
       // Connection successful

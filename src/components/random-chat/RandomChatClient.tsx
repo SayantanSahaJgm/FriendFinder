@@ -269,8 +269,8 @@ export default function RandomChatClient() {
   useEffect(() => {
     if (!socket) return;
 
-  // Match found (server emits 'random-chat:match-found')
-  socket.on('random-chat:match-found', (data: any) => {
+    // Match found — accept multiple possible event names emitted by server
+    const onMatch = (data: any) => {
       // Log full payload to help diagnose malformed payloads (partner missing, wrong shape, etc.)
       // This will appear in the browser console where the client is running.
       try {
@@ -326,7 +326,12 @@ export default function RandomChatClient() {
       isSearchingRef.current = false;
 
       toast.success('Connected to a stranger!');
-    });
+    };
+
+    // Register same handler for historically different event names
+    socket.on('random-chat:match-found', onMatch);
+    socket.on('random-chat:matched', onMatch);
+    socket.on('random-chat:session-matched', onMatch);
 
     // Receive message
     socket.on('random-chat:message', (data: any) => {
@@ -357,7 +362,9 @@ export default function RandomChatClient() {
 
     return () => {
       // ensure we remove the exact event names we registered
-      socket.off('random-chat:match-found');
+  socket.off('random-chat:match-found', onMatch);
+  socket.off('random-chat:matched', onMatch);
+  socket.off('random-chat:session-matched', onMatch);
       socket.off('random-chat:message');
       socket.off('random-chat:partner-disconnected');
     };

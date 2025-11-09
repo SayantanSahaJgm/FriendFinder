@@ -1,5 +1,6 @@
 /**
  * Copied BluetoothService for React Native mobile scaffold
+ * Updated with backend integration for FriendFinder
  */
 
 import { BleManager, Device, State, BleError } from 'react-native-ble-plx';
@@ -9,6 +10,7 @@ import { startAdvertising as nativeStartAdvertising, stopAdvertising as nativeSt
 import { isAdvertisingAvailable } from '../../native/BleAdvertiser';
 
 const FRIENDFINDER_SERVICE_UUID = '0000FFF0-0000-1000-8000-00805F9B34FB';
+const API_BASE_URL = 'https://friendfinder-vscode.onrender.com';
 
 export interface NearbyUser {
   userID: string;
@@ -27,12 +29,21 @@ interface BroadcastPayload {
   ts: number;
 }
 
+interface BackendBluetoothUser {
+  id: string;
+  username: string;
+  email: string;
+  lastSeenBluetooth: string;
+  isFriend: boolean;
+}
+
 export class BluetoothService {
   private bleManager: BleManager;
   private isScanning: boolean = false;
   private isAdvertising: boolean = false;
   private nearbyUsers: Map<string, NearbyUser> = new Map();
   private cleanupInterval?: NodeJS.Timeout;
+  private authToken: string | null = null;
 
   private onDeviceFoundCallback?: (user: NearbyUser) => void;
   private onDeviceLostCallback?: (userID: string) => void;
@@ -41,6 +52,13 @@ export class BluetoothService {
   constructor() {
     this.bleManager = new BleManager();
     this.setupBleStateListener();
+  }
+
+  /**
+   * Set authentication token for backend API calls
+   */
+  setAuthToken(token: string) {
+    this.authToken = token;
   }
 
   /**
@@ -120,12 +138,16 @@ export class BluetoothService {
     if (this.isAdvertising) return;
     const payload = this.createBroadcastPayload(userID, username, status);
     const encoded = this.encodePayload(payload);
-    // Attempt to call native advertising bridge. If bridge is not available, warn and keep advertising flag for internal tracking.
+
+    // Attempt to call native advertising bridge
     try {
       const ok = await nativeStartAdvertising(FRIENDFINDER_SERVICE_UUID, encoded);
       if (ok) {
         this.isAdvertising = true;
         console.log('Native advertising started with payload');
+
+        // Sync with backend
+        await this.registerBluetoothWithBackend(userID, username);
       } else {
         this.isAdvertising = false;
         console.warn('Native advertising bridge not available or returned failure. Payload:', encoded);
@@ -142,6 +164,8 @@ export class BluetoothService {
       const ok = await nativeStopAdvertising();
       if (ok) {
         console.log('Native advertising stopped');
+        // Clear from backend
+        await this.clearBluetoothFromBackend();
       } else {
         console.warn('Native advertising bridge stop failed or not available');
       }
@@ -151,6 +175,93 @@ export class BluetoothService {
 
     // Ensure internal state is cleared even if native stop failed to avoid stale state
     this.isAdvertising = false;
+  }
+
+  /**
+   * Register Bluetooth device with backend
+   */
+  private async registerBluetoothWithBackend(userID: string, deviceName: string): Promise<void> {
+    if (!this.authToken) {
+      console.warn('No auth token - skipping backend registration');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/bluetooth`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deviceName: deviceName,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Bluetooth registered with backend:', data);
+      } else {
+        console.warn('Failed to register Bluetooth with backend:', response.status);
+      }
+    } catch (error) {
+      console.error('Error registering Bluetooth with backend:', error);
+    }
+  }
+
+  /**
+   * Clear Bluetooth from backend
+   */
+  private async clearBluetoothFromBackend(): Promise<void> {
+    if (!this.authToken) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/bluetooth`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${this.authToken}`,
+        },
+      });
+
+      if (response.ok) {
+        console.log('✅ Bluetooth cleared from backend');
+      } else {
+        console.warn('Failed to clear Bluetooth from backend:', response.status);
+      }
+    } catch (error) {
+      console.error('Error clearing Bluetooth from backend:', error);
+    }
+  }
+
+  /**
+   * Fetch nearby Bluetooth users from backend
+   */
+  async fetchNearbyBluetoothUsers(): Promise<BackendBluetoothUser[]> {
+    if (!this.authToken) {
+      console.warn('No auth token - cannot fetch nearby users from backend');
+      return [];
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/nearby-bluetooth`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.authToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Fetched nearby Bluetooth users from backend:', data.data?.users?.length || 0);
+        return data.data?.users || [];
+      } else {
+        console.warn('Failed to fetch nearby Bluetooth users:', response.status);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching nearby Bluetooth users:', error);
+      return [];
+    }
   }
 
   async startScanning(): Promise<void> {
