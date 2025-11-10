@@ -194,30 +194,21 @@ export default function RandomChatClient() {
     }
   }, [currentSession, session, selectedMode, socket, addBotMessage]);
 
-  // Handle selfie capture (for video mode)
+  // Handle selfie capture (for video mode) - DISABLED, no longer needed
   const handleSelfieCaptured = useCallback((dataUri: string) => {
     console.log('Selfie captured successfully, dataUri length:', dataUri.length);
     setVerifiedSelfie(dataUri);
     setStatus('idle');
-    toast.success('Face verified! Ready to start video chat.');
-    
-    // Auto-start search after brief delay
-    setTimeout(() => {
-      startSearch();
-    }, 1000);
+    // NO auto-search - user must click Start button manually
+  }, []);
+
+  // Start chat based on mode - NO face verification required
+  const handleStart = useCallback(() => {
+    // Start search immediately for all modes
+    startSearch();
   }, [startSearch]);
 
-  // Start chat based on mode
-  const handleStart = useCallback(() => {
-    if (selectedMode === 'video' && !verifiedSelfie) {
-      setStatus('verifying-face');
-      return;
-    }
-
-    startSearch();
-  }, [selectedMode, verifiedSelfie, startSearch]);
-
-  // Skip to next chat
+  // Skip to next chat - NO auto-search, user must click Start manually
   const handleNext = useCallback(() => {
     // Disconnect current session
     if (currentSession && socket) {
@@ -236,15 +227,8 @@ export default function RandomChatClient() {
     // mark searching ref false so startSearch may run after cooldown
     isSearchingRef.current = false;
 
-    // Auto-start search after brief delay but respect cooldown
-    setTimeout(() => {
-      if (selectedMode === 'video' && !verifiedSelfie) {
-        setStatus('verifying-face');
-      } else {
-        startSearch();
-      }
-    }, REQUEUE_COOLDOWN_MS);
-  }, [currentSession, socket, selectedMode, verifiedSelfie, startSearch]);
+    // NO auto-search - user must click Start button manually to find new partner
+  }, [currentSession, socket]);
 
   // Stop chat and return to idle
   const handleStop = useCallback(() => {
@@ -269,14 +253,14 @@ export default function RandomChatClient() {
   useEffect(() => {
     if (!socket) return;
 
-  // Match found (server emits 'random-chat:match-found')
-  socket.on('random-chat:match-found', (data: any) => {
+  // Match found (server emits 'random-chat:session-matched')
+  socket.on('random-chat:session-matched', (data: any) => {
       // Log full payload to help diagnose malformed payloads (partner missing, wrong shape, etc.)
       // This will appear in the browser console where the client is running.
       try {
-        console.log('🔔 [random-chat:matched] payload received:', data);
+        console.log('🔔 [random-chat:session-matched] payload received:', data);
       } catch (err) {
-        console.warn('🔔 [random-chat:matched] failed to serialize payload for logging', err);
+        console.warn('🔔 [random-chat:session-matched] failed to serialize payload for logging', err);
       }
 
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
@@ -287,7 +271,7 @@ export default function RandomChatClient() {
       // debounce duplicate match events
       const now = Date.now();
       if (lastMatchAtRef.current && now - lastMatchAtRef.current < MATCH_DEBOUNCE_MS) {
-        console.log('Ignoring duplicate match-found event');
+        console.log('Ignoring duplicate session-matched event');
         return;
       }
       lastMatchAtRef.current = now;
@@ -303,7 +287,7 @@ export default function RandomChatClient() {
       }
 
       if (!partner) {
-        console.error('❌ [random-chat:match-found] missing partner in payload:', data);
+        console.error('❌ [random-chat:session-matched] missing partner in payload:', data);
         toast.error('Received malformed match from server. Please try again.');
         setStatus('idle');
         return;
@@ -343,21 +327,20 @@ export default function RandomChatClient() {
       setMessages((prev) => [...prev, message]);
     });
 
-    // Partner disconnected
+    // Partner disconnected - NO auto-search, return to idle
     socket.on('random-chat:partner-disconnected', () => {
-      // brief UX: notify and then gracefully transition to next after cooldown
-      toast.info('Stranger disconnected — re-queuing shortly');
-      actionCooldownRef.current = Date.now();
+      toast.info('Stranger disconnected');
+      aiBotService.reset();
+      setCurrentSession(null);
+      setMessages([]);
+      setStatus('idle');
       isSearchingRef.current = false;
-
-      setTimeout(() => {
-        handleNext();
-      }, REQUEUE_COOLDOWN_MS);
+      // User must click Start button to find new partner
     });
 
     return () => {
       // ensure we remove the exact event names we registered
-      socket.off('random-chat:match-found');
+      socket.off('random-chat:session-matched');
       socket.off('random-chat:message');
       socket.off('random-chat:partner-disconnected');
     };
@@ -572,11 +555,11 @@ export default function RandomChatClient() {
             <TabsContent value="video" className="space-y-4">
               <div className="p-6 bg-muted/50 rounded-lg">
                 <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  Video Chat <Shield className="h-5 w-5 text-yellow-500" />
+                  Video Chat
                 </h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Face-to-face conversations with continuous face verification for safety.
-                  Your face must be visible throughout the chat.
+                  Face-to-face conversations with random strangers, just like Omegle.
+                  Connect instantly with your webcam.
                 </p>
                 <ul className="text-sm space-y-2 text-muted-foreground">
                   <li className="flex items-center gap-2">
@@ -584,26 +567,18 @@ export default function RandomChatClient() {
                     Live video & audio
                   </li>
                   <li className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-yellow-500" />
-                    Continuous face verification
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    Anonymous & instant
                   </li>
                   <li className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-orange-500" />
-                    Auto-disconnect if face hidden
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    Skip to next anytime
                   </li>
                   <li className="flex items-center gap-2">
                     <VideoIcon className="h-4 w-4 text-blue-500" />
                     Camera required
                   </li>
                 </ul>
-                {verifiedSelfie && (
-                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                    <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Face verified! Ready to start video chat.
-                    </p>
-                  </div>
-                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -624,17 +599,8 @@ export default function RandomChatClient() {
             size="lg"
             disabled={!isConnected && status === 'idle'}
           >
-            {selectedMode === 'video' && !verifiedSelfie ? (
-              <>
-                <Shield className="h-5 w-5 mr-2" />
-                Verify Face & Start
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5 mr-2" />
-                Start {selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1)} Chat
-              </>
-            )}
+            <Sparkles className="h-5 w-5 mr-2" />
+            Start {selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1)} Chat
           </Button>
         </CardContent>
       </Card>
