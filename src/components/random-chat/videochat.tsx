@@ -28,6 +28,10 @@ const rtcConfiguration: RTCConfiguration = {
   ],
 };
 
+// Feature flag to enable/disable runtime face verification checks
+// Keep the hook and its code intact for quick re-enable later.
+const FACE_VERIFICATION_ENABLED = false;
+
 export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
   const { socket } = useSocket();
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -44,11 +48,14 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
   const ignoreOfferRef = useRef(false);
   
   // Face verification hook with continuous monitoring
+  // NOTE: Disabled at runtime via feature flag `FACE_VERIFICATION_ENABLED`.
+  // The hook and callbacks remain present so re-enabling is a one-line change.
   const {
     verificationStatus,
     isChecking,
   } = useFaceVerification({
-    enabled: hasCameraPermission === true,
+    // Only enable checks if feature flag is true and camera permission is granted
+    enabled: FACE_VERIFICATION_ENABLED && hasCameraPermission === true,
     checkInterval: 10000, // Check every 10 seconds
     maxWarnings: 3,
     videoElement: myVideoRef.current,
@@ -322,8 +329,8 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
 
   return (
     <Card className="w-full h-full flex flex-col relative overflow-hidden">
-      {/* Face Verification Status Bar */}
-      {hasCameraPermission && (
+      {/* Face Verification Status Bar (hidden when feature flag disabled) */}
+      {FACE_VERIFICATION_ENABLED && hasCameraPermission && (
         <div className={cn(
           "absolute top-0 left-0 right-0 z-10 p-3 backdrop-blur-sm border-b transition-colors",
           verificationStatus.isVerified 
@@ -459,8 +466,8 @@ export default function VideoChat({ session, onNext, onStop }: VideoChatProps) {
             You (Mirror View)
           </div>
           
-          {/* Face Verification Overlay */}
-          {hasCameraPermission && !verificationStatus.isVerified && verificationStatus.warningCount > 0 && (
+          {/* Face Verification Overlay (hidden when feature flag disabled) */}
+          {FACE_VERIFICATION_ENABLED && hasCameraPermission && !verificationStatus.isVerified && verificationStatus.warningCount > 0 && (
             <div className="absolute inset-0 border-4 border-red-500 animate-pulse rounded-lg">
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500/90 text-white px-4 py-2 rounded-lg">
                 ⚠️ Show your face!
