@@ -301,53 +301,66 @@ io.on("connection", (socket) => {
   // Start searching for a random chat match
   socket.on("random-chat:search", async (data) => {
     try {
-      const { mode, interests, ageRange, languages } = data; // mode: 'text' | 'audio' | 'video'
-      console.log(`User ${socket.userId} searching for ${mode} chat`);
+      const { mode, interests, ageRange, languages, userId } = data; // mode: 'text' | 'audio' | 'video'
+      
+      // Use userId from data (logged-in user) or socket.userId (anonymous)
+      const effectiveUserId = userId || socket.userId || socket.id;
+      
+      // Generate unique anonymous ID for this session
+      const anonymousId = socket.anonymousId || `User${Math.random().toString(36).substr(2, 4)}`;
+      socket.anonymousId = anonymousId;
+      socket.userId = effectiveUserId; // Ensure socket.userId is set
+      
+      console.log(`User ${effectiveUserId} (${anonymousId}) searching for ${mode} chat`);
 
       // Store mode on socket for matching
       socket.chatMode = mode;
-      socket.anonymousId = `User${Math.random().toString(36).substr(2, 4)}`;
 
-      // Fetch user data from database for better matching
+      // Fetch user data from database for better matching (skip for truly anonymous)
       let userDbData = null;
-      try {
-        const mongoose = require('mongoose');
-        const dbConnect = require('./src/lib/mongoose').default;
-        const User = require('./src/models/User').default;
-        
-        await dbConnect();
-        userDbData = await User.findById(socket.userId)
-          .select('interests ageRange preferredLanguages')
-          .lean();
-        
-        // Update user interests if provided
-        if (interests && interests.length > 0) {
-          await User.findByIdAndUpdate(socket.userId, {
-            interests,
-            ...(ageRange && { ageRange }),
-            ...(languages && { preferredLanguages: languages })
-          });
-          userDbData = { interests, ageRange, preferredLanguages: languages };
+      if (userId) {
+        try {
+          const mongoose = require('mongoose');
+          const dbConnect = require('./src/lib/mongoose').default;
+          const User = require('./src/models/User').default;
+          
+          await dbConnect();
+          userDbData = await User.findById(userId)
+            .select('interests ageRange preferredLanguages username')
+            .lean();
+          
+          // Update user interests if provided
+          if (interests && interests.length > 0) {
+            await User.findByIdAndUpdate(userId, {
+              interests,
+              ...(ageRange && { ageRange }),
+              ...(languages && { preferredLanguages: languages })
+            });
+            userDbData = { ...userDbData, interests, ageRange, preferredLanguages: languages };
+          }
+        } catch (dbError) {
+          console.log('Could not fetch/update user data:', dbError.message);
         }
-      } catch (dbError) {
-        console.log('Could not fetch/update user data:', dbError.message);
       }
 
       // Add to mode-specific queue with user data
-      randomChatQueue.set(socket.userId, {
+      randomChatQueue.set(effectiveUserId, {
         socket,
         mode,
-        userId: socket.userId,
-        anonymousId: socket.anonymousId,
+        userId: effectiveUserId,
+        anonymousId: anonymousId,
+        username: userDbData?.username || anonymousId,
         joinTime: Date.now(),
         userDbData
       });
 
+      console.log(`Queue size for ${mode}: ${Array.from(randomChatQueue.values()).filter(u => u.mode === mode).length}`);
+
       // Try to find a match immediately
-      const matched = await tryMatchUsersByMode(mode, socket.userId);
+      const matched = await tryMatchUsersByMode(mode, effectiveUserId);
       
       if (!matched) {
-        console.log(`No match found for user ${socket.userId}, remaining in queue`);
+        console.log(`No match found for user ${effectiveUserId}, remaining in queue (total queue: ${randomChatQueue.size})`);
         // Client will handle 15s timeout and fall back to AI bot
       }
     } catch (error) {
@@ -949,12 +962,14 @@ async function tryMatchUsersByMode(mode, requestingUserId) {
       userId: requestingUserId,
       socket: user1.socket,
       anonymousId: user1.anonymousId,
+      username: user1.username || user1.anonymousId,
       isActive: true
     },
     user2: {
       userId: bestMatch.userId,
       socket: user2.socket,
       anonymousId: user2.anonymousId,
+      username: user2.username || user2.anonymousId,
       isActive: true
     },
     startTime: Date.now(),
@@ -977,22 +992,34 @@ async function tryMatchUsersByMode(mode, requestingUserId) {
   user1.socket.currentSessionId = sessionId;
   user2.socket.currentSessionId = sessionId;
   
-  // Notify both users of match
-  const matchData = {
+  // Notify both users of match (use session-matched event)
+  user1.socket.emit('random-chat:session-matched', {
     sessionId,
-    mode,
-    partnerAnonymousId: user2.anonymousId,
-    startTime: session.startTime
-  };
-  
-  user1.socket.emit('random-chat:matched', matchData);
-  
-  user2.socket.emit('random-chat:matched', {
-    ...matchData,
-    partnerAnonymousId: user1.anonymousId
+    chatType: mode,
+    mode: mode,
+    startTime: session.startTime,
+    messagesCount: 0,
+    partner: {
+      anonymousId: session.user2.anonymousId,
+      username: session.user2.username,
+      isActive: session.user2.isActive
+    }
   });
   
-  console.log(`✅ Matched ${requestingUserId} with ${bestMatch.userId} in ${mode} mode, session: ${sessionId}`);
+  user2.socket.emit('random-chat:session-matched', {
+    sessionId,
+    chatType: mode,
+    mode: mode,
+    startTime: session.startTime,
+    messagesCount: 0,
+    partner: {
+      anonymousId: session.user1.anonymousId,
+      username: session.user1.username,
+      isActive: session.user1.isActive
+    }
+  });
+  
+  console.log(`✅ Matched ${requestingUserId} (${session.user1.username}) with ${bestMatch.userId} (${session.user2.username}) in ${mode} mode, session: ${sessionId}`);
   return true; // Match found
 }
 
