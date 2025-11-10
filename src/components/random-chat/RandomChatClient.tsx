@@ -226,19 +226,25 @@ export default function RandomChatClient() {
       });
     }
 
-    // Reset and return to idle - user must manually start next search
+    // Reset and prepare to start new search, but apply a small cooldown to avoid UI flash
     aiBotService.reset();
     setCurrentSession(null);
     setMessages([]);
     setStatus('idle');
     actionCooldownRef.current = Date.now();
 
-    // mark searching ref false so startSearch may run when user clicks Start
+    // mark searching ref false so startSearch may run after cooldown
     isSearchingRef.current = false;
 
-    // No automatic re-search - user must click Start button to search again
-    toast.info('Click "Start" to find another person');
-  }, [currentSession, socket]);
+    // Auto-start search after brief delay but respect cooldown
+    setTimeout(() => {
+      if (selectedMode === 'video' && !verifiedSelfie) {
+        setStatus('verifying-face');
+      } else {
+        startSearch();
+      }
+    }, REQUEUE_COOLDOWN_MS);
+  }, [currentSession, socket, selectedMode, verifiedSelfie, startSearch]);
 
   // Stop chat and return to idle
   const handleStop = useCallback(() => {
@@ -263,8 +269,8 @@ export default function RandomChatClient() {
   useEffect(() => {
     if (!socket) return;
 
-    // Match found — accept multiple possible event names emitted by server
-    const onMatch = (data: any) => {
+  // Match found (server emits 'random-chat:match-found')
+  socket.on('random-chat:match-found', (data: any) => {
       // Log full payload to help diagnose malformed payloads (partner missing, wrong shape, etc.)
       // This will appear in the browser console where the client is running.
       try {
@@ -320,12 +326,7 @@ export default function RandomChatClient() {
       isSearchingRef.current = false;
 
       toast.success('Connected to a stranger!');
-    };
-
-    // Register same handler for historically different event names
-    socket.on('random-chat:match-found', onMatch);
-    socket.on('random-chat:matched', onMatch);
-    socket.on('random-chat:session-matched', onMatch);
+    });
 
     // Receive message
     socket.on('random-chat:message', (data: any) => {
@@ -344,26 +345,23 @@ export default function RandomChatClient() {
 
     // Partner disconnected
     socket.on('random-chat:partner-disconnected', () => {
-      // Notify user but don't automatically re-search - let them decide
-      toast.info('Stranger disconnected. Click "Next" or "Start" to find another person.');
+      // brief UX: notify and then gracefully transition to next after cooldown
+      toast.info('Stranger disconnected — re-queuing shortly');
       actionCooldownRef.current = Date.now();
       isSearchingRef.current = false;
-      
-      // Return to idle state - user must manually initiate next search
-      setCurrentSession(null);
-      setMessages([]);
-      setStatus('idle');
+
+      setTimeout(() => {
+        handleNext();
+      }, REQUEUE_COOLDOWN_MS);
     });
 
     return () => {
       // ensure we remove the exact event names we registered
-  socket.off('random-chat:match-found', onMatch);
-  socket.off('random-chat:matched', onMatch);
-  socket.off('random-chat:session-matched', onMatch);
+      socket.off('random-chat:match-found');
       socket.off('random-chat:message');
       socket.off('random-chat:partner-disconnected');
     };
-  }, [socket, selectedMode]);
+  }, [socket, selectedMode, handleNext]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -492,14 +490,15 @@ export default function RandomChatClient() {
                 Connect with strangers instantly via text, audio, or video
               </CardDescription>
             </div>
-            {isConnected ? (
-              <Badge variant="outline" className="flex items-center gap-1 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-300 dark:border-green-700">
+            {isConnected && (
+              <Badge variant="outline" className="flex items-center gap-1 border-green-500 text-green-700 bg-green-50">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 Online
               </Badge>
-            ) : (
-              <Badge variant="outline" className="flex items-center gap-1 border-orange-500 text-orange-700 bg-orange-50 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
-                <Loader2 className="h-3 w-3 animate-spin" />
+            )}
+            {!isConnected && (
+              <Badge variant="outline" className="flex items-center gap-1 border-yellow-500 text-yellow-700 bg-yellow-50">
+                <div className="h-2 w-2 rounded-full bg-yellow-500" />
                 Connecting...
               </Badge>
             )}
@@ -610,21 +609,11 @@ export default function RandomChatClient() {
           </Tabs>
 
           {!isConnected && status === 'idle' && (
-            <Alert variant="default" className="border-blue-500 bg-blue-50">
-              <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
-              <AlertTitle className="text-blue-800">Connecting...</AlertTitle>
-              <AlertDescription className="text-blue-700">
-                Connecting to chat servers. This should only take a moment...
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {!isConnected && status !== 'idle' && (
             <Alert variant="default" className="border-yellow-500 bg-yellow-50">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <AlertTitle className="text-yellow-800">Connection Issue</AlertTitle>
+              <AlertTitle className="text-yellow-800">Connecting...</AlertTitle>
               <AlertDescription className="text-yellow-700">
-                Having trouble connecting. Make sure the Socket.IO server is running on port 3004.
+                Establishing connection to real-time services. Please wait...
               </AlertDescription>
             </Alert>
           )}

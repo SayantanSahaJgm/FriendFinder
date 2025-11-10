@@ -311,37 +311,26 @@ io.on("connection", (socket) => {
       // Fetch user data from database for better matching
       let userDbData = null;
       try {
-        let mongoose, dbConnect, User;
-        try {
-          mongoose = require('mongoose');
-          dbConnect = require('./src/lib/mongoose').default;
-          User = require('./src/models/User').default;
-        } catch (modErr) {
-          console.log('DB modules unavailable in this environment, skipping user DB fetch/update:', modErr.code || modErr.message);
+        const mongoose = require('mongoose');
+        const dbConnect = require('./src/lib/mongoose').default;
+        const User = require('./src/models/User').default;
+        
+        await dbConnect();
+        userDbData = await User.findById(socket.userId)
+          .select('interests ageRange preferredLanguages')
+          .lean();
+        
+        // Update user interests if provided
+        if (interests && interests.length > 0) {
+          await User.findByIdAndUpdate(socket.userId, {
+            interests,
+            ...(ageRange && { ageRange }),
+            ...(languages && { preferredLanguages: languages })
+          });
+          userDbData = { interests, ageRange, preferredLanguages: languages };
         }
-
-        if (dbConnect && User) {
-          try {
-            await dbConnect();
-            userDbData = await User.findById(socket.userId)
-              .select('interests ageRange preferredLanguages')
-              .lean();
-
-            // Update user interests if provided
-            if (interests && interests.length > 0) {
-              await User.findByIdAndUpdate(socket.userId, {
-                interests,
-                ...(ageRange && { ageRange }),
-                ...(languages && { preferredLanguages: languages })
-              });
-              userDbData = { interests, ageRange, preferredLanguages: languages };
-            }
-          } catch (dbError) {
-            console.log('Could not fetch/update user data (db error):', dbError.message);
-          }
-        }
-      } catch (dbErrorOuter) {
-        console.log('Unexpected error while attempting DB lookup for user data:', dbErrorOuter && dbErrorOuter.message);
+      } catch (dbError) {
+        console.log('Could not fetch/update user data:', dbError.message);
       }
 
       // Add to mode-specific queue with user data
@@ -415,44 +404,34 @@ io.on("connection", (socket) => {
 
       // Try to persist to database (optional, fail silently)
       try {
-        let mongoose, dbConnect, RandomChatSession;
-        try {
-          mongoose = require('mongoose');
-          dbConnect = require('./src/lib/mongoose').default;
-          RandomChatSession = require('./src/models/RandomChatSession').default;
-        } catch (modErr) {
-          console.log('DB modules unavailable, skipping message persistence:', modErr.code || modErr.message);
-        }
+        const mongoose = require('mongoose');
+        const dbConnect = require('./src/lib/mongoose').default;
+        const RandomChatSession = require('./src/models/RandomChatSession').default;
 
-        if (dbConnect && RandomChatSession) {
-          try {
-            await dbConnect();
-            const dbSession = await RandomChatSession.findOne({
-              sessionId,
-              status: 'active'
-            });
+        await dbConnect();
+        
+        const dbSession = await RandomChatSession.findOne({
+          sessionId,
+          status: 'active'
+        });
 
-            if (dbSession) {
-              let userObjectId;
-              if (typeof socket.userId === 'string') {
-                userObjectId = new mongoose.Types.ObjectId(socket.userId);
-              } else {
-                userObjectId = socket.userId;
-              }
-
-              await dbSession.addMessage(
-                userObjectId,
-                senderAnonymousId,
-                message,
-                'text'
-              );
-            }
-          } catch (dbError) {
-            console.error('Error persisting message (db error):', dbError);
+        if (dbSession) {
+          let userObjectId;
+          if (typeof socket.userId === 'string') {
+            userObjectId = new mongoose.Types.ObjectId(socket.userId);
+          } else {
+            userObjectId = socket.userId;
           }
+
+          await dbSession.addMessage(
+            userObjectId,
+            senderAnonymousId,
+            message,
+            'text'
+          );
         }
-      } catch (dbOuterErr) {
-        console.error('Unexpected error during message persistence attempt:', dbOuterErr);
+      } catch (dbError) {
+        console.error("Error persisting message:", dbError);
       }
     } catch (error) {
       console.error("Error in random-chat:message:", error);
@@ -613,21 +592,13 @@ io.on("connection", (socket) => {
       // Try to persist message to database
       try {
         // Import mongoose and models here to avoid circular dependencies
-        let mongoose, dbConnect, RandomChatSession, User;
-        try {
-          mongoose = require('mongoose');
-          dbConnect = require('./src/lib/mongoose').default;
-          RandomChatSession = require('./src/models/RandomChatSession').default;
-          User = require('./src/models/User').default;
-        } catch (modErr) {
-          // Missing DB helper or models in certain dev environments — skip persistence
-          console.log('Database persistence modules not available, skipping DB save:', modErr.code || modErr.message);
-        }
+        const mongoose = require('mongoose');
+        const dbConnect = require('./src/lib/mongoose').default;
+        const RandomChatSession = require('./src/models/RandomChatSession').default;
+        const User = require('./src/models/User').default;
 
-        // Connect to database if possible
-        if (dbConnect) {
-          await dbConnect();
-        }
+        // Connect to database
+        await dbConnect();
 
         // Find the session and user
         const session = activeSessions.get(data.sessionId);
@@ -909,25 +880,14 @@ async function tryMatchUsersByMode(mode, requestingUserId) {
   // Get user data from database for interest matching
   let requestingUserData = null;
   try {
-    let mongoose, dbConnect, User;
-    try {
-      mongoose = require('mongoose');
-      dbConnect = require('./src/lib/mongoose').default;
-      User = require('./src/models/User').default;
-    } catch (modErr) {
-      console.log('DB modules not available for matching lookup; falling back to basic matching:', modErr.code || modErr.message);
-    }
-
-    if (dbConnect && User) {
-      try {
-        await dbConnect();
-        requestingUserData = await User.findById(requestingUserId).select('interests ageRange preferredLanguages').lean();
-      } catch (dbErr) {
-        console.log('Could not fetch user data for matching (db error), using basic matching');
-      }
-    }
-  } catch (outerErr) {
-    console.log('Unexpected error while attempting to fetch user data for matching:', outerErr && outerErr.message);
+    const mongoose = require('mongoose');
+    const dbConnect = require('./src/lib/mongoose').default;
+    const User = require('./src/models/User').default;
+    
+    await dbConnect();
+    requestingUserData = await User.findById(requestingUserId).select('interests ageRange preferredLanguages').lean();
+  } catch (error) {
+    console.log('Could not fetch user data for matching, using basic matching');
   }
   
   // Find candidates and score them

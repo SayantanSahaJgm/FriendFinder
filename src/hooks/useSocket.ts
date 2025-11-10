@@ -52,12 +52,9 @@ export function useSocket() {
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {
-    // Allow anonymous connections when there is no authenticated session.
-    // This enables guest random-chat flows where users are not signed in.
-    const isAuthenticated = Boolean(session?.user && status === 'authenticated');
-
-    if (!isAuthenticated) {
-      console.log('No authenticated session — connecting as anonymous guest');
+    if (!session?.user?.email || status !== 'authenticated') {
+      console.log('No authenticated session, skipping socket connection')
+      return
     }
 
     if (connectionState.status === 'connecting' || connectionState.status === 'connected') {
@@ -79,26 +76,6 @@ export function useSocket() {
     }
 
     try {
-      // Build auth payload for socket handshake: include anonymous info when unauthenticated
-      let authPayload: any = {};
-      if (isAuthenticated) {
-        // Authenticated flows can rely on session for identity on server
-        authPayload = { token: undefined };
-      } else {
-        // Ensure anonymousId is stable across reloads for guest matching
-        let anonId = null;
-        try {
-          anonId = window.localStorage.getItem('ff:anonId');
-          if (!anonId) {
-            anonId = `anon-${Math.random().toString(36).slice(2, 9)}`;
-            window.localStorage.setItem('ff:anonId', anonId);
-          }
-        } catch (e) {
-          anonId = `anon-${Math.random().toString(36).slice(2, 9)}`;
-        }
-        authPayload = { anonymous: true, anonymousId: anonId };
-      }
-
       const newSocket = io(socketUrl, {
           // Server.js exposes the Socket.IO endpoint at /socket.io/
           path: '/socket.io/',
@@ -112,7 +89,6 @@ export function useSocket() {
         forceNew: true,
         // Send credentials so the server can accept authenticated connections
         withCredentials: true,
-        auth: authPayload,
       })
 
       // Connection successful
@@ -336,24 +312,23 @@ export function useSocket() {
     }
   }, [isConnected, connectionState, connectionError])
 
-  // Effect to handle connection for both authenticated and anonymous users.
-  // We want anonymous (unauthenticated) users to remain connected so features
-  // like guest random-chat work immediately after face verification.
+  // Effect to handle connection/disconnection based on session
   useEffect(() => {
-    // Connect when authenticated or when explicitly unauthenticated (anonymous guest)
-    if ((status === 'authenticated' && session?.user?.email) || status === 'unauthenticated') {
+    if (status === 'authenticated' && session?.user?.email) {
       connect()
+    } else if (status === 'unauthenticated') {
+      disconnect()
     }
 
-    // Cleanup only on unmount to avoid tearing down the socket during normal
-    // session state changes. This ensures anonymous flows remain connected.
+    // Only cleanup on unmount, not on dependency changes
     return () => {
-      disconnect()
-      clearReconnectTimeout()
-      stopHealthCheck()
+      if (status === 'unauthenticated') {
+        disconnect()
+        clearReconnectTimeout()
+        stopHealthCheck()
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.email, status])
+  }, [session?.user?.email, status]) // Removed connect, disconnect from dependencies
 
   // HTTP Fallback functions
   const sendMessageFallback = useCallback(async (data: any) => {
