@@ -580,24 +580,31 @@ UserSchema.statics.findNearbyByWiFi = function(
 
 /**
  * Static method to find nearby users by Bluetooth
+ * Finds users who have Bluetooth enabled and have been active recently
  */
 UserSchema.statics.findNearbyByBluetooth = function(
   bluetoothId: string,
   excludeUserId?: mongoose.Types.ObjectId
 ) {
   const query: any = {
-    bluetoothId,
+    // Find users with Bluetooth enabled (has a bluetoothId)
+    bluetoothId: { $exists: true, $ne: null },
+    // Exclude the current user
+    _id: { $ne: excludeUserId },
+    // Only show users who want to be discovered
     isDiscoveryEnabled: true,
+    // Only show users active in the last 30 minutes
     bluetoothIdUpdatedAt: {
       $gte: new Date(Date.now() - 30 * 60 * 1000), // Active in last 30 minutes
     },
   };
 
-  if (excludeUserId) {
-    query._id = { $ne: excludeUserId };
-  }
+  console.log('🔍 Finding nearby Bluetooth users:', {
+    excludeUserId: excludeUserId?.toString(),
+    timeThreshold: new Date(Date.now() - 30 * 60 * 1000),
+  });
 
-  return this.find(query).select('-password');
+  return this.find(query).select('-password').sort({ bluetoothIdUpdatedAt: -1 }).limit(50);
 };
 
 /**

@@ -73,61 +73,98 @@ export default function BluetoothPage() {
     try {
       setIsLoadingUsers(true);
       
-      // Step 1: Request Browser Bluetooth Permission FIRST
-      toast.info("Requesting Bluetooth permission...", {
-        description: "Please allow Bluetooth access when prompted"
+      toast.info("Enabling Bluetooth discovery...", {
+        description: "Setting up your device for nearby detection"
       });
       
-      let bluetoothPermissionGranted = false;
-      
-      // Try to request browser Bluetooth permission
-      if (isAvailable) {
+      // Step 1: Check if Web Bluetooth API is available
+      let browserBluetoothSupported = false;
+      if ('bluetooth' in navigator) {
+        browserBluetoothSupported = true;
+        toast.info("Browser Bluetooth API detected", {
+          description: "Attempting to request Bluetooth access..."
+        });
+        
+        // Try to request browser Bluetooth permission
         try {
-          bluetoothPermissionGranted = await requestPermission();
-          
-          if (bluetoothPermissionGranted) {
-            toast.success("Bluetooth permission granted!");
+          if (isAvailable && !hasPermission) {
+            const granted = await requestPermission();
             
-            // Start advertising to make device discoverable
-            await startAdvertising().catch(err => {
-              console.log("Advertising optional:", err);
-            });
-          } else {
-            toast.warning("Bluetooth permission denied by browser", {
-              description: "You can still use database-based discovery"
-            });
+            if (granted) {
+              toast.success("✅ Browser Bluetooth access granted!");
+              
+              // Start advertising to make device discoverable
+              try {
+                const advSuccess = await startAdvertising();
+                if (advSuccess) {
+                  toast.success("📡 Device is now broadcasting");
+                }
+              } catch (err) {
+                console.log("Advertising failed:", err);
+              }
+              
+              // Start scanning for other devices
+              try {
+                await startScanning();
+                toast.success("🔍 Scanning for nearby devices");
+              } catch (err) {
+                console.log("Scanning failed:", err);
+              }
+            } else {
+              toast.warning("Browser Bluetooth permission denied", {
+                description: "Using database-based discovery instead"
+              });
+            }
           }
         } catch (err: any) {
-          console.log("Browser Bluetooth not available:", err);
-          toast.info("Using database-based Bluetooth discovery", {
-            description: "Browser Bluetooth API not supported"
+          console.error("Browser Bluetooth error:", err);
+          toast.warning("Browser Bluetooth not available", {
+            description: "Using database-based discovery"
           });
         }
+      } else {
+        toast.info("Using database-based Bluetooth discovery", {
+          description: "Browser Bluetooth API not supported on this device"
+        });
       }
       
-      // Step 2: Generate a unique Bluetooth ID for this device
+      // Step 2: Always use database-based Bluetooth (fallback & primary method)
+      // Generate a unique Bluetooth ID for this device
       const timestamp = Date.now().toString(36);
       const random = Math.random().toString(36).substring(2, 8);
       const bluetoothId = `bt_${timestamp}_${random}`;
+      
+      toast.info("Registering with server...", {
+        description: "Saving Bluetooth ID to database"
+      });
       
       // Step 3: Save Bluetooth ID to database
       const result = await bluetoothService.updateBluetooth(bluetoothId);
       
       if (result.success) {
         setBluetoothEnabled(true);
-        toast.success("Bluetooth discovery enabled! Scanning for nearby users...");
+        toast.success("✅ Bluetooth discovery enabled!", {
+          description: "You are now visible to nearby users"
+        });
         
         // Refresh status to confirm
         await checkBluetoothStatus();
         
         // Step 4: Automatically scan for nearby users
-        setTimeout(() => handleScanNearby(), 500);
+        toast.info("🔍 Scanning for nearby users...", {
+          description: "Looking for other FriendFinder users"
+        });
+        setTimeout(() => handleScanNearby(), 1000);
       } else {
-        toast.error("Failed to enable Bluetooth discovery");
+        toast.error("Failed to enable Bluetooth discovery", {
+          description: result.message || "Could not connect to server"
+        });
       }
     } catch (error: any) {
       console.error("Failed to enable Bluetooth:", error);
-      toast.error(error.message || "Failed to enable Bluetooth");
+      toast.error("Failed to enable Bluetooth", {
+        description: error.message || "Please try again"
+      });
     } finally {
       setIsLoadingUsers(false);
     }
@@ -164,19 +201,23 @@ export default function BluetoothPage() {
     try {
       const status = await bluetoothService.getBluetoothStatus();
       if (!status.hasBluetooth) {
-        toast.error("Please enable Bluetooth discovery first");
+        toast.error("Please enable Bluetooth discovery first", {
+          description: "Click 'Enable Bluetooth Discovery' button above"
+        });
         return;
       }
     } catch (error) {
-      toast.error("Failed to check Bluetooth status");
+      toast.error("Failed to check Bluetooth status", {
+        description: "Please try enabling Bluetooth first"
+      });
       return;
     }
 
     try {
       setIsLoadingUsers(true);
       
-      toast.info("Scanning for nearby Bluetooth devices...", {
-        description: "Searching for FriendFinder users"
+      toast.info("🔍 Scanning for nearby Bluetooth devices...", {
+        description: "This may take a few seconds"
       });
       
       // Step 1: Try browser Bluetooth scanning if available
@@ -184,24 +225,34 @@ export default function BluetoothPage() {
         try {
           if (!isScanning) {
             await startScanning();
+            toast.success("📡 Browser Bluetooth scan started");
           }
-          toast.success("Browser Bluetooth scan started");
         } catch (err) {
           console.log("Browser Bluetooth scanning not available:", err);
         }
       }
 
       // Step 2: Fetch nearby users from database API (primary method)
+      toast.info("📡 Checking database for nearby users...", {
+        description: "Looking for users with Bluetooth enabled"
+      });
+      
       const response = await bluetoothService.getNearbyUsers();
+      
+      console.log("🔍 Bluetooth scan result:", {
+        usersFound: response.users.length,
+        users: response.users
+      });
+      
       setNearbyUsers(response.users);
       
       if (response.users.length === 0) {
-        toast.info("No nearby FriendFinder users found", {
-          description: "Make sure other users have Bluetooth enabled in the app"
+        toast.warning("No nearby users found", {
+          description: "Make sure your friends have Bluetooth enabled in the app"
         });
       } else {
-        toast.success(`Found ${response.users.length} nearby user${response.users.length > 1 ? 's' : ''}!`, {
-          description: `${response.users.length} FriendFinder user${response.users.length > 1 ? 's' : ''} detected`
+        toast.success(`✅ Found ${response.users.length} nearby user${response.users.length > 1 ? 's' : ''}!`, {
+          description: `${response.users.length} FriendFinder user${response.users.length > 1 ? 's' : ''} detected nearby`
         });
       }
     } catch (error: any) {
@@ -209,9 +260,17 @@ export default function BluetoothPage() {
       
       // Show more helpful error message
       if (error.message?.includes("No Bluetooth device set")) {
-        toast.error("Please enable Bluetooth discovery first");
+        toast.error("Please enable Bluetooth discovery first", {
+          description: "Click the 'Enable Bluetooth Discovery' button"
+        });
+      } else if (error.message?.includes("Network")) {
+        toast.error("Network error", {
+          description: "Please check your internet connection"
+        });
       } else {
-        toast.error(error.message || "Failed to scan for nearby users");
+        toast.error("Scan failed", {
+          description: error.message || "Failed to scan for nearby users"
+        });
       }
     } finally {
       setIsLoadingUsers(false);

@@ -25,12 +25,27 @@ export async function GET(req: Request) {
       }, { status: 400 });
     }
 
-    // Find users on the same Bluetooth network (using the deviceId for simulation)
-    // In a real implementation, this would find users with similar/compatible Bluetooth IDs
+    console.log('🔍 Searching for nearby Bluetooth users:', {
+      currentUser: currentUser.username,
+      bluetoothId: currentUser.bluetoothId,
+      bluetoothIdUpdatedAt: currentUser.bluetoothIdUpdatedAt,
+    });
+
+    // Find users with Bluetooth enabled who are nearby
+    // This finds ALL users with Bluetooth enabled (not same bluetoothId)
     const nearbyUsers = await User.findNearbyByBluetooth(
       currentUser.bluetoothId,
       currentUser._id as mongoose.Types.ObjectId
     );
+
+    console.log('✅ Found nearby users:', {
+      count: nearbyUsers.length,
+      users: nearbyUsers.map(u => ({
+        username: u.username,
+        bluetoothId: u.bluetoothId?.substring(0, 10),
+        updatedAt: u.bluetoothIdUpdatedAt,
+      })),
+    });
 
     // Format the response with additional user info
     const formattedUsers = nearbyUsers.map(user => ({
