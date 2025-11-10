@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { MapPin, Bluetooth, Wifi, Search, Film, Plus } from "lucide-react";
+import { MapPin, Bluetooth, Wifi, Search, Users, Plus } from "lucide-react";
 
 export default function BottomNav() {
   const router = useRouter();
@@ -9,85 +9,68 @@ export default function BottomNav() {
 
   const isActive = (path: string) => pathname === path;
 
+  const navItems = [
+    { path: '/dashboard/map', icon: MapPin, label: 'Map', color: 'from-blue-500 to-blue-600' },
+    { path: '/dashboard/bluetooth', icon: Bluetooth, label: 'Bluetooth', color: 'from-indigo-500 to-indigo-600' },
+    { path: '/dashboard/wifi', icon: Wifi, label: 'WiFi', color: 'from-purple-500 to-purple-600' },
+    { path: '/dashboard/search', icon: Search, label: 'Search', color: 'from-pink-500 to-pink-600' },
+    { path: '/dashboard/random-people', icon: Users, label: 'Random', color: 'from-violet-500 to-violet-600' },
+  ];
+
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-2xl" 
+      className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]" 
       role="navigation" 
       aria-label="Main mobile navigation"
     >
-      <div className="max-w-md mx-auto px-3 py-2 flex items-center justify-around">
-        <button 
-          onClick={() => router.push('/dashboard/discover')}
-          className={`flex flex-col items-center p-2 rounded-lg transition min-w-[60px] ${
-            isActive('/dashboard/discover') 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-          aria-label="Discover nearby friends"
-        >
-          <MapPin className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">Map</span>
-        </button>
+      <div className="max-w-md mx-auto px-2 py-2.5 flex items-center justify-around relative">
+        {navItems.map((item, index) => {
+          const Icon = item.icon;
+          const active = isActive(item.path);
+          
+          return (
+            <button
+              key={item.path}
+              onClick={() => router.push(item.path)}
+              className={`relative flex flex-col items-center p-2.5 rounded-2xl transition-all duration-300 min-w-[64px] group ${
+                active 
+                  ? 'scale-105' 
+                  : 'hover:bg-gray-50/80'
+              }`}
+              aria-label={item.label}
+            >
+              <div className={`relative ${active ? 'mb-1' : 'mb-1.5'}`}>
+                {active && (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-xl blur-md opacity-60 animate-pulse`}></div>
+                )}
+                <div className={`relative p-2.5 rounded-xl transition-all duration-300 ${
+                  active 
+                    ? `bg-gradient-to-br ${item.color} shadow-lg` 
+                    : 'bg-gray-100/50 group-hover:bg-gray-200/70'
+                }`}>
+                  <Icon className={`w-5 h-5 transition-colors ${active ? 'text-white' : 'text-gray-600'}`} />
+                </div>
+              </div>
+              <span className={`text-[10px] font-medium transition-all ${
+                active ? 'text-gray-900' : 'text-gray-500'
+              }`}>
+                {item.label}
+              </span>
+              {active && (
+                <div className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r ${item.color} rounded-full`}></div>
+              )}
+            </button>
+          );
+        })}
         
-        <button 
-          onClick={() => router.push('/dashboard/discover?method=bluetooth')}
-          className={`flex flex-col items-center p-2 rounded-lg transition min-w-[60px] ${
-            pathname.includes('bluetooth') 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-          aria-label="Bluetooth discovery"
-        >
-          <Bluetooth className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">Bluetooth</span>
-        </button>
-        
-        <button 
-          onClick={() => router.push('/dashboard/discover?method=wifi')}
-          className={`flex flex-col items-center p-2 rounded-lg transition min-w-[60px] ${
-            pathname.includes('wifi') 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-          aria-label="WiFi discovery"
-        >
-          <Wifi className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">WiFi</span>
-        </button>
-        
-        {/* Center elevated button - Create Post */}
+        {/* Center elevated FAB button */}
         <button 
           onClick={() => router.push('/dashboard/create')}
-          className="flex flex-col items-center justify-center w-14 h-14 rounded-full shadow-xl transition transform hover:scale-110 -mt-8 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 group"
           aria-label="Create post"
         >
-          <Plus className="w-7 h-7 text-white ff-white" />
-        </button>
-        
-        <button 
-          onClick={() => router.push('/dashboard/search')}
-          className={`flex flex-col items-center p-2 rounded-lg transition min-w-[60px] ${
-            isActive('/dashboard/search') 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-          aria-label="Search users"
-        >
-          <Search className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">Search</span>
-        </button>
-        
-        <button 
-          onClick={() => router.push('/dashboard/random-chat')}
-          className={`flex flex-col items-center p-2 rounded-lg transition min-w-[60px] ${
-            isActive('/dashboard/random-chat') 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-          aria-label="Random chat"
-        >
-          <Film className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">Random</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 rounded-full blur-xl opacity-60 group-hover:opacity-80 transition-opacity"></div>
+          <Plus className="w-8 h-8 text-white relative z-10" strokeWidth={2.5} />
         </button>
       </div>
     </nav>

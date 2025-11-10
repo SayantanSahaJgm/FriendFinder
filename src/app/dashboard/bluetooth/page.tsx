@@ -257,69 +257,86 @@ export default function BluetoothPage() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto py-6 px-4 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold flex items-center justify-center gap-3">
-          <Bluetooth className="h-8 w-8 text-blue-600" />
-          Bluetooth Discovery
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Connect with nearby FriendFinder users through Bluetooth. Enable discovery to find and send friend requests to people around you.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 fade-in">
+      {/* Modern Gradient Header */}
+      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white px-6 pt-8 pb-24 rounded-b-[32px] shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
+              <Bluetooth className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Bluetooth Discovery</h1>
+              <p className="text-indigo-100 text-sm mt-1">
+                Connect with people nearby
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <div className="max-w-4xl mx-auto px-4 -mt-16 pb-24 space-y-6">
+
       {/* Bluetooth Status Card */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {bluetoothEnabled ? (
-              <Bluetooth className="h-5 w-5 text-blue-600 animate-pulse" />
-            ) : (
-              <BluetoothOff className="h-5 w-5 text-gray-400" />
-            )}
-            Bluetooth Status
-          </CardTitle>
-          <CardDescription>
-            {bluetoothEnabled 
-              ? "You are visible to nearby FriendFinder users" 
-              : "Enable Bluetooth to discover nearby users"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Status Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-              <div className={`p-2 rounded-full ${isAvailable ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'}`}>
-                <Shield className={`h-4 w-4 ${isAvailable ? 'text-green-600' : 'text-red-600'}`} />
-              </div>
+      <Card className="glass border-0 shadow-soft">
+        <CardContent className="pt-6 space-y-6">
+          {/* Status Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {bluetoothEnabled ? (
+                <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-glow">
+                  <Bluetooth className="h-6 w-6 text-white animate-pulse-slow" />
+                </div>
+              ) : (
+                <div className="p-3 bg-gray-100 rounded-2xl">
+                  <BluetoothOff className="h-6 w-6 text-gray-400" />
+                </div>
+              )}
               <div>
+                <h3 className="font-semibold text-lg">
+                  {bluetoothEnabled ? "Discovery Active" : "Discovery Inactive"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {bluetoothEnabled 
+                    ? "You're visible to nearby users" 
+                    : "Enable to discover nearby users"}
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Status Indicators */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
+              <div className={`p-2.5 rounded-xl ${isAvailable ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'}`}>
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-center">
                 <p className="text-xs text-muted-foreground">Device</p>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-semibold mt-0.5">
                   {isAvailable ? "Compatible" : "Not Available"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-              <div className={`p-2 rounded-full ${hasPermission ? 'bg-green-100 dark:bg-green-900' : 'bg-yellow-100 dark:bg-yellow-900'}`}>
-                <CheckCircle2 className={`h-4 w-4 ${hasPermission ? 'text-green-600' : 'text-yellow-600'}`} />
+            <div className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
+              <div className={`p-2.5 rounded-xl ${hasPermission ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-yellow-400 to-yellow-500'}`}>
+                <CheckCircle2 className="h-5 w-5 text-white" />
               </div>
-              <div>
+              <div className="text-center">
                 <p className="text-xs text-muted-foreground">Permission</p>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-semibold mt-0.5">
                   {hasPermission ? "Granted" : "Required"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-              <div className={`p-2 rounded-full ${bluetoothEnabled ? 'bg-blue-100 dark:bg-blue-900' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                <Waves className={`h-4 w-4 ${bluetoothEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
+            <div className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
+              <div className={`p-2.5 rounded-xl ${bluetoothEnabled ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-gray-300 to-gray-400'}`}>
+                <Waves className="h-5 w-5 text-white" />
               </div>
-              <div>
+              <div className="text-center">
                 <p className="text-xs text-muted-foreground">Discovery</p>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-semibold mt-0.5">
                   {bluetoothEnabled ? "Active" : "Inactive"}
                 </p>
               </div>
@@ -327,19 +344,18 @@ export default function BluetoothPage() {
           </div>
 
           {/* Pairing Code Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-              <p className="text-sm font-medium mb-2">Create local pairing code</p>
-              <p className="text-xs text-muted-foreground mb-3">Enter a Bluetooth name for your device to generate a short 6-digit pairing code other users can enter to connect.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 glass-dark rounded-2xl">
+              <p className="text-sm font-semibold mb-2">Create Pairing Code</p>
+              <p className="text-xs text-muted-foreground mb-3">Generate a 6-digit code for others to connect with you</p>
               <div className="flex gap-2">
                 <input
                   value={deviceName}
                   onChange={(e) => setDeviceName(e.target.value)}
-                  placeholder="Your device name (e.g. John's Phone)"
-                  className="flex-1 input input-bordered"
+                  placeholder="Your device name"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 />
                 <Button onClick={async () => {
-                  // Generate pairing code
                   if (!deviceName.trim()) { toast.error('Please enter a device name'); return; }
                   try {
                     setGeneratingCode(true);
@@ -348,7 +364,6 @@ export default function BluetoothPage() {
                       setGeneratedCode(res.pairingCode || null);
                       setCodeExpires(res.pairingCodeExpires || null);
                       toast.success('Pairing code generated');
-                      // Ensure Bluetooth presence is updated in UI
                       await checkBluetoothStatus();
                     } else {
                       toast.error(res.message || 'Failed to generate pairing code');
@@ -359,35 +374,37 @@ export default function BluetoothPage() {
                   } finally {
                     setGeneratingCode(false);
                   }
-                }} disabled={generatingCode}>
+                }} disabled={generatingCode} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
                   {generatingCode ? 'Generating...' : 'Get Code'}
                 </Button>
               </div>
 
               {generatedCode && (
-                <div className="mt-3 p-3 bg-blue-50 rounded-md">
-                  <p className="text-xs text-muted-foreground">Your pairing code (expires soon)</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="text-2xl font-mono tracking-widest bg-white p-2 rounded shadow">
+                <div className="mt-3 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+                  <p className="text-xs text-muted-foreground mb-2">Your pairing code</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl font-mono font-bold tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm text-indigo-600">
                       {generatedCode}
                     </div>
                     {codeExpires && (
-                      <div className="text-sm text-muted-foreground">Expires: {new Date(codeExpires).toLocaleTimeString()}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Expires: {new Date(codeExpires).toLocaleTimeString()}
+                      </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-              <p className="text-sm font-medium mb-2">Enter someone else's code</p>
-              <p className="text-xs text-muted-foreground mb-3">If you see a user's pairing code, enter it here to send a friend request and connect.</p>
+            <div className="p-4 glass-dark rounded-2xl">
+              <p className="text-sm font-semibold mb-2">Enter Pairing Code</p>
+              <p className="text-xs text-muted-foreground mb-3">Have someone's code? Enter it to connect instantly</p>
               <div className="flex gap-2">
                 <input
                   value={pairingCodeInput}
                   onChange={(e) => setPairingCodeInput(e.target.value)}
                   placeholder="6-digit code"
-                  className="flex-1 input input-bordered"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 />
                 <Button onClick={async () => {
                   if (!pairingCodeInput.trim()) { toast.error('Please enter a pairing code'); return; }
@@ -397,7 +414,6 @@ export default function BluetoothPage() {
                     if (res.success) {
                       toast.success(res.message || 'Connected! Friend request sent');
                       setPairingCodeInput('');
-                      // Refresh nearby users
                       await handleScanNearby();
                     } else {
                       toast.error(res.message || 'Failed to pair using code');
@@ -408,8 +424,8 @@ export default function BluetoothPage() {
                   } finally {
                     setPairingSubmitting(false);
                   }
-                }} disabled={pairingSubmitting}>
-                  {pairingSubmitting ? 'Checking...' : 'Enter Code'}
+                }} disabled={pairingSubmitting} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                  {pairingSubmitting ? 'Checking...' : 'Connect'}
                 </Button>
               </div>
             </div>
@@ -420,7 +436,7 @@ export default function BluetoothPage() {
             {!bluetoothEnabled ? (
               <Button 
                 onClick={handleEnableBluetooth}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-glow text-white border-0"
                 size="lg"
                 disabled={isLoadingUsers}
               >
@@ -441,7 +457,7 @@ export default function BluetoothPage() {
                 <Button 
                   onClick={handleDisableBluetooth}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-2 hover:bg-gray-50"
                   size="lg"
                   disabled={isLoadingUsers}
                 >
@@ -459,7 +475,7 @@ export default function BluetoothPage() {
                 </Button>
                 <Button 
                   onClick={handleScanNearby}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-glow text-white border-0"
                   size="lg"
                   disabled={isLoadingUsers}
                 >
@@ -480,15 +496,17 @@ export default function BluetoothPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="flex items-start gap-3 p-4 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
-              <p className="font-medium mb-1">How it works</p>
+          <div className="flex items-start gap-3 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl">
+            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+              <AlertCircle className="h-4 w-4 text-white" />
+            </div>
+            <div className="text-sm text-gray-700">
+              <p className="font-semibold mb-1.5">How it works</p>
               <ul className="space-y-1 text-xs">
-                <li>• Enable Bluetooth discovery to make yourself visible to nearby users</li>
-                <li>• Scan to find other FriendFinder users with Bluetooth enabled</li>
-                <li>• Send friend requests to connect with people around you</li>
-                <li>• Your location is never shared - only Bluetooth proximity</li>
+                <li>• Enable discovery to be visible to nearby users</li>
+                <li>• Scan to find other FriendFinder users around you</li>
+                <li>• Send friend requests to connect instantly</li>
+                <li>• Your location is never shared - only proximity</li>
               </ul>
             </div>
           </div>
@@ -497,48 +515,51 @@ export default function BluetoothPage() {
 
       {/* Nearby Users */}
       {bluetoothEnabled && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Card className="glass border-0 shadow-soft overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-blue-600" />
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-indigo-600" />
                   Nearby Users
                   {nearbyUsers.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge className="ml-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0">
                       {nearbyUsers.length}
                     </Badge>
                   )}
-                </CardTitle>
-                <CardDescription>
-                  FriendFinder users detected nearby via Bluetooth
-                </CardDescription>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Users detected via Bluetooth
+                </p>
               </div>
               {isScanning && (
-                <Badge variant="outline" className="gap-2">
+                <Badge variant="outline" className="gap-2 border-indigo-200 text-indigo-600">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Scanning
                 </Badge>
               )}
             </div>
-          </CardHeader>
-          <CardContent>
             {isLoadingUsers && nearbyUsers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
-                <p className="text-muted-foreground">Scanning for nearby users...</p>
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-4 animate-pulse-slow">
+                  <Loader2 className="h-12 w-12 text-white animate-spin" />
+                </div>
+                <p className="text-muted-foreground font-medium">Scanning for nearby users...</p>
               </div>
             ) : nearbyUsers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <BluetoothOff className="h-16 w-16 text-gray-300 mb-4" />
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="p-4 bg-gray-100 rounded-full mb-4">
+                  <BluetoothOff className="h-12 w-12 text-gray-300" />
+                </div>
                 <h3 className="text-lg font-semibold mb-2">No Users Found</h3>
                 <p className="text-sm text-muted-foreground max-w-md mb-6">
-                  No nearby FriendFinder users detected. Make sure other users have Bluetooth enabled in the app.
+                  No nearby users detected. Make sure others have Bluetooth enabled.
                 </p>
                 <Button 
                   onClick={handleScanNearby} 
                   variant="outline"
                   disabled={isLoadingUsers}
+                  className="border-2"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Scan Again
@@ -547,47 +568,50 @@ export default function BluetoothPage() {
             ) : (
               <div className="space-y-3">
                 {nearbyUsers.map((user, index) => (
-                  <div key={user.id}>
-                    {index > 0 && <Separator className="my-3" />}
-                    <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-accent/50 transition-colors">
-                      <Avatar className="h-14 w-14 border-2 border-blue-200">
-                        <AvatarImage src={user.profilePicture} alt={user.username} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white ff-white font-semibold">
-                          {user.username.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                  <div key={user.id} className="group">
+                    {index > 0 && <div className="h-px bg-gray-100 my-3" />}
+                    <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 transition-all duration-300">
+                      <div className="relative">
+                        <Avatar className="h-14 w-14 border-2 border-white shadow-md ring-2 ring-indigo-100">
+                          <AvatarImage src={user.profilePicture} alt={user.username} />
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">
+                            {user.username.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                      </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2 mb-2">
                           <div>
                             <h4 className="font-semibold text-base">{user.username}</h4>
                             {user.bio && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
                                 {user.bio}
                               </p>
                             )}
                           </div>
                           
                           {user.isFriend ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                            <Badge className="bg-gradient-to-r from-green-400 to-green-500 text-white border-0 shadow-sm">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Friends
                             </Badge>
                           ) : user.hasPendingRequestTo ? (
-                            <Badge variant="secondary">
+                            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white border-0 shadow-sm">
                               <Clock className="h-3 w-3 mr-1" />
                               Pending
                             </Badge>
                           ) : user.hasPendingRequestFrom ? (
-                            <Badge variant="outline" className="border-blue-500 text-blue-600">
+                            <Badge className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 shadow-sm">
                               Wants to Connect
                             </Badge>
                           ) : null}
                         </div>
                         
                         <div className="flex items-center gap-4 mt-3">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Bluetooth className="h-3 w-3 text-blue-600" />
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Bluetooth className="h-3.5 w-3.5 text-indigo-600" />
                             <span>{formatLastSeen(user.lastSeenBluetooth)}</span>
                           </div>
                           
@@ -596,7 +620,7 @@ export default function BluetoothPage() {
                               onClick={() => handleSendFriendRequest(user.id, user.username)}
                               disabled={sendingRequestTo === user.id}
                               size="sm"
-                              className="ml-auto"
+                              className="ml-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-sm"
                             >
                               {sendingRequestTo === user.id ? (
                                 <>
@@ -623,33 +647,41 @@ export default function BluetoothPage() {
       )}
 
       {/* Privacy & Safety */}
-      <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
-            <Shield className="h-5 w-5" />
-            Privacy & Safety
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-purple-800 dark:text-purple-200">
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Your exact location is never shared - only Bluetooth proximity</span>
+      <Card className="glass-dark border-0 shadow-soft overflow-hidden">
+        <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="font-semibold text-lg text-gray-900">Privacy & Safety</h3>
+          </div>
+          <ul className="space-y-2.5 text-sm text-gray-700">
+            <li className="flex items-start gap-2.5">
+              <div className="p-1 bg-gradient-to-br from-green-400 to-green-500 rounded-full mt-0.5">
+                <CheckCircle2 className="h-3 w-3 text-white" />
+              </div>
+              <span>Your exact location is never shared - only proximity</span>
             </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Only users with the FriendFinder app can discover you</span>
+            <li className="flex items-start gap-2.5">
+              <div className="p-1 bg-gradient-to-br from-green-400 to-green-500 rounded-full mt-0.5">
+                <CheckCircle2 className="h-3 w-3 text-white" />
+              </div>
+              <span>Only FriendFinder app users can discover you</span>
             </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>You can disable Bluetooth discovery anytime</span>
+            <li className="flex items-start gap-2.5">
+              <div className="p-1 bg-gradient-to-br from-green-400 to-green-500 rounded-full mt-0.5">
+                <CheckCircle2 className="h-3 w-3 text-white" />
+              </div>
+              <span>Disable Bluetooth discovery anytime</span>
             </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <li className="flex items-start gap-2.5">
+              <div className="p-1 bg-gradient-to-br from-green-400 to-green-500 rounded-full mt-0.5">
+                <CheckCircle2 className="h-3 w-3 text-white" />
+              </div>
               <span>Your Bluetooth data is encrypted and secure</span>
             </li>
           </ul>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
