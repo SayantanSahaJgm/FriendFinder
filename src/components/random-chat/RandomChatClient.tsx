@@ -247,6 +247,8 @@ export default function RandomChatClient() {
     setMessages([]);
     setStatus('idle');
     setSearchProgress(0);
+    // Ensure searching flag is reset so Start can be clicked again
+    isSearchingRef.current = false;
   }, [currentSession, socket]);
 
   // Socket event listeners
