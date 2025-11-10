@@ -735,6 +735,19 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Debug: respond with queue and active session sizes to help clients troubleshoot matching
+  socket.on('random-chat:debug', () => {
+    try {
+      const queueSize = randomChatQueue.size;
+      const activeSessionsCount = activeSessions.size;
+      console.log(`Debug request from ${socket.id}: queueSize=${queueSize}, activeSessions=${activeSessionsCount}`);
+      socket.emit('random-chat:debug-response', { queueSize, activeSessions: activeSessionsCount });
+    } catch (err) {
+      console.error('Error handling random-chat:debug:', err);
+      socket.emit('random-chat:debug-response', { queueSize: 0, activeSessions: 0, error: String(err) });
+    }
+  });
+
   // Cleanup on disconnect
   socket.on('disconnect', () => {
     // Remove from queue if present
@@ -750,6 +763,120 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  // ==================== BLUETOOTH SOCKET EVENTS ====================
+  
+  // Bluetooth: Notify when a user enables/disables Bluetooth
+  socket.on('bluetooth:status-change', (data) => {
+    try {
+      const { userId, bluetoothEnabled } = data;
+      console.log(`Bluetooth status changed for user ${userId}: ${bluetoothEnabled}`);
+      
+      // Broadcast to user's own devices (if multiple sessions)
+      socket.to(`user-${userId}`).emit('bluetooth:status-updated', {
+        userId,
+        bluetoothEnabled,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error handling bluetooth:status-change:', error);
+      socket.emit('error', 'Failed to update Bluetooth status');
+    }
+  });
+
+  // Bluetooth: User detected nearby via Bluetooth scan
+  socket.on('bluetooth:device-detected', (data) => {
+    try {
+      const { detectorId, detectedDeviceId } = data;
+      console.log(`Bluetooth device detected by ${detectorId}: ${detectedDeviceId}`);
+      
+      // The API handles the actual detection and emits 'bluetoothNearby'
+      // This event is for logging/debugging purposes
+    } catch (error) {
+      console.error('Error handling bluetooth:device-detected:', error);
+    }
+  });
+
+  // Bluetooth: Request to connect with nearby user
+  socket.on('bluetooth:request-connection', (data) => {
+    try {
+      const { senderId, receiverId, senderInfo } = data;
+      console.log(`Bluetooth connection request from ${senderId} to ${receiverId}`);
+      
+      // Notify receiver of connection request
+      socket.to(`user-${receiverId}`).emit('bluetooth:connection-request', {
+        from: senderInfo,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error handling bluetooth:request-connection:', error);
+      socket.emit('error', 'Failed to send connection request');
+    }
+  });
+
+  // Bluetooth: Accept connection request
+  socket.on('bluetooth:accept-connection', (data) => {
+    try {
+      const { senderId, receiverId, receiverInfo } = data;
+      console.log(`Bluetooth connection accepted: ${receiverId} accepted ${senderId}`);
+      
+      // Notify sender that their request was accepted
+      socket.to(`user-${senderId}`).emit('bluetooth:connection-accepted', {
+        from: receiverInfo,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error handling bluetooth:accept-connection:', error);
+      socket.emit('error', 'Failed to accept connection');
+    }
+  });
+
+  // Bluetooth: Reject connection request
+  socket.on('bluetooth:reject-connection', (data) => {
+    try {
+      const { senderId, receiverId } = data;
+      console.log(`Bluetooth connection rejected: ${receiverId} rejected ${senderId}`);
+      
+      // Notify sender that their request was rejected
+      socket.to(`user-${senderId}`).emit('bluetooth:connection-rejected', {
+        receiverId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error handling bluetooth:reject-connection:', error);
+      socket.emit('error', 'Failed to reject connection');
+    }
+  });
+
+  // Bluetooth: Remove user from nearby list
+  socket.on('bluetooth:remove-nearby', (data) => {
+    try {
+      const { userId, nearbyUserId } = data;
+      console.log(`Removing ${nearbyUserId} from ${userId}'s nearby list`);
+      
+      // The API handles the actual removal
+      // This event can trigger additional cleanup if needed
+    } catch (error) {
+      console.error('Error handling bluetooth:remove-nearby:', error);
+      socket.emit('error', 'Failed to remove nearby user');
+    }
+  });
+
+  // Bluetooth: Sync offline connections
+  socket.on('bluetooth:sync-request', (data) => {
+    try {
+      const { userId, pendingCount } = data;
+      console.log(`Bluetooth sync requested for user ${userId} with ${pendingCount} pending connections`);
+      
+      // The API handles the actual sync
+      // This event is for notification purposes
+    } catch (error) {
+      console.error('Error handling bluetooth:sync-request:', error);
+      socket.emit('error', 'Failed to request sync');
+    }
+  });
+
+  // ==================== END BLUETOOTH SOCKET EVENTS ====================
 
   // Health check event
   socket.on('health-check', () => {

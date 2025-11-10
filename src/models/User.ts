@@ -58,6 +58,11 @@ export interface IUser extends Document {
   bluetoothName?: string;
   pairingCode?: string;
   pairingCodeExpires?: Date;
+  
+  // Enhanced Bluetooth fields
+  bluetoothEnabled?: boolean;
+  bluetoothDeviceId?: string; // Encrypted device ID
+  nearbyUsers?: mongoose.Types.ObjectId[]; // Users detected via Bluetooth
 
   // WiFi manual pairing
   wifiName?: string;
@@ -280,6 +285,22 @@ const UserSchema = new Schema<IUser>({
   pairingCodeExpires: {
     type: Date,
   },
+  
+  // Enhanced Bluetooth fields
+  bluetoothEnabled: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  bluetoothDeviceId: {
+    type: String,
+    index: true,
+  },
+  nearbyUsers: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: [],
+  }],
 
   // WiFi manual pairing (similar to Bluetooth)
   wifiName: {

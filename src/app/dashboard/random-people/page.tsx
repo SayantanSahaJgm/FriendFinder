@@ -1,6 +1,6 @@
 "use client";
 
-import RandomChatClient from '@/components/random-chat/RandomChatClient';
+import RandomPeopleClient from '@/components/random-chat/RandomPeopleClient';
 import { Shuffle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,9 +25,9 @@ export default function RandomPeoplePage() {
         </div>
       </div>
 
-      <GuestNamePrompt />
+  <GuestNamePrompt />
 
-      <RandomChatClient />
+  <RandomPeopleClient />
     </div>
   );
 }
