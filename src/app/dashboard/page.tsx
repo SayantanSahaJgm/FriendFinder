@@ -105,17 +105,34 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
   // Fetch posts
   useEffect(() => {
+    // Only fetch if authenticated
+    if (status !== "authenticated") {
+      return;
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true);
         const res = await fetch('/api/posts');
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
         const data = await res.json();
         
         const mappedPosts: PostData[] = (data.results || []).map((p: any) => ({
@@ -136,13 +153,32 @@ export default function DashboardPage() {
         setPosts(mappedPosts);
       } catch (error) {
         console.error('Error fetching feed data:', error);
+        // Set empty posts on error instead of crashing
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [status]);
+
+  // Show loading while checking auth
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard content if not authenticated
+  if (status === "unauthenticated") {
+    return null;
+  }
 
   return (
     <div className="bg-white min-h-screen pb-6">
