@@ -683,6 +683,7 @@ export default function BluetoothPage() {
           </ul>
         </div>
       </Card>
+      </div>
     </div>
   );
 }
