@@ -60,7 +60,7 @@ export default function NearbyBubbleView({ users, onConnect, onRescan }: Props) 
       <div className="relative w-full h-[320px] flex items-center justify-center">
         {/* center user */}
         <div className="z-20 flex flex-col items-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-glow text-white">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-glow text-white animate-pulse-slow">
             <Bluetooth className="w-8 h-8" />
           </div>
           <div className="mt-2 text-sm font-semibold">You</div>
@@ -73,26 +73,52 @@ export default function NearbyBubbleView({ users, onConnect, onRescan }: Props) 
             <button
               key={u.id}
               onClick={() => setSelected(u)}
-              className="absolute transform-gpu transition-transform hover:scale-105"
+              className="absolute transform-gpu transition-transform hover:scale-105 animate-float"
               style={{ left: `calc(50% + ${u.x}px)`, top: `calc(50% + ${u.y}px)`, width: size, height: size, borderRadius: '999px' }}
               title={u.username}
             >
-              <div className="w-full h-full rounded-full bg-white/90 flex items-center justify-center shadow-md overflow-hidden">
-                {u.profilePicture ? (
-                  <img src={u.profilePicture} alt={u.username} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">{u.username.substring(0,2).toUpperCase()}</div>
-                )}
+              <div className="relative w-full h-full">
+                {/* pulse ring */}
+                <div className="absolute inset-0 rounded-full bg-indigo-200/20 animate-pulse-slow" />
+                <div className="relative w-full h-full rounded-full bg-white/90 flex items-center justify-center shadow-md overflow-hidden">
+                  {u.profilePicture ? (
+                    <img src={u.profilePicture} alt={u.username} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">{u.username.substring(0,2).toUpperCase()}</div>
+                  )}
+                </div>
               </div>
             </button>
           );
         })}
       </div>
 
-      <div className="w-full mt-4 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">Found {users.length} nearby</div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onRescan}>Rescan</Button>
+      <div className="w-full mt-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">Found {users.length} nearby</div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={onRescan}>Rescan</Button>
+          </div>
+        </div>
+
+        {/* RSSI legend */}
+        <div className="w-full flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-indigo-500/80" />
+            <div>-30 dBm (very near &lt;0.5m)</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-indigo-400/80" />
+            <div>-50 dBm (~1-2m)</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-indigo-300/80" />
+            <div>-70 dBm (~5m)</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-indigo-200/80" />
+            <div>-90 dBm (far &gt;20m)</div>
+          </div>
         </div>
       </div>
 
