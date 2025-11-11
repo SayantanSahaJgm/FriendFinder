@@ -3,21 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Wifi, WifiOff, Users, Zap, MapPin, Plus } from 'lucide-react';
+import { Wifi, WifiOff, Users, Zap, MapPin, Plus, ExternalLink } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
+import wifiService, { NearbyWiFiUser } from '@/services/wifi/wifiService';
 
-interface NearbyUser {
-  id: string;
-  username: string;
-  name?: string;
-  profilePicture?: string;
-  network: string;
-  signal: number;
+interface NearbyUser extends NearbyWiFiUser {
+  signal?: number;
   distance?: string;
-  interests?: string[];
 }
 
 export default function WiFiPage() {
@@ -26,44 +22,75 @@ export default function WiFiPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [currentNetwork, setCurrentNetwork] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Simulate WiFi scanning
-    if (isScanning) {
-      const timer = setTimeout(() => {
-        setNearbyUsers([
-          {
-            id: '1',
-            username: 'sophie',
-            name: 'Sophie',
-            network: 'Starbucks - Market St',
-            signal: 95,
-            distance: '5m',
-            interests: ['Design', 'Startup'],
-          },
-          {
-            id: '2',
-            username: 'mike',
-            name: 'Mike',
-            network: 'WeWork - SOMA',
-            signal: 88,
-            distance: '12m',
-            interests: ['Coding', 'AI'],
-          },
-          {
-            id: '3',
-            username: 'anna',
-            name: 'Anna',
-            network: 'Public Library',
-            signal: 72,
-            distance: '8m',
-            interests: ['Books', 'Writing'],
-          },
-        ]);
-      }, 2000);
-      return () => clearTimeout(timer);
+  // Start WiFi scanning
+  const handleStartScan = async () => {
+    try {
+      setIsScanning(true);
+      setLoading(true);
+      toast.info('Registering WiFi network...');
+
+      // Register current network (uses IP-based detection for web)
+      await wifiService.registerCurrentNetwork();
+      
+      // Small delay for UI feedback
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Get nearby users
+      const users = await wifiService.getNearbyUsers();
+      setNearbyUsers(users);
+
+      // Get status to show current network
+      const status = await wifiService.getStatus();
+      setCurrentNetwork(status.networkName || 'Unknown Network');
+
+      toast.success(`Found ${users.length} ${users.length === 1 ? 'user' : 'users'} nearby!`);
+    } catch (error: any) {
+      console.error('[WiFi] Scan error:', error);
+      toast.error(error.message || 'Failed to scan for nearby users');
+      setIsScanning(false);
+    } finally {
+      setLoading(false);
     }
-  }, [isScanning]);
+  };
+
+  // Stop scanning
+  const handleStopScan = async () => {
+    try {
+      setLoading(true);
+      await wifiService.unregister();
+      setIsScanning(false);
+      setNearbyUsers([]);
+      setCurrentNetwork(null);
+      toast.success('WiFi discovery stopped');
+    } catch (error: any) {
+      console.error('[WiFi] Stop scan error:', error);
+      toast.error('Failed to stop scanning');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send friend request
+  const handleConnect = async (userId: string, username: string) => {
+    try {
+      await wifiService.sendFriendRequest(userId);
+      toast.success(`Friend request sent to ${username}!`);
+      
+      // Refresh the list to update status
+      const users = await wifiService.getNearbyUsers();
+      setNearbyUsers(users);
+    } catch (error: any) {
+      console.error('[WiFi] Connect error:', error);
+      toast.error(error.message || 'Failed to send friend request');
+    }
+  };
+
+  // View profile in new tab
+  const handleViewProfile = (userId: string) => {
+    window.open(`/dashboard/profile/${userId}`, '_blank');
+  };
 
   if (status === 'loading') {
     return (
@@ -163,14 +190,20 @@ export default function WiFiPage() {
             )}
             
             <Button
-              onClick={() => setIsScanning(!isScanning)}
+              onClick={() => isScanning ? handleStopScan() : handleStartScan()}
+              disabled={loading}
               className={`rounded-full px-8 py-6 shadow-xl transition-all ${
                 isScanning 
                   ? 'bg-gray-400 hover:bg-gray-500' 
                   : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
               }`}
             >
-              {isScanning ? (
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {isScanning ? 'Stopping...' : 'Scanning...'}
+                </>
+              ) : isScanning ? (
                 <>
                   <WifiOff className="w-5 h-5 mr-2" />
                   Stop Scanning
@@ -192,12 +225,12 @@ export default function WiFiPage() {
             {nearbyUsers.map((user) => (
               <Card 
                 key={user.id}
-                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all cursor-pointer hover:scale-[1.02]"
+                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-1">
                     <div className="relative">
-                      <Avatar className="w-14 h-14">
+                      <Avatar className="w-14 h-14 cursor-pointer" onClick={() => handleViewProfile(user.id)}>
                         <AvatarImage src={user.profilePicture} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold">
                           {user.name?.charAt(0) || user.username.charAt(0).toUpperCase()}
@@ -206,14 +239,28 @@ export default function WiFiPage() {
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">{user.name || user.username}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-gray-900">{user.name || user.username}</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewProfile(user.id)}
+                          className="h-6 w-6 p-0"
+                          title="View profile"
+                        >
+                          <ExternalLink className="w-3 h-3 text-gray-500" />
+                        </Button>
+                      </div>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
-                        {user.network}
+                        {user.network} • {user.lastSeenAgo}
                       </p>
-                      {user.interests && (
+                      {user.bio && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{user.bio}</p>
+                      )}
+                      {user.interests && user.interests.length > 0 && (
                         <div className="flex gap-1.5 mt-2">
-                          {user.interests.map((interest) => (
+                          {user.interests.slice(0, 3).map((interest) => (
                             <Badge 
                               key={interest}
                               variant="secondary" 
@@ -226,11 +273,33 @@ export default function WiFiPage() {
                       )}
                     </div>
                   </div>
-                  <Button 
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg"
-                  >
-                    Connect
-                  </Button>
+                  <div className="ml-4">
+                    {user.isFriend ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        Friends
+                      </Badge>
+                    ) : user.hasPendingRequestTo ? (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                        Pending
+                      </Badge>
+                    ) : user.hasPendingRequestFrom ? (
+                      <Button 
+                        size="sm"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-lg"
+                        onClick={() => router.push('/dashboard/friends?tab=requests')}
+                      >
+                        Accept
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg"
+                        onClick={() => handleConnect(user.id, user.username)}
+                      >
+                        Connect
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </Card>
             ))}
