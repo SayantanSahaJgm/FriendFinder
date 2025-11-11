@@ -5,6 +5,7 @@ import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Camera, MapPin } 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 import StoriesBar from "@/figma-ui/components/StoriesBar";
 
 interface PostData {
@@ -107,8 +108,10 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -127,10 +130,12 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await fetch('/api/posts');
         
         if (!res.ok) {
-          throw new Error('Failed to fetch posts');
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch posts (${res.status})`);
         }
         
         const data = await res.json();
@@ -151,8 +156,16 @@ export default function DashboardPage() {
           isSaved: false,
         }));
         setPosts(mappedPosts);
+        
+        // Show success message if there are posts
+        if (mappedPosts.length > 0) {
+          toast.success('Feed loaded', `${mappedPosts.length} posts loaded successfully`);
+        }
       } catch (error) {
         console.error('Error fetching feed data:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load feed';
+        setError(errorMessage);
+        toast.error('Failed to load feed', errorMessage);
         // Set empty posts on error instead of crashing
         setPosts([]);
       } finally {
@@ -161,7 +174,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [status]);
+  }, [status, toast]);
 
   // Show loading while checking auth
   if (status === "loading") {
@@ -221,14 +234,33 @@ export default function DashboardPage() {
         {/* Feed */}
         <div className="space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center py-20 bg-white rounded-lg">
+            <div className="flex items-center justify-center py-20 bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="flex flex-col items-center space-y-3">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                <div className="text-gray-600 font-medium">Loading...</div>
+                <div className="text-gray-600 font-medium">Loading your feed...</div>
               </div>
             </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white rounded-lg border border-red-200 shadow-sm">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center mb-6">
+                <MessageCircle className="w-12 h-12 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Failed to Load Feed</h3>
+              <p className="text-gray-600 text-sm mb-2 max-w-md">
+                {error}
+              </p>
+              <p className="text-gray-500 text-xs mb-6">
+                Please check your internet connection and try again.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white ff-white font-semibold rounded-lg transition shadow-lg"
+              >
+                Try Again
+              </button>
+            </div>
           ) : posts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white rounded-lg">
+            <div className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-6">
                 <Heart className="w-12 h-12 text-blue-600" />
               </div>

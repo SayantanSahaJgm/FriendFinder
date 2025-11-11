@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/context/Providers";
+import { ToastProvider } from "@/context/ToastContext";
 import CallManager from "@/components/calls/CallManager";
 import RealTimeNotifications from "@/components/notifications/RealTimeNotifications";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -61,15 +62,17 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <ErrorBoundary>
-            <div id="root" className="min-h-screen">
-              {children}
-            </div>
-          </ErrorBoundary>
-          <CallManager />
-          <RealTimeNotifications />
-          <div id="portal-root" />
-          <Toaster position="top-right" richColors />
+          <ToastProvider>
+            <ErrorBoundary>
+              <div id="root" className="min-h-screen">
+                {children}
+              </div>
+            </ErrorBoundary>
+            <CallManager />
+            <RealTimeNotifications />
+            <div id="portal-root" />
+            <Toaster position="top-right" richColors />
+          </ToastProvider>
         </Providers>
       </body>
     </html>

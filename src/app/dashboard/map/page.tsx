@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/context/ToastContext'
 import { io, Socket } from 'socket.io-client'
 import GoogleMap from '@/components/Map/GoogleMap'
 import { UserMarker } from '@/components/Map/MapMarker'
@@ -38,6 +39,7 @@ interface FriendLocation {
 export default function MapPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const toast = useToast()
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [friends, setFriends] = useState<FriendLocation[]>([])
   const [nearbyUsers, setNearbyUsers] = useState<FriendLocation[]>([])
@@ -52,8 +54,6 @@ export default function MapPage() {
   const [showOffline, setShowOffline] = useState<boolean>(true)
   const [clusteringEnabled, setClusteringEnabled] = useState<boolean>(true)
   const [darkStyle, setDarkStyle] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState(false)
-  const [toastMessage, setToastMessage] = useState('')
 
   // Get user's current location
   const { latitude, longitude, accuracy, error, loading } = useGeolocation({
@@ -192,16 +192,6 @@ export default function MapPage() {
     fetchNearbyUsers()
   }, [fetchFriendsLocations, fetchNearbyUsers])
 
-  // Auto-hide toast after 3 seconds
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [showToast])
-
   // Send location updates to server
   useEffect(() => {
     if (!latitude || !longitude || !session?.user) return
@@ -259,8 +249,7 @@ export default function MapPage() {
       })
 
       if (response.ok) {
-        setToastMessage('Friend request sent successfully!')
-        setShowToast(true)
+        toast.success('Friend request sent!', 'Your request has been sent successfully')
         // Update the nearbyUsers state to reflect pending request
         setNearbyUsers(prev => prev.map(user => 
           user.userId === userId 
@@ -273,15 +262,13 @@ export default function MapPage() {
         }
       } else {
         const data = await response.json()
-        setToastMessage(data.error || 'Failed to send friend request')
-        setShowToast(true)
+        toast.error('Failed to send request', data.error || 'Unable to send friend request')
       }
     } catch (error) {
       console.error('Error sending friend request:', error)
-      setToastMessage('Failed to send friend request')
-      setShowToast(true)
+      toast.error('Network error', 'Failed to send friend request. Please check your connection.')
     }
-  }, [selectedFriend])
+  }, [selectedFriend, toast])
 
   // Handle friend marker click
   const handleFriendClick = useCallback((friend: FriendLocation) => {
@@ -616,19 +603,6 @@ export default function MapPage() {
               fetchFriendsLocations()
             }}
           />
-        )}
-
-        {/* Toast Notification */}
-        {showToast && (
-          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-slide-up">
-            <span>{toastMessage}</span>
-            <button
-              onClick={() => setShowToast(false)}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              ×
-            </button>
-          </div>
         )}
       </div>
     </div>
