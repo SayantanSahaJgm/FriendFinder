@@ -319,7 +319,7 @@ export default function BluetoothPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 fade-in">
       {/* Modern Gradient Header */}
-      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white px-6 pt-8 pb-24 rounded-b-[32px] shadow-lg">
+      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white px-6 pt-8 pb-12 rounded-b-[28px] shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
@@ -335,7 +335,7 @@ export default function BluetoothPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 -mt-16 pb-24 space-y-6">
+  <div className="max-w-4xl mx-auto px-4 -mt-8 pb-16 space-y-6">
 
       {/* Bluetooth Status Card */}
       <Card className="glass border-0 shadow-soft">
