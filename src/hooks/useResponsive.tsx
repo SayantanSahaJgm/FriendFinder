@@ -192,7 +192,7 @@ export function Responsive({ children, showOn, hideOn }: ResponsiveProps) {
   if (showOn && !showOn.includes(breakpoint)) return null;
   if (hideOn && hideOn.includes(breakpoint)) return null;
 
-  return React.createElement(React.Fragment, null, children as any);
+  return <>{children}</>;
 }
 
 // ==================== Responsive Value Hook ====================

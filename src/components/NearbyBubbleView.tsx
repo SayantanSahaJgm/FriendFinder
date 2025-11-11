@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bluetooth } from "lucide-react";
+import { Bluetooth, ExternalLink } from "lucide-react";
 
 export interface NearbyUser {
   id: string;
@@ -125,23 +125,52 @@ export default function NearbyBubbleView({ users, onConnect, onRescan }: Props) 
       {/* Selected user modal */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSelected(null)} />
-          <Card className="w-full max-w-md z-10">
-            <CardContent className="flex flex-col items-center gap-4">
-              <Avatar className="w-20 h-20 ring-2 ring-gray-100">
-                {selected.profilePicture ? (
-                  <AvatarImage src={selected.profilePicture} alt={selected.username} />
+          <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" onClick={() => setSelected(null)} />
+          <Card className="w-full max-w-3xl z-10">
+            <CardContent className="flex flex-col md:flex-row items-center gap-6 p-6">
+              <div className="flex-shrink-0">
+                <div className="w-36 h-36 rounded-full overflow-hidden shadow-xl ring-4 ring-white">
+                  {selected.profilePicture ? (
+                    <img src={selected.profilePicture} alt={selected.username} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-2xl font-semibold">{selected.username.substring(0,2).toUpperCase()}</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 w-full">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{selected.username}</div>
+                    {selected.lastSeenBluetooth && (
+                      <div className="text-xs text-muted-foreground">Last seen: {new Date(selected.lastSeenBluetooth).toLocaleString()}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => window.open(`/dashboard/profile/${selected.id}`, "_blank")}
+                      title="Open profile in new tab"
+                      className="flex items-center gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="text-sm">View Profile</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {selected.bio ? (
+                  <p className="mt-2 text-sm text-muted-foreground">{selected.bio}</p>
                 ) : (
-                  <AvatarFallback>{selected.username.substring(0,2).toUpperCase()}</AvatarFallback>
+                  <p className="mt-2 text-sm text-muted-foreground">This user hasn't added a bio yet.</p>
                 )}
-              </Avatar>
-              <div className="text-lg font-semibold">{selected.username}</div>
-              {selected.bio && <div className="text-sm text-muted-foreground text-center">{selected.bio}</div>}
-              <div className="w-full flex gap-3">
-                <Button className="flex-1" onClick={() => { onConnect(selected.id); setSelected(null); }}>
-                  Connect
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setSelected(null)}>Close</Button>
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Button className="px-6 py-2" onClick={() => { onConnect(selected.id); setSelected(null); }}>
+                    Connect
+                  </Button>
+                  <Button variant="outline" onClick={() => setSelected(null)}>Close</Button>
+                </div>
               </div>
             </CardContent>
           </Card>

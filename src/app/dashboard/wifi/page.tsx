@@ -102,53 +102,65 @@ export default function WiFiPage() {
         {/* Network Visualization */}
         <Card className="p-6 bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl">
           <div className="flex flex-col items-center">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-30 animate-pulse-slow"></div>
-              <div className="relative w-32 h-32 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl">
-                <div className="text-center">
-                  <Avatar className="w-16 h-16 border-4 border-white mx-auto">
-                    <AvatarImage src={session?.user?.image || ''} alt="You" />
-                    <AvatarFallback className="bg-white text-purple-600 font-bold">
-                      {session?.user?.name?.charAt(0) || 'Y'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className="text-xs text-white font-medium mt-2">You</p>
-                </div>
-              </div>
-              
-              {/* Orbiting users */}
-              {nearbyUsers.slice(0, 5).map((user, index) => {
-                const angle = (index * 72 * Math.PI) / 180;
-                const radius = 100;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                return (
-                  <div
-                    key={user.id}
-                    className="absolute animate-float"
-                    style={{
-                      left: `calc(50% + ${x}px)`,
-                      top: `calc(50% + ${y}px)`,
-                      transform: 'translate(-50%, -50%)',
-                      animationDelay: `${index * 0.2}s`,
-                    }}
-                  >
-                    <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
-                      <AvatarImage src={user.profilePicture} alt={user.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white text-xs">
-                        {user.name?.charAt(0) || user.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+            {nearbyUsers.length > 0 ? (
+              <div className="relative mb-6 w-full h-[320px] flex items-center justify-center">
+                {/* Center user - only shown when peers found */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-20 animate-pulse-slow"></div>
+                <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl">
+                  <div className="text-center">
+                    <Wifi className="w-10 h-10 text-white mx-auto" />
+                    <p className="text-xs text-white font-medium mt-1">You</p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+                
+                {/* Orbiting users */}
+                {nearbyUsers.slice(0, 5).map((user, index) => {
+                  const angle = (index * 72 * Math.PI) / 180;
+                  const radius = 100;
+                  const x = Math.cos(angle) * radius;
+                  const y = Math.sin(angle) * radius;
+                  
+                  return (
+                    <div
+                      key={user.id}
+                      className="absolute animate-float cursor-pointer hover:scale-110 transition-transform"
+                      style={{
+                        left: `calc(50% + ${x}px)`,
+                        top: `calc(50% + ${y}px)`,
+                        transform: 'translate(-50%, -50%)',
+                        animationDelay: `${index * 0.2}s`,
+                      }}
+                      onClick={() => {
+                        // TODO: Open profile modal or navigate to profile
+                      }}
+                    >
+                      <Avatar className="w-14 h-14 border-2 border-white shadow-lg ring-2 ring-purple-200">
+                        <AvatarImage src={user.profilePicture} alt={user.name} />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white text-sm font-bold">
+                          {user.name?.charAt(0) || user.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Wifi className="w-10 h-10 text-purple-500" />
+                </div>
+                <p className="text-gray-500 text-sm">
+                  {isScanning ? 'Scanning for nearby WiFi networks...' : 'Start scanning to discover nearby users'}
+                </p>
+              </div>
+            )}
             
-            <p className="text-gray-600 text-sm mb-4">
-              {isScanning ? 'Scanning WiFi networks...' : `Found ${nearbyUsers.length} people on nearby devices`}
-            </p>
+            {nearbyUsers.length > 0 && (
+              <p className="text-gray-600 text-sm mb-4">
+                Found {nearbyUsers.length} {nearbyUsers.length === 1 ? 'person' : 'people'} on nearby networks
+              </p>
+            )}
             
             <Button
               onClick={() => setIsScanning(!isScanning)}
@@ -157,7 +169,6 @@ export default function WiFiPage() {
                   ? 'bg-gray-400 hover:bg-gray-500' 
                   : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
               }`}
-              disabled={isScanning}
             >
               {isScanning ? (
                 <>

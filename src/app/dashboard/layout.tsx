@@ -7,7 +7,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import NotificationCenter from "@/components/NotificationCenter";
+import NotificationButton from "@/components/NotificationButton";
+import { useFriends } from "@/context/FriendsContext";
 import WifiManager from "@/components/WifiManager";
 import BottomNav from "@/components/BottomNav";
 import {
@@ -18,7 +19,6 @@ import {
   User,
   Menu,
   X,
-  Bell,
   Search,
   LogOut,
   Home,
@@ -159,14 +159,14 @@ export default function DashboardLayout({
           {/* Desktop Navigation Tabs and Mobile Content */}
           <div className="flex-1 flex items-center px-4">
             {/* Desktop Brand Logo - show on lg+ screens */}
-            <div className="hidden lg:flex items-center space-x-2">
+            <Link href="/dashboard" className="hidden lg:flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
                 <span className="text-white ff-white text-sm font-bold">FF</span>
               </div>
               <span className="text-lg font-bold text-gray-900">
                 FriendFinder
               </span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation tabs - centered */}
             <div className="hidden lg:flex flex-1 justify-center">
@@ -195,34 +195,36 @@ export default function DashboardLayout({
             </div>
 
             {/* Mobile brand logo - show on small screens only */}
-            <div className="flex lg:hidden items-center space-x-2 flex-1">
+            <Link href="/dashboard" className="flex lg:hidden items-center space-x-2 flex-1">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
                 <span className="text-white ff-white text-sm font-bold">FF</span>
               </div>
               <span className="text-lg font-bold text-gray-900">
                 FriendFinder
               </span>
-            </div>
+            </Link>
 
             {/* Right side items - always visible */}
             <div className="flex items-center space-x-2">
-              {/* Notifications */}
-              <NotificationCenter />
+              {/* Notifications - open notifications page in a new tab */}
+              <NotificationButton />
 
               {/* Profile section */}
               <div className="flex items-center space-x-2">
-                <Avatar className="h-9 w-9 lg:h-10 lg:w-10 ring-2 ring-gray-100">
-                  <AvatarImage src={userImage || undefined} alt={displayName} />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-semibold">
-                    {displayName
-                      ? displayName
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")
-                          .toUpperCase()
-                      : "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <Link href="/dashboard/profile" className="block">
+                  <Avatar className="h-9 w-9 lg:h-10 lg:w-10 ring-2 ring-gray-100">
+                    <AvatarImage src={userImage || undefined} alt={displayName} />
+                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-semibold">
+                      {displayName
+                        ? displayName
+                            .split(" ")
+                            .map((n: string) => n[0])
+                            .join("")
+                            .toUpperCase()
+                        : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
                 <div className="hidden lg:block">
                   <div className="text-sm font-semibold text-gray-800">
                     {displayName}
