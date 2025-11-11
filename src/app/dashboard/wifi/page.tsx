@@ -164,7 +164,7 @@ export default function WiFiPage() {
                       <Avatar className="w-14 h-14 border-2 border-white shadow-lg ring-2 ring-purple-200">
                         <AvatarImage src={user.profilePicture} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white text-sm font-bold">
-                          {user.name?.charAt(0) || user.username.charAt(0).toUpperCase()}
+                          {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -233,7 +233,7 @@ export default function WiFiPage() {
                       <Avatar className="w-14 h-14 cursor-pointer" onClick={() => handleViewProfile(user.id)}>
                         <AvatarImage src={user.profilePicture} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold">
-                          {user.name?.charAt(0) || user.username.charAt(0).toUpperCase()}
+                          {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>

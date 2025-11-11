@@ -654,7 +654,7 @@ export default function DiscoverPage() {
                                 alt={user.username}
                               />
                               <AvatarFallback className="bg-green-100 text-green-800">
-                                {user.username.charAt(0).toUpperCase()}
+                                {user.username?.charAt(0).toUpperCase() || "?"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -838,7 +838,7 @@ export default function DiscoverPage() {
                                 alt={user.username}
                               />
                               <AvatarFallback className="bg-purple-100 text-purple-800">
-                                {user.username.charAt(0).toUpperCase()}
+                                {user.username?.charAt(0).toUpperCase() || "?"}
                               </AvatarFallback>
                             </Avatar>
                             <div>

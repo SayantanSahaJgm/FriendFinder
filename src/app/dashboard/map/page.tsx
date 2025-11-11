@@ -482,7 +482,7 @@ export default function MapPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
-                          {friend.username.charAt(0).toUpperCase()}
+                          {friend.username?.charAt(0).toUpperCase() || "?"}
                         </div>
                         {friend.isOnline && (
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
@@ -531,7 +531,7 @@ export default function MapPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold">
-                            {user.username.charAt(0).toUpperCase()}
+                            {user.username?.charAt(0).toUpperCase() || "?"}
                           </div>
                           {user.isOnline && (
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>

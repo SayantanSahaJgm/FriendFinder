@@ -228,7 +228,7 @@ export default function RandomChatPage() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                     <AvatarFallback>
-                      {activeSession.partner.anonymousId.charAt(0)}
+                      {activeSession.partner?.anonymousId?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

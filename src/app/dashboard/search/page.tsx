@@ -167,7 +167,7 @@ export default function SearchPage() {
                     {recent.map((r) => (
                       <button key={r.id} onClick={() => onSelect(r)} className="flex items-center gap-3 w-full p-3 bg-card rounded hover:bg-gray-50">
                         <Avatar className="w-10 h-10">
-                          {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username.charAt(0).toUpperCase()}</AvatarFallback>}
+                          {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>}
                         </Avatar>
                         <div className="text-left">
                           <div className="font-medium">{r.username}</div>
@@ -194,7 +194,7 @@ export default function SearchPage() {
               {results.map((r) => (
                 <div key={r.id} className="flex items-center gap-3 p-3 bg-card rounded hover:bg-gray-50">
                   <Avatar className="w-12 h-12">
-                    {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username.charAt(0).toUpperCase()}</AvatarFallback>}
+                    {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>}
                   </Avatar>
                   <div className="flex-1 text-left">
                     <div className="font-medium">{r.username}</div>

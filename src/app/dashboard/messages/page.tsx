@@ -323,7 +323,7 @@ export default function MessagesPage() {
                         <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
                           <AvatarImage src={friend.profilePicture} />
                           <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white ff-white font-medium">
-                            {friend.username.charAt(0).toUpperCase()}
+                            {friend.username?.charAt(0).toUpperCase() || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -408,7 +408,7 @@ export default function MessagesPage() {
                       <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
                         <AvatarImage src={friend.profilePicture} />
                         <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white ff-white font-medium">
-                          {friend.username.charAt(0).toUpperCase()}
+                          {friend.username?.charAt(0).toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">

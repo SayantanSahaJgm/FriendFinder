@@ -88,7 +88,7 @@ export default function NotificationsPage() {
                 <Avatar className="w-12 h-12 ring-2 ring-gray-200 dark:ring-gray-600">
                   <AvatarImage src={notif.from.image} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white ff-white">
-                    {notif.from.name.charAt(0)}
+                    {notif.from?.name?.charAt(0) || "?"}
                   </AvatarFallback>
                 </Avatar>
                 
