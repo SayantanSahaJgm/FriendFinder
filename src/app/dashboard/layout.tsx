@@ -60,6 +60,14 @@ export default function DashboardLayout({
   const userEmail = user?.email || session?.user?.email;
   const userImage = session?.user?.image;
 
+  // Safe avatar initials calculation
+  const getInitials = (name: string | undefined | null): string => {
+    if (!name || typeof name !== 'string') return "U";
+    const parts = name.trim().split(" ").filter(Boolean);
+    if (parts.length === 0) return "U";
+    return parts.map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return null;
@@ -214,13 +222,7 @@ export default function DashboardLayout({
                 <Avatar className="h-9 w-9 lg:h-10 lg:w-10 ring-2 ring-gray-100">
                   <AvatarImage src={userImage || undefined} alt={displayName} />
                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-semibold">
-                    {displayName
-                      ? displayName
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")
-                          .toUpperCase()
-                      : "U"}
+                    {getInitials(displayName)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:block">

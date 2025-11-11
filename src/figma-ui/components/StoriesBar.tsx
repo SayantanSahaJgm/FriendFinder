@@ -25,16 +25,24 @@ export default function StoriesBar() {
             </button>
           </div>
 
-          {demoStories.map((s) => (
-            <div key={s.id} className="flex-shrink-0">
-              <Link href={`/dashboard/stories/${s.id}`} className="flex flex-col items-center">
-                <div className={`w-16 h-16 rounded-full ${s.color} flex items-center justify-center text-white ff-white`}>
-                  {s.name.charAt(0)}
-                </div>
-                <span className="text-xs mt-1">{s.name}</span>
-              </Link>
-            </div>
-          ))}
+          {demoStories.map((s) => {
+            // Defensive: ensure name is a string before calling charAt
+            const displayName = s?.name || "?";
+            const initial = typeof displayName === 'string' && displayName.length > 0 
+              ? displayName.charAt(0).toUpperCase() 
+              : "?";
+            
+            return (
+              <div key={s.id} className="flex-shrink-0">
+                <Link href={`/dashboard/stories/${s.id}`} className="flex flex-col items-center">
+                  <div className={`w-16 h-16 rounded-full ${s.color} flex items-center justify-center text-white ff-white text-xl font-bold`}>
+                    {initial}
+                  </div>
+                  <span className="text-xs mt-1">{displayName}</span>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </div>
 
