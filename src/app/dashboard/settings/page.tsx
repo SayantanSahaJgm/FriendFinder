@@ -80,6 +80,27 @@ export default function SettingsPage() {
     }
   }, [user]);
 
+  // Load settings from API
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('/api/settings/update');
+        const result = await response.json();
+        
+        if (result.success && result.settings) {
+          setSettings((prevSettings) => ({
+            ...prevSettings,
+            ...result.settings,
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
   // Sync discovery method settings with preferences
   useEffect(() => {
     setSettings((prevSettings) => ({
@@ -117,7 +138,25 @@ export default function SettingsPage() {
           throw new Error(result.error || `Failed to update ${field}`);
         }
       } else {
-        // Handle other settings (could be extended with more API calls)
+        // Call API to update setting in database
+        const response = await fetch('/api/settings/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            settingType: field,
+            value: value,
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || `Failed to update ${field}`);
+        }
+        
+        // Update local state
         setSettings((prev) => ({ ...prev, [field]: value }));
       }
 
@@ -186,7 +225,25 @@ export default function SettingsPage() {
           throw new Error(result.error || `Failed to update ${field}`);
         }
       } else {
-        // Handle other toggles
+        // Call API to update setting in database
+        const response = await fetch('/api/settings/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            settingType: field,
+            value: newValue,
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || `Failed to update ${field}`);
+        }
+        
+        // Update local state
         setSettings((prev) => ({ ...prev, [field]: newValue }));
       }
 
