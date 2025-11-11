@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { bluetoothService, BluetoothUser } from "@/services/bluetoothService";
 import { useBluetooth } from "@/hooks/useBluetooth";
+import NearbyBubbleView from "@/components/NearbyBubbleView";
 
 export default function BluetoothPage() {
   const {
@@ -625,80 +626,12 @@ export default function BluetoothPage() {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
-                {nearbyUsers.map((user, index) => (
-                  <div key={user.id} className="group">
-                    {index > 0 && <div className="h-px bg-gray-100 my-3" />}
-                    <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 transition-all duration-300">
-                      <div className="relative">
-                        <Avatar className="h-14 w-14 border-2 border-white shadow-md ring-2 ring-indigo-100">
-                          <AvatarImage src={user.profilePicture} alt={user.username} />
-                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold">
-                            {user.username.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <h4 className="font-semibold text-base">{user.username}</h4>
-                            {user.bio && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-                                {user.bio}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {user.isFriend ? (
-                            <Badge className="bg-gradient-to-r from-green-400 to-green-500 text-white border-0 shadow-sm">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Friends
-                            </Badge>
-                          ) : user.hasPendingRequestTo ? (
-                            <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white border-0 shadow-sm">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Pending
-                            </Badge>
-                          ) : user.hasPendingRequestFrom ? (
-                            <Badge className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 shadow-sm">
-                              Wants to Connect
-                            </Badge>
-                          ) : null}
-                        </div>
-                        
-                        <div className="flex items-center gap-4 mt-3">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Bluetooth className="h-3.5 w-3.5 text-indigo-600" />
-                            <span>{formatLastSeen(user.lastSeenBluetooth)}</span>
-                          </div>
-                          
-                          {!user.isFriend && !user.hasPendingRequestTo && !user.hasPendingRequestFrom && (
-                            <Button
-                              onClick={() => handleSendFriendRequest(user.id, user.username)}
-                              disabled={sendingRequestTo === user.id}
-                              size="sm"
-                              className="ml-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-sm"
-                            >
-                              {sendingRequestTo === user.id ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Sending...
-                                </>
-                              ) : (
-                                <>
-                                  <UserPlus className="h-4 w-4 mr-2" />
-                                  Add Friend
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div>
+                <NearbyBubbleView
+                  users={nearbyUsers as any}
+                  onConnect={(id: string) => handleSendFriendRequest(id, nearbyUsers.find(u => u.id === id)?.username || '')}
+                  onRescan={() => handleScanNearby()}
+                />
               </div>
             )}
           </CardContent>
