@@ -555,42 +555,42 @@ export default function MapPage() {
         </div>
 
     {/* Info Panel - Improved visibility */}
-    <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-900 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-4 max-w-sm">
+    <div className="absolute bottom-6 right-6 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-gray-800 p-4 max-w-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-white">
               Your Location
             </h3>
           </div>
           {latitude && longitude ? (
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Latitude:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
+              <div className="flex justify-between items-center p-2 bg-transparent rounded">
+                <span className="text-white font-medium">Latitude:</span>
+                <span className="font-semibold text-white">{latitude.toFixed(6)}</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Longitude:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
+              <div className="flex justify-between items-center p-2 bg-transparent rounded">
+                <span className="text-white font-medium">Longitude:</span>
+                <span className="font-semibold text-white">{longitude.toFixed(6)}</span>
               </div>
               {accuracy && (
-                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Accuracy:</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
+                <div className="flex justify-between items-center p-2 bg-transparent rounded">
+                  <span className="text-white font-medium">Accuracy:</span>
+                  <span className="font-semibold text-white">±{Math.round(accuracy)}m</span>
                 </div>
               )}
-              <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/50 rounded border-2 border-blue-200 dark:border-blue-800 mt-3">
-                <span className="text-gray-900 dark:text-white font-semibold">Friends visible:</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">{friends.length}</span>
+              <div className="flex justify-between items-center p-2 bg-transparent rounded mt-3">
+                <span className="text-white font-semibold">Friends visible:</span>
+                <span className="font-bold text-white">{friends.length}</span>
               </div>
               {nearbyUsers.length > 0 && (
-                <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/50 rounded border-2 border-orange-200 dark:border-orange-800">
-                  <span className="text-gray-900 dark:text-white font-semibold">Discoverable:</span>
-                  <span className="font-bold text-orange-600 dark:text-orange-400">{nearbyUsers.length}</span>
+                <div className="flex justify-between items-center p-2 bg-transparent rounded">
+                  <span className="text-white font-semibold">Discoverable:</span>
+                  <span className="font-bold text-white">{nearbyUsers.length}</span>
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+            <p className="text-sm text-white font-medium">
               {loading ? 'Detecting your location...' : 'Location not available'}
             </p>
           )}
