@@ -15,7 +15,17 @@ interface Notification {
 }
 
 export default function NotificationCenter() {
-  const { receivedRequests, respondToRequest } = useFriends();
+  // Defensive: useFriends throws if not inside provider. Wrap to avoid crashing whole UI.
+  let receivedRequests: any[] = [];
+  let respondToRequest: (id: string, action: string) => Promise<any> = async () => ({ success: false });
+  try {
+    const ctx = useFriends();
+    receivedRequests = ctx.receivedRequests || [];
+    respondToRequest = ctx.respondToRequest;
+  } catch (err) {
+    // If the context isn't available, log and continue with empty state to avoid crashing the app
+    console.warn('NotificationCenter: useFriends context unavailable', err);
+  }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
