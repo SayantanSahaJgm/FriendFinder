@@ -305,13 +305,13 @@ export default function MapPage() {
       )}
 
       {/* Header */}
-  <div className="bg-background border-b border-border px-6 py-4">
+  <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Friends Map
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
               See where your friends are in real-time
             </p>
           </div>
@@ -319,14 +319,14 @@ export default function MapPage() {
           {/* Location Status */}
           <div className="flex items-center gap-3">
             {loading && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 font-medium">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                 Getting location...
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-2 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800 font-medium">
                 <svg
                   className="w-4 h-4"
                   fill="currentColor"
@@ -343,7 +343,7 @@ export default function MapPage() {
             )}
 
             {latitude && longitude && (
-              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-3 py-2 rounded-lg border border-green-200 dark:border-green-800 font-medium">
                 <svg
                   className="w-4 h-4"
                   fill="currentColor"
@@ -357,7 +357,7 @@ export default function MapPage() {
                 </svg>
                 Location active
                 {accuracy && (
-                  <span className="text-xs opacity-70">
+                  <span className="text-xs font-semibold">
                     (±{Math.round(accuracy)}m)
                   </span>
                 )}
@@ -366,7 +366,7 @@ export default function MapPage() {
 
             {/* Settings button */}
             <button
-              className="ml-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded text-sm"
+              className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg shadow-sm transition-colors"
               onClick={() => setShowSettings(true)}
             >
               Sharing settings
@@ -450,10 +450,10 @@ export default function MapPage() {
         )}
 
     {/* Friends List Panel */}
-    <div className="absolute top-6 right-6 bg-card rounded-lg shadow-lg p-4 max-w-xs max-h-96 overflow-y-auto">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+    <div className="absolute top-6 right-6 bg-white dark:bg-gray-900 rounded-lg shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-4 max-w-xs max-h-96 overflow-y-auto backdrop-blur-sm">
+          <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 flex items-center justify-between">
             <span>Friends Nearby</span>
-            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+            <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/50 px-2 py-1 rounded-full">
               {friends.length}
             </span>
           </h3>
@@ -463,7 +463,7 @@ export default function MapPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
           ) : friends.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-8">
+            <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-8 font-medium">
               No friends sharing location yet
             </p>
           ) : (
@@ -476,23 +476,23 @@ export default function MapPage() {
                 return (
                   <div
                     key={friend.userId}
-                    className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors"
+                    className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-gray-200 dark:border-gray-700"
                     onClick={() => handleFriendClick(friend)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold shadow-md">
                           {friend.username?.charAt(0).toUpperCase() || "?"}
                         </div>
                         {friend.isOnline && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">
                           {friend.username}
                         </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                           {distance ? formatDistance(distance) : 'Unknown distance'}
                         </p>
                       </div>
@@ -506,13 +506,13 @@ export default function MapPage() {
           {/* Nearby Discoverable Users Section */}
           {nearbyUsers.length > 0 && (
             <>
-              <div className="my-4 border-t border-gray-200 dark:border-gray-700"></div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+              <div className="my-4 border-t-2 border-gray-200 dark:border-gray-700"></div>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
                   Discoverable Nearby
                 </span>
-                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                <span className="text-sm font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/50 px-2 py-1 rounded-full">
                   {nearbyUsers.length}
                 </span>
               </h3>
@@ -525,23 +525,23 @@ export default function MapPage() {
                   return (
                     <div
                       key={user.userId}
-                      className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 cursor-pointer transition-colors border border-orange-200 dark:border-orange-800"
+                      className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/40 cursor-pointer transition-colors border-2 border-orange-200 dark:border-orange-800"
                       onClick={() => handleFriendClick(user)}
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold shadow-md">
                             {user.username?.charAt(0).toUpperCase() || "?"}
                           </div>
                           {user.isOnline && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white truncate">
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">
                             {user.username}
                           </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                          <p className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                             {distance ? formatDistance(distance) : 'Unknown distance'}
                           </p>
                         </div>
@@ -555,42 +555,42 @@ export default function MapPage() {
         </div>
 
     {/* Info Panel - Improved visibility */}
-    <div className="absolute bottom-6 right-6 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
+    <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-900 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-4 max-w-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
               Your Location
             </h3>
           </div>
           {latitude && longitude ? (
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                <span className="text-gray-600 dark:text-gray-400">Latitude:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">Latitude:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
               </div>
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                <span className="text-gray-600 dark:text-gray-400">Longitude:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">Longitude:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
               </div>
               {accuracy && (
-                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                  <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>
-                  <span className="font-medium text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
+                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Accuracy:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
                 </div>
               )}
-              <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800 mt-3">
-                <span className="text-gray-900 dark:text-white font-medium">Friends visible:</span>
+              <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/50 rounded border-2 border-blue-200 dark:border-blue-800 mt-3">
+                <span className="text-gray-900 dark:text-white font-semibold">Friends visible:</span>
                 <span className="font-bold text-blue-600 dark:text-blue-400">{friends.length}</span>
               </div>
               {nearbyUsers.length > 0 && (
-                <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-800">
-                  <span className="text-gray-900 dark:text-white font-medium">Discoverable:</span>
+                <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/50 rounded border-2 border-orange-200 dark:border-orange-800">
+                  <span className="text-gray-900 dark:text-white font-semibold">Discoverable:</span>
                   <span className="font-bold text-orange-600 dark:text-orange-400">{nearbyUsers.length}</span>
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
               {loading ? 'Detecting your location...' : 'Location not available'}
             </p>
           )}
