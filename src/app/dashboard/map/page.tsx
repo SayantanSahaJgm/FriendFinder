@@ -555,7 +555,8 @@ export default function MapPage() {
         </div>
 
     {/* Info Panel - Improved visibility */}
-    <div className="absolute bottom-6 right-6 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-gray-800 p-4 max-w-sm">
+    <div className="absolute z-40 bottom-6 right-6 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-gray-800 p-4 max-w-sm
+      sm:bottom-28 sm:right-1/2 sm:translate-x-1/2 sm:w-[90%] sm:max-w-md">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             <h3 className="font-bold text-lg text-white">

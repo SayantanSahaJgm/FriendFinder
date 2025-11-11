@@ -27,7 +27,10 @@ export default function MapControls({
   const [isExpanded, setIsExpanded] = useState(true)
 
   return (
-    <div className="absolute top-6 left-6 z-50 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-800 overflow-hidden transition-all duration-300">
+    <div className="absolute z-50 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-800 overflow-hidden transition-all duration-300
+      left-6 top-6 lg:left-6 lg:top-6
+      sm:top-20 sm:left-1/2 sm:-translate-x-1/2 sm:w-[90%] sm:max-w-md
+      w-80">
       {/* Header */}
       <div 
         className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-500 cursor-pointer hover:from-blue-600 hover:to-purple-600 transition-all"
@@ -48,7 +51,7 @@ export default function MapControls({
 
       {/* Content */}
       {isExpanded && (
-        <div className="p-5 space-y-4 w-80">
+  <div className="p-5 space-y-4 w-full">
           {/* Distance Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
