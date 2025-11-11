@@ -412,14 +412,14 @@ export default function BluetoothPage() {
                 <input
                   value={deviceName}
                   onChange={(e) => setDeviceName(e.target.value)}
-                  placeholder="Your device name"
+                  placeholder="Generate code"
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 />
                 <Button onClick={async () => {
-                  if (!deviceName.trim()) { toast.error('Please enter a device name'); return; }
                   try {
                     setGeneratingCode(true);
-                    const res = await bluetoothService.generatePairingCode(deviceName.trim());
+                    const nameToUse = deviceName.trim() || 'device';
+                    const res = await bluetoothService.generatePairingCode(nameToUse);
                     if (res.success) {
                       setGeneratedCode(res.pairingCode || null);
                       setCodeExpires(res.pairingCodeExpires || null);
@@ -435,7 +435,7 @@ export default function BluetoothPage() {
                     setGeneratingCode(false);
                   }
                 }} disabled={generatingCode} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
-                  {generatingCode ? 'Generating...' : 'Get Code'}
+                  {generatingCode ? 'Generating...' : 'Generate Code'}
                 </Button>
               </div>
 
