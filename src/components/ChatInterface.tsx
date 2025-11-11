@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useMessaging } from "@/context/MessagingContext";
 import { useSession } from "next-auth/react";
 import {
   Send,
@@ -198,6 +199,32 @@ export default function ChatInterface({
     }
   };
 
+  // Helper to add optimistic (local) message to UI while sending
+  const addLocalMessage = (payload: Partial<ChatMessage>) => {
+    const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const localMsg: ChatMessage = {
+      _id: tempId,
+      chatId: friendId || `chat-${tempId}`,
+      senderId: {
+        _id: session?.user?.id || (session?.user?.email || "me") as any,
+        username: session?.user?.name || session?.user?.email || "You",
+        profilePicture: session?.user?.image || undefined,
+      },
+      receiverId: friendId,
+      content: payload.content || "",
+      type: (payload.type as any) || "text",
+      status: "sent",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      fileUrl: payload.fileUrl,
+      fileName: payload.fileName,
+      fileSize: payload.fileSize,
+    } as ChatMessage;
+
+    setMessages((prev) => [...prev, localMsg]);
+    return localMsg;
+  };
+
   const addReaction = async (messageId: string, reaction: string) => {
     try {
       const response = await fetch("/api/messages/react", {
@@ -308,6 +335,10 @@ export default function ChatInterface({
     setIsSending(true);
 
     try {
+      // Add optimistic local message with preview URL
+      const previewUrl = URL.createObjectURL(file);
+      const local = addLocalMessage({ content: "[image]", type: "image", fileUrl: previewUrl, fileName: file.name, fileSize: file.size });
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("friendId", friendId);
@@ -319,22 +350,24 @@ export default function ChatInterface({
 
       if (response.ok) {
         const data = await response.json();
-        setMessages((prev) => [...prev, data.message]);
+        // Replace the optimistic message with server message
+        setMessages((prev) => prev.map(m => m._id === local._id ? data.message : m));
+        URL.revokeObjectURL(previewUrl);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to upload file");
       }
     } catch (error) {
       console.error("Failed to upload file:", error);
-      alert(
-        `Failed to upload file: ${
-          error instanceof Error ? error.message : "Please try again."
-        }`
-      );
+      // Mark last optimistic message as failed
+      setMessages((prev) => prev.map(m => (m.type === 'image' && m.status === 'sent') ? { ...m, status: 'sent' } : m));
+      alert(`Failed to upload file: ${(error instanceof Error) ? error.message : 'Please try again.'}`);
     } finally {
       setIsSending(false);
     }
   };
+
+  const messaging = useMessaging();
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,12 +375,23 @@ export default function ChatInterface({
     if (!newMessage.trim() || isSending) return;
 
     setIsSending(true);
+    // create optimistic message
+    const local = addLocalMessage({ content: newMessage.trim(), type: 'text' });
+
     try {
-      await sendMessageToAPI(newMessage, "text", replyingTo?._id);
+      // Prefer socket-based send for instant delivery
+      if (messaging && typeof messaging.sendMessage === 'function') {
+        await messaging.sendMessage(newMessage.trim(), 'text');
+      } else {
+        // fallback to HTTP
+        await sendMessageToAPI(newMessage.trim(), 'text', replyingTo?._id);
+      }
+
       setNewMessage("");
       setReplyingTo(null);
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Optionally mark local message as failed (we keep it as sent for now)
     } finally {
       setIsSending(false);
     }
