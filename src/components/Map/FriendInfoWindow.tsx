@@ -1,6 +1,6 @@
  'use client'
 
-import { MessageCircle, Phone, Navigation, X } from 'lucide-react'
+import { MessageCircle, Phone, Navigation, X, UserPlus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { formatDistance } from '@/hooks/useGeolocation'
 
@@ -10,8 +10,11 @@ interface FriendInfoWindowProps {
   distance: number | null
   lastUpdated: Date
   isOnline: boolean
+  isFriend?: boolean
+  hasPendingRequest?: boolean
   onChat: () => void
   onCall: () => void
+  onSendFriendRequest?: () => void
   onClose: () => void
 }
 
@@ -21,8 +24,11 @@ export default function FriendInfoWindow({
   distance,
   lastUpdated,
   isOnline,
+  isFriend = true,
+  hasPendingRequest = false,
   onChat,
   onCall,
+  onSendFriendRequest,
   onClose,
 }: FriendInfoWindowProps) {
   const router = useRouter()
@@ -95,22 +101,37 @@ export default function FriendInfoWindow({
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-2">
+      {isFriend ? (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onChat}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium text-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat
+          </button>
+          <button
+            onClick={onCall}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors font-medium text-sm"
+          >
+            <Phone className="w-4 h-4" />
+            Call
+          </button>
+        </div>
+      ) : (
         <button
-          onClick={onChat}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium text-sm"
+          onClick={onSendFriendRequest}
+          disabled={hasPendingRequest}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm ${
+            hasPendingRequest
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-orange-500 hover:bg-orange-600 text-white'
+          }`}
         >
-          <MessageCircle className="w-4 h-4" />
-          Chat
+          <UserPlus className="w-4 h-4" />
+          {hasPendingRequest ? 'Request Sent' : 'Send Friend Request'}
         </button>
-        <button
-          onClick={onCall}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors font-medium text-sm"
-        >
-          <Phone className="w-4 h-4" />
-          Call
-        </button>
-      </div>
+      )}
 
       {/* Get Directions */}
       {/* View Profile */}

@@ -16,6 +16,8 @@ import LocationPrivacySettings from '@/components/LocationPrivacySettings'
 interface FriendLocation {
   userId: string
   username: string
+  name?: string
+  bio?: string
   profilePicture?: string
   location: {
     lat: number
@@ -23,9 +25,14 @@ interface FriendLocation {
     accuracy: number | null
     lastUpdated?: Date
   }
+  distance?: number
   isOnline: boolean
   status: string
   lastSeen?: Date
+  interests?: string[]
+  isFriend: boolean
+  hasPendingRequestTo?: boolean
+  hasPendingRequestFrom?: boolean
 }
 
 export default function MapPage() {
@@ -33,8 +40,10 @@ export default function MapPage() {
   const router = useRouter()
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [friends, setFriends] = useState<FriendLocation[]>([])
+  const [nearbyUsers, setNearbyUsers] = useState<FriendLocation[]>([])
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isLoadingFriends, setIsLoadingFriends] = useState(true)
+  const [isLoadingNearby, setIsLoadingNearby] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const lastUpdateRef = useRef<number>(0)
   const [selectedFriend, setSelectedFriend] = useState<FriendLocation | null>(null)
@@ -43,6 +52,8 @@ export default function MapPage() {
   const [showOffline, setShowOffline] = useState<boolean>(true)
   const [clusteringEnabled, setClusteringEnabled] = useState<boolean>(true)
   const [darkStyle, setDarkStyle] = useState<boolean>(false)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   // Get user's current location
   const { latitude, longitude, accuracy, error, loading } = useGeolocation({
@@ -122,6 +133,7 @@ export default function MapPage() {
               },
               isOnline: true,
               status: 'online',
+              isFriend: true,
             },
           ]
         }
@@ -157,9 +169,38 @@ export default function MapPage() {
     }
   }, [session])
 
+  const fetchNearbyUsers = useCallback(async () => {
+    if (!session?.user || !latitude || !longitude) return
+    try {
+      setIsLoadingNearby(true)
+      const distanceKm = maxDistance / 1000
+      const response = await fetch(`/api/location/nearby?maxDistance=${distanceKm}`)
+      if (response.ok) {
+        const data = await response.json()
+        setNearbyUsers(data.nearby || [])
+        console.log(`Loaded ${data.nearby?.length || 0} nearby discoverable users`)
+      }
+    } catch (error) {
+      console.error('Error fetching nearby users:', error)
+    } finally {
+      setIsLoadingNearby(false)
+    }
+  }, [session, latitude, longitude, maxDistance])
+
   useEffect(() => {
     fetchFriendsLocations()
-  }, [fetchFriendsLocations])
+    fetchNearbyUsers()
+  }, [fetchFriendsLocations, fetchNearbyUsers])
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showToast])
 
   // Send location updates to server
   useEffect(() => {
@@ -207,6 +248,40 @@ export default function MapPage() {
     router.push(`/dashboard/call?userId=${friendId}&userName=${encodeURIComponent(friendName)}`)
     setShowInfoWindow(false)
   }, [router])
+
+  // Handle send friend request
+  const handleSendFriendRequest = useCallback(async (userId: string) => {
+    try {
+      const response = await fetch('/api/friends/requests/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiverId: userId }),
+      })
+
+      if (response.ok) {
+        setToastMessage('Friend request sent successfully!')
+        setShowToast(true)
+        // Update the nearbyUsers state to reflect pending request
+        setNearbyUsers(prev => prev.map(user => 
+          user.userId === userId 
+            ? { ...user, hasPendingRequestTo: true }
+            : user
+        ))
+        // Update selected friend if it's the current one
+        if (selectedFriend?.userId === userId) {
+          setSelectedFriend(prev => prev ? { ...prev, hasPendingRequestTo: true } : null)
+        }
+      } else {
+        const data = await response.json()
+        setToastMessage(data.error || 'Failed to send friend request')
+        setShowToast(true)
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error)
+      setToastMessage('Failed to send friend request')
+      setShowToast(true)
+    }
+  }, [selectedFriend])
 
   // Handle friend marker click
   const handleFriendClick = useCallback((friend: FriendLocation) => {
@@ -321,18 +396,20 @@ export default function MapPage() {
             <UserMarker map={map} position={{ lat: latitude, lng: longitude }} />
           )}
 
-          {/* Marker manager handles friend markers (with clustering and filtering) */}
+          {/* Marker manager handles friend and nearby user markers (with clustering and filtering) */}
           {map && (
             <MarkerManager
               map={map}
-              friends={friends}
+              friends={[...friends, ...nearbyUsers]}
               userLocation={latitude && longitude ? { lat: latitude, lng: longitude } : undefined}
               clustering={clusteringEnabled}
               showOffline={showOffline}
               maxDistance={maxDistance}
               onMarkerClick={(friendId: string) => {
                 const f = friends.find(x => x.userId === friendId)
-                if (f) handleFriendClick(f)
+                const n = nearbyUsers.find(x => x.userId === friendId)
+                const selectedUser = f || n
+                if (selectedUser) handleFriendClick(selectedUser)
               }}
             />
           )}
@@ -375,8 +452,11 @@ export default function MapPage() {
               }
               lastUpdated={selectedFriend.location.lastUpdated || new Date()}
               isOnline={selectedFriend.isOnline}
+              isFriend={selectedFriend.isFriend !== false}
+              hasPendingRequest={selectedFriend.hasPendingRequestTo || false}
               onChat={() => handleChat(selectedFriend.userId)}
               onCall={() => handleCall(selectedFriend.userId, selectedFriend.username)}
+              onSendFriendRequest={() => handleSendFriendRequest(selectedFriend.userId)}
               onClose={() => setShowInfoWindow(false)}
             />
           </div>
@@ -435,29 +515,92 @@ export default function MapPage() {
               })}
             </div>
           )}
+
+          {/* Nearby Discoverable Users Section */}
+          {nearbyUsers.length > 0 && (
+            <>
+              <div className="my-4 border-t border-gray-200 dark:border-gray-700"></div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                  Discoverable Nearby
+                </span>
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                  {nearbyUsers.length}
+                </span>
+              </h3>
+              <div className="space-y-2">
+                {nearbyUsers.map((user) => {
+                  const distance = latitude && longitude
+                    ? calculateDistance(latitude, longitude, user.location.lat, user.location.lng)
+                    : null
+
+                  return (
+                    <div
+                      key={user.userId}
+                      className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 cursor-pointer transition-colors border border-orange-200 dark:border-orange-800"
+                      onClick={() => handleFriendClick(user)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold">
+                            {user.username.charAt(0).toUpperCase()}
+                          </div>
+                          {user.isOnline && (
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-white truncate">
+                            {user.username}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {distance ? formatDistance(distance) : 'Unknown distance'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </div>
 
-    {/* Info Panel */}
-    <div className="absolute bottom-6 left-6 bg-card rounded-lg shadow-lg p-4 max-w-sm">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-            Your Location
-          </h3>
+    {/* Info Panel - Improved visibility */}
+    <div className="absolute bottom-6 right-6 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">
+              Your Location
+            </h3>
+          </div>
           {latitude && longitude ? (
-            <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-              <p>
-                <span className="font-medium">Latitude:</span> {latitude.toFixed(6)}
-              </p>
-              <p>
-                <span className="font-medium">Longitude:</span> {longitude.toFixed(6)}
-              </p>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                <span className="text-gray-600 dark:text-gray-400">Latitude:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                <span className="text-gray-600 dark:text-gray-400">Longitude:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
+              </div>
               {accuracy && (
-                <p>
-                  <span className="font-medium">Accuracy:</span> ±{Math.round(accuracy)}m
-                </p>
+                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                  <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
+                </div>
               )}
-              <p className="pt-2 border-t border-gray-200 dark:border-gray-700 mt-2">
-                <span className="font-medium">Friends visible:</span> {friends.length}
-              </p>
+              <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800 mt-3">
+                <span className="text-gray-900 dark:text-white font-medium">Friends visible:</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">{friends.length}</span>
+              </div>
+              {nearbyUsers.length > 0 && (
+                <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-800">
+                  <span className="text-gray-900 dark:text-white font-medium">Discoverable:</span>
+                  <span className="font-bold text-orange-600 dark:text-orange-400">{nearbyUsers.length}</span>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -473,6 +616,19 @@ export default function MapPage() {
               fetchFriendsLocations()
             }}
           />
+        )}
+
+        {/* Toast Notification */}
+        {showToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-slide-up">
+            <span>{toastMessage}</span>
+            <button
+              onClick={() => setShowToast(false)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              ×
+            </button>
+          </div>
         )}
       </div>
     </div>
