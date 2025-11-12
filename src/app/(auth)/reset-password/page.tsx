@@ -210,10 +210,10 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center">Invalid Request</CardTitle>
+            <CardTitle className="text-center text-gray-900 dark:text-white">Invalid Request</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               This password reset link is invalid. Please request a new one.
             </p>
             <Link href="/forgot-password">
@@ -234,10 +234,10 @@ export default function ResetPasswordPage() {
               <Lock className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
             Reset Your Password
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
             {otpVerified 
               ? "Create a new strong password"
               : `Enter the 6-digit code sent to ${email}`
@@ -287,7 +287,7 @@ export default function ResetPasswordPage() {
               </Button>
 
               <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Didn't receive the code?
                 </p>
                 <Button
@@ -313,7 +313,7 @@ export default function ResetPasswordPage() {
             /* New Password Form */
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="newPassword" className="text-sm font-medium">
+                <label htmlFor="newPassword" className="text-sm font-medium text-gray-900 dark:text-white">
                   New Password
                 </label>
                 <div className="relative">
@@ -339,7 +339,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-900 dark:text-white">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -364,7 +364,7 @@ export default function ResetPasswordPage() {
                 </div>
               </div>
 
-              <div className="text-xs text-gray-600 space-y-1">
+              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                 <p>Password must:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Be at least 8 characters long</li>
@@ -393,9 +393,9 @@ export default function ResetPasswordPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Remember your password?{" "}
-            <Link href="/login" className="text-purple-600 hover:underline">
+            <Link href="/login" className="text-purple-600 hover:underline dark:text-purple-400 dark:hover:text-purple-300">
               Sign in
             </Link>
           </p>

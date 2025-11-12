@@ -171,11 +171,11 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center">Invalid Link</CardTitle>
+            <CardTitle className="text-center text-gray-900 dark:text-white">Invalid Link</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               This verification link is invalid or expired.
             </p>
             <Link href="/register">
@@ -192,11 +192,11 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center">Email Verified! 🎉</CardTitle>
+            <CardTitle className="text-center text-gray-900 dark:text-white">Email Verified! 🎉</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Your email has been verified successfully. You can now sign in to your account.
             </p>
             <Link href="/login?verified=true">
@@ -217,10 +217,10 @@ export default function VerifyEmailPage() {
               <Mail className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
             Verify Your Email
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
             We've sent a 6-digit verification code to
             <br />
             <strong>{email}</strong>
@@ -264,7 +264,7 @@ export default function VerifyEmailPage() {
           </Button>
 
           <div className="text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Didn't receive the code?
             </p>
             <Button
@@ -287,9 +287,9 @@ export default function VerifyEmailPage() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Wrong email?{" "}
-            <Link href="/register" className="text-purple-600 hover:underline">
+            <Link href="/register" className="text-purple-600 hover:underline dark:text-purple-400 dark:hover:text-purple-300">
               Register again
             </Link>
           </p>

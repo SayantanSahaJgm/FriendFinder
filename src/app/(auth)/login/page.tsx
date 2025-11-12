@@ -120,10 +120,10 @@ export default function LoginPage() {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
+        <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
           Welcome back
         </CardTitle>
-        <CardDescription className="text-center">
+        <CardDescription className="text-center text-gray-600 dark:text-gray-400">
           Sign in to your account to continue
         </CardDescription>
       </CardHeader>
@@ -147,7 +147,7 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -170,7 +170,7 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -199,7 +199,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-end">
               <Link 
                 href="/forgot-password" 
-                className="text-sm text-purple-600 hover:text-purple-700 hover:underline"
+                className="text-sm text-purple-600 hover:text-purple-700 hover:underline dark:text-purple-400 dark:hover:text-purple-300"
               >
                 Forgot password?
               </Link>
@@ -271,11 +271,11 @@ export default function LoginPage() {
         </Button>
       </CardContent>
       <CardFooter>
-        <p className="text-center text-sm text-gray-600 w-full">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 w-full">
           Don't have an account?{" "}
           <Link
             href="/register"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Sign up
           </Link>

@@ -123,10 +123,10 @@ export default function RegisterPage() {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
+        <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
           Create an account
         </CardTitle>
-        <CardDescription className="text-center">
+        <CardDescription className="text-center text-gray-600 dark:text-gray-400">
           Join FriendFinder and start connecting with people around you
         </CardDescription>
       </CardHeader>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Username</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -184,7 +184,7 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -207,7 +207,7 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -238,7 +238,7 @@ export default function RegisterPage() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Confirm Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -331,23 +331,23 @@ export default function RegisterPage() {
           )}
         </Button>
 
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
           By creating an account, you agree to our{" "}
-          <Link href="/terms" className="underline hover:text-gray-700">
+          <Link href="/terms" className="underline hover:text-gray-700 dark:hover:text-gray-300">
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacy" className="underline hover:text-gray-700">
+          <Link href="/privacy" className="underline hover:text-gray-700 dark:hover:text-gray-300">
             Privacy Policy
           </Link>
         </div>
       </CardContent>
       <CardFooter>
-        <p className="text-center text-sm text-gray-600 w-full">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 w-full">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Sign in
           </Link>

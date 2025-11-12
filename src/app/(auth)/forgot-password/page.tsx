@@ -69,17 +69,17 @@ export default function ForgotPasswordPage() {
               <Mail className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
             Forgot Password?
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
             Enter your email address and we'll send you a code to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white">
                 Email Address
               </label>
               <div className="relative">
@@ -121,9 +121,9 @@ export default function ForgotPasswordPage() {
               Back to Login
             </Button>
           </Link>
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
             Remember your password?{" "}
-            <Link href="/login" className="text-purple-600 hover:underline">
+            <Link href="/login" className="text-purple-600 hover:underline dark:text-purple-400 dark:hover:text-purple-300">
               Sign in
             </Link>
           </p>
