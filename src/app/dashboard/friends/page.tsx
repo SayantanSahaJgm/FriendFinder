@@ -80,7 +80,7 @@ export default function FriendsPage() {
   // Removed auto-refresh on mount - context already handles data loading and auto-refresh
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -84,6 +84,31 @@ export async function POST(request: Request) {
         user.settings.profileVisibility = value;
         break;
       
+      case 'gpsDiscovery':
+        user.settings.gpsDiscovery = value;
+        break;
+      
+      case 'wifiDiscovery':
+        user.settings.wifiDiscovery = value;
+        break;
+      
+      case 'bluetoothDiscovery':
+        user.settings.bluetoothDiscovery = value;
+        break;
+      
+      case 'locationSharing':
+        user.settings.locationSharing = value;
+        // Also update the user's location sharing in settings object
+        if (!user.settings.locationSharingEnabled) {
+          user.settings.locationSharingEnabled = value;
+        }
+        break;
+      
+      case 'discoveryMode':
+        user.settings.discoveryMode = value;
+        user.isDiscoveryEnabled = value;
+        break;
+      
       default:
         return NextResponse.json(
           { success: false, error: 'Invalid setting type' },
@@ -143,6 +168,11 @@ export async function GET(request: Request) {
       readReceipts: true,
       twoFactorAuth: false,
       profileVisibility: 'friends',
+      gpsDiscovery: false,
+      wifiDiscovery: false,
+      bluetoothDiscovery: false,
+      locationSharing: false,
+      discoveryMode: false,
     };
 
     return NextResponse.json({

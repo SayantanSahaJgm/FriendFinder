@@ -68,11 +68,14 @@ export async function sendOTPEmail(
     const transporter = getTransporter();
     
     if (!transporter) {
+      console.error('❌ Email transporter not configured');
       return {
         success: false,
-        error: 'Email service not configured',
+        error: 'Email service not configured. Please check EMAIL_USER and EMAIL_PASSWORD in .env',
       };
     }
+
+    console.log('📧 Attempting to send OTP email to:', email);
 
     const mailOptions = {
       from: `"FriendFinder" <${process.env.EMAIL_USER}>`,
@@ -115,14 +118,13 @@ export async function sendOTPEmail(
       text: `Welcome to FriendFinder, ${username}!\n\nYour email verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't create this account, please ignore this email.`,
     };
 
-    // Send email without waiting for full confirmation (fire and forget for speed)
-    transporter.sendMail(mailOptions).catch(err => {
-      console.error('Email send error:', err);
-    });
+    // Wait for email to send to catch errors properly
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ OTP email sent successfully:', info.messageId);
     
     return { success: true };
   } catch (error) {
-    console.error('Error sending OTP email:', error);
+    console.error('❌ Error sending OTP email:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',
@@ -139,14 +141,17 @@ export async function sendVerificationLinkEmail(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const transporter = createTransporter();
+    const transporter = getTransporter();
     
     if (!transporter) {
+      console.error('❌ Email transporter not configured');
       return {
         success: false,
-        error: 'Email service not configured',
+        error: 'Email service not configured. Please check EMAIL_USER and EMAIL_PASSWORD in .env',
       };
     }
+
+    console.log('📧 Attempting to send verification link email to:', email);
 
     const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
@@ -252,11 +257,12 @@ export async function sendVerificationLinkEmail(
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Verification link email sent successfully:', info.messageId);
     
     return { success: true };
   } catch (error) {
-    console.error('Error sending verification link email:', error);
+    console.error('❌ Error sending verification link email:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',
@@ -276,11 +282,14 @@ export async function sendPasswordResetEmail(
     const transporter = getTransporter();
     
     if (!transporter) {
+      console.error('❌ Email transporter not configured');
       return {
         success: false,
-        error: 'Email service not configured',
+        error: 'Email service not configured. Please check EMAIL_USER and EMAIL_PASSWORD in .env',
       };
     }
+
+    console.log('📧 Attempting to send password reset email to:', email);
 
     const mailOptions = {
       from: `"FriendFinder" <${process.env.EMAIL_USER}>`,
@@ -325,14 +334,13 @@ export async function sendPasswordResetEmail(
       text: `Password Reset - FriendFinder\n\nHi ${username}!\n\nYour password reset code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIf you didn't request this, please ignore this email.`,
     };
 
-    // Send email without waiting (fire and forget for speed)
-    transporter.sendMail(mailOptions).catch(err => {
-      console.error('Email send error:', err);
-    });
+    // Wait for email to send to catch errors properly
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Password reset email sent successfully:', info.messageId);
     
     return { success: true };
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    console.error('❌ Error sending password reset email:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send email',

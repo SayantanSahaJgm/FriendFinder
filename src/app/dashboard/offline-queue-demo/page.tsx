@@ -159,7 +159,7 @@ export default function OfflineMessageQueueDemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
       <OfflineIndicator queueLength={queueLength} showDetails />
 
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

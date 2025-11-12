@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 export default function StoriesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <StoriesBar />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-semibold mb-4">Stories</h1>

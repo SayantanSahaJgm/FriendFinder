@@ -8,30 +8,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import {
   User,
   Edit,
   MapPin,
   Calendar,
   Mail,
-  Shield,
   Camera,
-  Eye,
-  EyeOff,
   Save,
   X,
   RefreshCw,
+  Heart,
+  Eye,
+  Users,
+  Image as ImageIcon,
+  TrendingUp,
+  Star,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
-  const { user, refreshUser, updateUserProfile, updateDiscoverySettings } =
-    useAuth();
+  const { user, refreshUser, updateUserProfile } = useAuth();
   const { friends } = useFriends();
 
   // Editing states
@@ -43,12 +45,21 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     username: "",
     bio: "",
-    isDiscoveryEnabled: false,
-    discoveryRange: 1000,
+    interests: [] as string[],
   });
 
   // Temporary field values for inline editing
   const [tempValues, setTempValues] = useState<Record<string, any>>({});
+  const [newInterest, setNewInterest] = useState("");
+
+  // Stats data (mock for now - can be fetched from API later)
+  const [stats] = useState({
+    posts: 0,
+    stories: 0,
+    postViews: 0,
+    storyViews: 0,
+    profileViews: 0,
+  });
 
   // Update form data when user changes
   useEffect(() => {
@@ -56,8 +67,7 @@ export default function ProfilePage() {
       setFormData({
         username: user.username || "",
         bio: user.bio || "",
-        isDiscoveryEnabled: user.isDiscoveryEnabled || false,
-        discoveryRange: user.discoveryRange || 1000,
+        interests: (user as any).interests || [],
       });
     }
   }, [user]);
@@ -65,81 +75,39 @@ export default function ProfilePage() {
   const displayName = user?.username || session?.user?.name || "User";
   const userEmail = user?.email || session?.user?.email;
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      // Update profile information
-      const profileResult = await updateUserProfile({
-        username: formData.username,
-        bio: formData.bio,
-      });
-
-      if (!profileResult.success) {
-        throw new Error(profileResult.error || "Failed to update profile");
-      }
-
-      // Update discovery settings
-      const discoveryResult = await updateDiscoverySettings({
-        isDiscoveryEnabled: formData.isDiscoveryEnabled,
-        discoveryRange: formData.discoveryRange,
-      });
-
-      if (!discoveryResult.success) {
-        throw new Error(
-          discoveryResult.error || "Failed to update discovery settings"
-        );
-      }
-
-      toast.success("Profile updated successfully!");
-      setIsEditing(false);
-
-      // Refresh user data
-      await refreshUser();
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update profile"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleFieldEdit = (field: string) => {
     setEditingField(field);
-    setTempValues({
-      ...tempValues,
-      [field]:
-        (user as any)?.[field] ||
-        formData[field as keyof typeof formData] ||
-        "",
-    });
+    if (field === "interests") {
+      setTempValues({
+        ...tempValues,
+        [field]: [...((user as any)?.interests || [])],
+      });
+    } else {
+      setTempValues({
+        ...tempValues,
+        [field]:
+          (user as any)?.[field] ||
+          formData[field as keyof typeof formData] ||
+          "",
+      });
+    }
   };
 
   const handleFieldSave = async (field: string) => {
     setIsLoading(true);
     try {
       const updateData = { [field]: tempValues[field] };
-
-      if (field === "isDiscoveryEnabled" || field === "discoveryRange") {
-        const result = await updateDiscoverySettings(updateData);
-        if (!result.success) {
-          throw new Error(result.error || `Failed to update ${field}`);
-        }
-      } else {
-        const result = await updateUserProfile(updateData);
-        if (!result.success) {
-          throw new Error(result.error || `Failed to update ${field}`);
-        }
+      
+      const result = await updateUserProfile(updateData);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to update ${field}`);
       }
 
       setFormData((prev) => ({ ...prev, [field]: tempValues[field] }));
       setEditingField(null);
       setTempValues({});
       toast.success(
-        `${
-          field.charAt(0).toUpperCase() + field.slice(1)
-        } updated successfully!`
+        `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`
       );
       await refreshUser();
     } catch (error) {
@@ -161,492 +129,306 @@ export default function ProfilePage() {
     });
   };
 
-  const handleCancel = () => {
-    // Reset form data to original values
-    if (user) {
-      setFormData({
-        username: user.username || "",
-        bio: user.bio || "",
-        isDiscoveryEnabled: user.isDiscoveryEnabled || false,
-        discoveryRange: user.discoveryRange || 1000,
-      });
+  const handleAddInterest = () => {
+    if (newInterest.trim() && tempValues.interests) {
+      const interests = [...tempValues.interests, newInterest.trim()];
+      setTempValues((prev) => ({ ...prev, interests }));
+      setNewInterest("");
     }
-    setIsEditing(false);
-    setEditingField(null);
-    setTempValues({});
   };
 
-  const toggleDiscovery = async () => {
-    if (isEditing) {
-      // If editing, just update form state
-      setFormData((prev) => ({
-        ...prev,
-        isDiscoveryEnabled: !prev.isDiscoveryEnabled,
-      }));
-    } else {
-      // If not editing, update immediately
-      setIsLoading(true);
-      try {
-        const result = await updateDiscoverySettings({
-          isDiscoveryEnabled: !user?.isDiscoveryEnabled,
-        });
-
-        if (result.success) {
-          toast.success(
-            user?.isDiscoveryEnabled
-              ? "Discovery disabled"
-              : "Discovery enabled"
-          );
-          await refreshUser();
-        } else {
-          toast.error(result.error || "Failed to update discovery settings");
-        }
-      } catch (error) {
-        toast.error("Failed to update discovery settings");
-      } finally {
-        setIsLoading(false);
-      }
+  const handleRemoveInterest = (index: number) => {
+    if (tempValues.interests) {
+      const interests = tempValues.interests.filter((_: any, i: number) => i !== index);
+      setTempValues((prev) => ({ ...prev, interests }));
     }
+  };
+
+  const handlePhotoUpload = () => {
+    toast.info("Photo upload feature coming soon!");
+    // TODO: Implement photo upload
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600">
-            Manage your personal information and privacy settings
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            View and manage your personal information
           </p>
-        </div>
-        <div className="flex space-x-2">
-          {isEditing ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isLoading}>
-                {isLoading ? (
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Profile
-            </Button>
-          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Overview */}
+        {/* Main Profile Section */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-start space-x-6">
+          {/* Profile Header Card */}
+          <Card className="relative overflow-hidden">
+            {/* Cover Photo Area */}
+            <div className="h-32 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+            
+            <CardContent className="pt-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-6 -mt-16 sm:-mt-12">
+                {/* Profile Picture */}
                 <div className="relative">
-                  <Avatar className="h-24 w-24">
+                  <Avatar className="h-32 w-32 border-4 border-white dark:border-gray-800">
                     <AvatarImage
                       src={session?.user?.image || undefined}
                       alt={displayName}
                     />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white text-2xl">
+                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-4xl">
                       {displayName ? displayName.charAt(0).toUpperCase() : "U"}
                     </AvatarFallback>
                   </Avatar>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                    className="absolute bottom-0 right-0 h-10 w-10 rounded-full p-0 bg-white dark:bg-gray-800"
+                    onClick={handlePhotoUpload}
                   >
                     <Camera className="h-4 w-4" />
                   </Button>
                 </div>
 
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Display Name
-                    </label>
-                    {editingField === "username" ? (
-                      <div className="mt-1 flex items-center space-x-2">
-                        <Input
-                          value={tempValues.username || ""}
-                          onChange={(e) =>
-                            setTempValues((prev) => ({
-                              ...prev,
-                              username: e.target.value,
-                            }))
-                          }
-                          className="flex-1"
-                          placeholder="Enter display name"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => handleFieldSave("username")}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Save className="h-3 w-3" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleFieldCancel("username")}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+                {/* Name and Basic Info */}
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {displayName}
+                      </h2>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <Mail className="h-4 w-4" />
+                        <span>{userEmail}</span>
                       </div>
-                    ) : (
-                      <div className="mt-1 flex items-center justify-between">
-                        <p className="text-lg font-medium">{displayName}</p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleFieldEdit("username")}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>
+                          Joined {user?.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString()
+                            : "Today"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Bio
-                    </label>
-                    {editingField === "bio" ? (
-                      <div className="mt-1 space-y-2">
-                        <Textarea
-                          value={tempValues.bio || ""}
-                          onChange={(e) =>
-                            setTempValues((prev) => ({
-                              ...prev,
-                              bio: e.target.value,
-                            }))
-                          }
-                          placeholder="Tell others about yourself..."
-                          rows={3}
-                          maxLength={500}
-                        />
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            {(tempValues.bio || "").length}/500 characters
-                          </span>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleFieldSave("bio")}
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <RefreshCw className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Save className="h-3 w-3" />
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleFieldCancel("bio")}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mt-1 flex items-start justify-between">
-                        <p className="text-gray-600 flex-1">
-                          {user?.bio ||
-                            "Add a bio to tell others about yourself..."}
-                        </p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleFieldEdit("bio")}
-                          className="ml-2 flex-shrink-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">
-                      Email
-                    </label>
-                    <p className="mt-1 flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <span>{userEmail}</span>
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Privacy Settings */}
+          {/* Bio Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>About Me</CardTitle>
+                {editingField !== "bio" && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleFieldEdit("bio")}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {editingField === "bio" ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={tempValues.bio || ""}
+                    onChange={(e) =>
+                      setTempValues((prev) => ({
+                        ...prev,
+                        bio: e.target.value,
+                      }))
+                    }
+                    placeholder="Tell others about yourself..."
+                    rows={4}
+                    maxLength={500}
+                    className="resize-none"
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">
+                      {(tempValues.bio || "").length}/500 characters
+                    </span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleFieldSave("bio")}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <RefreshCw className="h-3 w-3 animate-spin mr-2" />
+                        ) : (
+                          <Save className="h-3 w-3 mr-2" />
+                        )}
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleFieldCancel("bio")}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-700 dark:text-gray-300">
+                  {user?.bio || "No bio added yet. Click edit to add one!"}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Interests Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Interests</CardTitle>
+                {editingField !== "interests" && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleFieldEdit("interests")}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {editingField === "interests" ? (
+                <div className="space-y-4">
+                  <div className="flex space-x-2">
+                    <Input
+                      value={newInterest}
+                      onChange={(e) => setNewInterest(e.target.value)}
+                      placeholder="Add an interest..."
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddInterest();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleAddInterest}
+                      disabled={!newInterest.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {(tempValues.interests || []).map((interest: string, index: number) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="pl-3 pr-2 py-1 flex items-center space-x-2"
+                      >
+                        <span>{interest}</span>
+                        <button
+                          onClick={() => handleRemoveInterest(index)}
+                          className="ml-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleFieldSave("interests")}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <RefreshCw className="h-3 w-3 animate-spin mr-2" />
+                      ) : (
+                        <Save className="h-3 w-3 mr-2" />
+                      )}
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleFieldCancel("interests")}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {((user as any)?.interests || []).length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {((user as any)?.interests || []).map((interest: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="px-3 py-1">
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No interests added yet. Click edit to add some!
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Content Dashboard */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Shield className="h-5 w-5" />
-                <span>Privacy & Discovery</span>
+                <TrendingUp className="h-5 w-5" />
+                <span>Content Dashboard</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Discovery Mode</h3>
-                  <p className="text-sm text-gray-600">
-                    Allow others to find you through discovery features
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {editingField === "isDiscoveryEnabled" ? (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Posts Stats */}
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={tempValues.isDiscoveryEnabled ?? false}
-                        onCheckedChange={(checked) =>
-                          setTempValues((prev) => ({
-                            ...prev,
-                            isDiscoveryEnabled: checked,
-                          }))
-                        }
-                        disabled={isLoading}
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => handleFieldSave("isDiscoveryEnabled")}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <RefreshCw className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Save className="h-3 w-3" />
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFieldCancel("isDiscoveryEnabled")}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <h3 className="font-medium text-blue-900 dark:text-blue-100">Posts</h3>
                     </div>
-                  ) : (
-                    <>
-                      <Badge
-                        variant={
-                          user?.isDiscoveryEnabled ? "default" : "secondary"
-                        }
-                        className={
-                          user?.isDiscoveryEnabled
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }
-                      >
-                        {user?.isDiscoveryEnabled ? (
-                          <>
-                            <Eye className="h-3 w-3 mr-1" />
-                            Enabled
-                          </>
-                        ) : (
-                          <>
-                            <EyeOff className="h-3 w-3 mr-1" />
-                            Disabled
-                          </>
-                        )}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFieldEdit("isDiscoveryEnabled")}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <RefreshCw className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Edit className="h-3 w-3" />
-                        )}
-                      </Button>
-                    </>
-                  )}
+                    <Badge variant="secondary">{stats.posts}</Badge>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm text-blue-700 dark:text-blue-300">
+                    <Eye className="h-4 w-4" />
+                    <span>{stats.postViews} total views</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Location Sharing</h3>
-                  <p className="text-sm text-gray-600">
-                    Share your approximate location for discovery
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge
-                    variant={user?.location ? "default" : "secondary"}
-                    className={
-                      user?.location
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }
-                  >
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {user?.location ? "Enabled" : "Disabled"}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      (window.location.href = "/dashboard/discover")
-                    }
-                  >
-                    Configure
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Discovery Range</h3>
-                  <p className="text-sm text-gray-600">
-                    How far others can discover you (in meters)
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {editingField === "discoveryRange" ? (
+                {/* Stories Stats */}
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={tempValues.discoveryRange || 1000}
-                        onChange={(e) =>
-                          setTempValues((prev) => ({
-                            ...prev,
-                            discoveryRange: parseInt(e.target.value) || 1000,
-                          }))
-                        }
-                        min={100}
-                        max={10000}
-                        step={100}
-                        className="w-20"
-                      />
-                      <span className="text-sm text-gray-600">meters</span>
-                      <Button
-                        size="sm"
-                        onClick={() => handleFieldSave("discoveryRange")}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <RefreshCw className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Save className="h-3 w-3" />
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFieldCancel("discoveryRange")}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      <Star className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <h3 className="font-medium text-purple-900 dark:text-purple-100">Stories</h3>
                     </div>
-                  ) : (
-                    <>
-                      <span className="text-sm font-medium">
-                        {user?.discoveryRange || 1000}m
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFieldEdit("discoveryRange")}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Account Type</h3>
-                  <p className="text-sm text-gray-600">
-                    Free account with basic features
-                  </p>
-                </div>
-                <Button size="sm" variant="outline">
-                  Upgrade
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Two-Factor Authentication</h3>
-                  <p className="text-sm text-gray-600">
-                    Add an extra layer of security
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-yellow-100 text-yellow-700"
-                  >
-                    Not Enabled
-                  </Badge>
-                  <Button size="sm" variant="outline">
-                    Setup
-                  </Button>
+                    <Badge variant="secondary">{stats.stories}</Badge>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm text-purple-700 dark:text-purple-300">
+                    <Eye className="h-4 w-4" />
+                    <span>{stats.storyViews} total views</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Data Export</h3>
-                  <p className="text-sm text-gray-600">
-                    Download a copy of your data
-                  </p>
-                </div>
-                <Button size="sm" variant="outline">
-                  Export
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Deactivate Account</h3>
-                  <p className="text-sm text-gray-600">
-                    Temporarily disable your account
-                  </p>
-                </div>
-                <Button size="sm" variant="destructive">
-                  Deactivate
-                </Button>
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                  📊 Start posting and sharing stories to see your stats grow!
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -660,25 +442,33 @@ export default function ProfilePage() {
               <CardTitle>Profile Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Friends</span>
-                <span className="font-medium">{friends.length}</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Friends</span>
+                </div>
+                <span className="font-semibold text-blue-600">{friends.length}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Profile Views</span>
-                <span className="font-medium">0</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-2">
+                  <Eye className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Profile Views</span>
+                </div>
+                <span className="font-semibold text-purple-600">{stats.profileViews}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Connections Made</span>
-                <span className="font-medium">{friends.length}</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Posts</span>
+                </div>
+                <span className="font-semibold text-green-600">{stats.posts}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Member Since</span>
-                <span className="font-medium text-xs">
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
-                    : "Today"}
-                </span>
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Stories</span>
+                </div>
+                <span className="font-semibold text-orange-600">{stats.stories}</span>
               </div>
             </CardContent>
           </Card>
@@ -686,16 +476,13 @@ export default function ProfilePage() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Quick Edit</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => {
-                  // TODO: Implement photo upload
-                  toast.info("Photo upload feature coming soon!");
-                }}
+                onClick={handlePhotoUpload}
               >
                 <Camera className="mr-2 h-4 w-4" />
                 Change Photo
@@ -713,30 +500,10 @@ export default function ProfilePage() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => handleFieldEdit("username")}
+                onClick={() => handleFieldEdit("interests")}
               >
-                <User className="mr-2 h-4 w-4" />
-                Edit Username
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => {
-                  window.location.href = "/dashboard/discover";
-                }}
-              >
-                <MapPin className="mr-2 h-4 w-4" />
-                Update Location
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => handleFieldEdit("discoveryRange")}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Discovery Settings
+                <Heart className="mr-2 h-4 w-4" />
+                Update Interests
               </Button>
 
               <Button
@@ -746,8 +513,8 @@ export default function ProfilePage() {
                   window.location.href = "/dashboard/settings";
                 }}
               >
-                <Shield className="mr-2 h-4 w-4" />
-                Privacy Settings
+                <User className="mr-2 h-4 w-4" />
+                Go to Settings
               </Button>
             </CardContent>
           </Card>
@@ -767,13 +534,16 @@ export default function ProfilePage() {
                       completed: !!session?.user?.image,
                     },
                     {
-                      label: "Bio written",
+                      label: "Bio added",
                       completed: !!(user?.bio && user.bio.trim()),
                     },
-                    { label: "Location enabled", completed: !!user?.location },
                     {
-                      label: "Discovery enabled",
-                      completed: !!user?.isDiscoveryEnabled,
+                      label: "Interests added",
+                      completed: !!((user as any)?.interests?.length > 0),
+                    },
+                    {
+                      label: "Has friends",
+                      completed: friends.length > 0,
                     },
                   ];
 
@@ -787,31 +557,51 @@ export default function ProfilePage() {
                   return (
                     <>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Overall Progress</span>
-                        <span className="text-sm font-medium">{progress}%</span>
+                        <span className="text-sm font-medium">Overall Progress</span>
+                        <span className="text-sm font-bold text-blue-600">{progress}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300"
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2">
                         {completionItems.map((item, index) => (
                           <div
                             key={index}
-                            className={`flex items-center ${
-                              item.completed
-                                ? "text-green-600"
-                                : "text-gray-400"
-                            }`}
+                            className="flex items-center space-x-2 text-sm"
                           >
-                            <span
-                              className={`w-2 h-2 rounded-full mr-2 ${
-                                item.completed ? "bg-green-600" : "bg-gray-400"
+                            <div
+                              className={`h-4 w-4 rounded-full flex items-center justify-center ${
+                                item.completed
+                                  ? "bg-green-500"
+                                  : "bg-gray-300 dark:bg-gray-600"
                               }`}
-                            ></span>
-                            {item.label}
+                            >
+                              {item.completed && (
+                                <svg
+                                  className="h-3 w-3 text-white"
+                                  fill="none"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              )}
+                            </div>
+                            <span
+                              className={
+                                item.completed
+                                  ? "text-gray-700 dark:text-gray-300"
+                                  : "text-gray-500 dark:text-gray-400"
+                              }
+                            >
+                              {item.label}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -826,4 +616,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

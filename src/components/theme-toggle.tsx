@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -11,23 +12,57 @@ interface ThemeToggleProps {
   className?: string;
 }
 
-// Theme toggling is intentionally disabled in this project per UX request.
-// Render a non-interactive light-mode indicator so UI placements remain stable.
 export function ThemeToggle({
   showLabel = true,
   variant = "default",
   className,
 }: ThemeToggleProps) {
+  const { theme, setTheme, systemTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // Prevent hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button
+        variant="outline"
+        size={variant === "icon" ? "icon" : "sm"}
+        className={cn("opacity-50", className)}
+        disabled
+      >
+        <Sun className="h-4 w-4" />
+        {showLabel && variant !== "icon" && <span className="ml-2">Loading...</span>}
+      </Button>
+    );
+  }
+
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const isDark = currentTheme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
+
   return (
     <Button
       variant="outline"
       size={variant === "icon" ? "icon" : "sm"}
-      className={cn("opacity-90 pointer-events-none", className)}
-      title="Light mode (fixed)"
-      aria-label="Light mode (fixed)"
+      className={className}
+      onClick={toggleTheme}
+      title={`Switch to ${isDark ? "light" : "dark"} mode`}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
-      <Sun className="h-4 w-4" />
-      {showLabel && variant !== "icon" && <span className="ml-2">Light</span>}
+      {isDark ? (
+        <Moon className="h-4 w-4" />
+      ) : (
+        <Sun className="h-4 w-4" />
+      )}
+      {showLabel && variant !== "icon" && (
+        <span className="ml-2">{isDark ? "Dark" : "Light"}</span>
+      )}
     </Button>
   );
 }

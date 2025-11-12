@@ -337,7 +337,7 @@ export default function DiscoverPage() {
   // Remove periodic search - users must click the "Scan Nearby Friends" button manually
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-6xl pb-24">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">

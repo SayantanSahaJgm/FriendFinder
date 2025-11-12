@@ -19,8 +19,6 @@ import {
   Moon,
   Sun,
   Smartphone,
-  Volume2,
-  Vibrate,
   Globe,
   Lock,
   Trash2,
@@ -46,6 +44,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValues, setTempValues] = useState<Record<string, any>>({});
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [verificationCode, setVerificationCode] = useState(""); // For dev mode display
+  const [is2FALoading, setIs2FALoading] = useState(false);
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -63,8 +65,8 @@ export default function SettingsPage() {
     gpsDiscovery: false, // Will be updated from preferences
     wifiDiscovery: false, // Will be updated from preferences
     bluetoothDiscovery: false, // Will be updated from preferences
-    soundEnabled: true,
-    vibrationEnabled: true,
+    soundEnabled: true, // Hidden from UI but available for app functionality
+    vibrationEnabled: true, // Hidden from UI but available for app functionality
     language: "English",
   });
 
@@ -203,6 +205,37 @@ export default function SettingsPage() {
           throw new Error(result.error || `Failed to update ${field}`);
         }
         await refreshUser();
+      } else if (field === "locationSharing") {
+        // Handle location sharing toggle - requires special handling
+        const response = await fetch('/api/settings/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            settingType: field,
+            value: newValue,
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || `Failed to update ${field}`);
+        }
+        
+        // Update local state
+        setSettings((prev) => ({ ...prev, [field]: newValue }));
+        
+        // If disabling, also disable discovery mode
+        if (!newValue) {
+          await updateDiscoverySettings({
+            isDiscoveryEnabled: false,
+          });
+          setSettings((prev) => ({ ...prev, discoveryMode: false }));
+        }
+        
+        await refreshUser();
       } else if (
         ["gpsDiscovery", "wifiDiscovery", "bluetoothDiscovery"].includes(field)
       ) {
@@ -261,15 +294,158 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
   };
+
+  // Two-Factor Authentication handlers
+  const handle2FASetup = async () => {
+    if (settings.twoFactorAuth) {
+      // Disable 2FA
+      setIs2FALoading(true);
+      try {
+        const response = await fetch('/api/auth/two-factor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'disable' }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          setSettings((prev) => ({ ...prev, twoFactorAuth: false }));
+          toast.success('Two-factor authentication disabled');
+        } else {
+          toast.error(result.error || 'Failed to disable 2FA');
+        }
+      } catch (error) {
+        toast.error('Failed to disable 2FA');
+      } finally {
+        setIs2FALoading(false);
+      }
+    } else {
+      // Enable 2FA - show dialog
+      setShow2FADialog(true);
+      // Request verification code
+      setIs2FALoading(true);
+      try {
+        const response = await fetch('/api/auth/two-factor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'enable' }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          toast.success(result.message);
+          // In dev mode, show the code
+          if (result.code) {
+            setVerificationCode(result.code);
+          }
+        } else {
+          toast.error(result.error || 'Failed to send verification code');
+          setShow2FADialog(false);
+        }
+      } catch (error) {
+        toast.error('Failed to send verification code');
+        setShow2FADialog(false);
+      } finally {
+        setIs2FALoading(false);
+      }
+    }
+  };
+
+  const handle2FAVerify = async () => {
+    if (!twoFactorCode || twoFactorCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setIs2FALoading(true);
+    try {
+      const response = await fetch('/api/auth/two-factor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', code: twoFactorCode }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setSettings((prev) => ({ ...prev, twoFactorAuth: true }));
+        toast.success(result.message);
+        setShow2FADialog(false);
+        setTwoFactorCode('');
+        setVerificationCode('');
+      } else {
+        toast.error(result.error || 'Invalid verification code');
+      }
+    } catch (error) {
+      toast.error('Failed to verify code');
+    } finally {
+      setIs2FALoading(false);
+    }
+  };
+
+  const handle2FACancel = () => {
+    setShow2FADialog(false);
+    setTwoFactorCode('');
+    setVerificationCode('');
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           Manage your account preferences and privacy settings
         </p>
       </div>
+
+      {/* 2FA Setup Dialog */}
+      {show2FADialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Setup Two-Factor Authentication</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                A 6-digit verification code has been sent to your email. Enter it below to enable 2FA.
+              </p>
+              {verificationCode && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Development Mode:</strong> Your code is <strong className="text-lg">{verificationCode}</strong>
+                  </p>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="2fa-code">Verification Code</Label>
+                <Input
+                  id="2fa-code"
+                  type="text"
+                  maxLength={6}
+                  placeholder="Enter 6-digit code"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                  className="text-center text-2xl tracking-wider"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handle2FACancel}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={is2FALoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handle2FAVerify}
+                  className="flex-1"
+                  disabled={is2FALoading || twoFactorCode.length !== 6}
+                >
+                  {is2FALoading ? 'Verifying...' : 'Verify & Enable'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Settings */}
@@ -570,7 +746,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">Two-Factor Authentication</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Add extra security to your account
                   </p>
                 </div>
@@ -579,8 +755,8 @@ export default function SettingsPage() {
                     variant={settings.twoFactorAuth ? "default" : "secondary"}
                     className={
                       settings.twoFactorAuth
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                     }
                   >
                     {settings.twoFactorAuth ? "Enabled" : "Not Setup"}
@@ -588,11 +764,16 @@ export default function SettingsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      toast.info("Two-factor authentication setup coming soon!")
-                    }
+                    onClick={handle2FASetup}
+                    disabled={is2FALoading}
                   >
-                    {settings.twoFactorAuth ? "Manage" : "Setup"}
+                    {is2FALoading ? (
+                      <RefreshCw className="h-3 w-3 animate-spin" />
+                    ) : settings.twoFactorAuth ? (
+                      "Disable"
+                    ) : (
+                      "Setup"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -846,56 +1027,6 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Volume2 className="h-4 w-4" />
-                  <span className="text-sm">Sound</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={settings.soundEnabled}
-                    onCheckedChange={() => handleToggle("soundEnabled")}
-                    disabled={isLoading}
-                  />
-                  <Badge
-                    variant={settings.soundEnabled ? "default" : "secondary"}
-                    className={
-                      settings.soundEnabled
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }
-                  >
-                    {settings.soundEnabled ? "On" : "Off"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Vibrate className="h-4 w-4" />
-                  <span className="text-sm">Vibration</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={settings.vibrationEnabled}
-                    onCheckedChange={() => handleToggle("vibrationEnabled")}
-                    disabled={isLoading}
-                  />
-                  <Badge
-                    variant={
-                      settings.vibrationEnabled ? "default" : "secondary"
-                    }
-                    className={
-                      settings.vibrationEnabled
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }
-                  >
-                    {settings.vibrationEnabled ? "On" : "Off"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
                   <Globe className="h-4 w-4" />
                   <span className="text-sm">Language</span>
                 </div>
@@ -909,14 +1040,26 @@ export default function SettingsPage() {
                           language: e.target.value,
                         }))
                       }
-                      className="text-sm border rounded px-2 py-1"
+                      className="text-sm border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-700"
                       aria-label="Language setting"
                     >
                       <option value="English">English</option>
-                      <option value="Spanish">Español</option>
-                      <option value="French">Français</option>
-                      <option value="German">Deutsch</option>
-                      <option value="Japanese">日本語</option>
+                      <option value="Hindi">हिंदी (Hindi)</option>
+                      <option value="Bengali">বাংলা (Bengali)</option>
+                      <option value="Telugu">తెలుగు (Telugu)</option>
+                      <option value="Tamil">தமிழ் (Tamil)</option>
+                      <option value="Marathi">मराठी (Marathi)</option>
+                      <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                      <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                      <option value="Malayalam">മലയാളം (Malayalam)</option>
+                      <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                      <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                      <option value="Assamese">অসমীয়া (Assamese)</option>
+                      <option value="Urdu">اردو (Urdu)</option>
+                      <option value="Spanish">Español (Spanish)</option>
+                      <option value="French">Français (French)</option>
+                      <option value="German">Deutsch (German)</option>
+                      <option value="Japanese">日本語 (Japanese)</option>
                     </select>
                     <Button
                       size="sm"
@@ -955,27 +1098,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* App Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>App Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Version</span>
-                <span className="text-sm font-medium">1.0.0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Build</span>
-                <span className="text-sm font-medium">2025.1.1</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Platform</span>
-                <span className="text-sm font-medium">Web</span>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Support */}
           <Card>
             <CardHeader>
@@ -987,7 +1109,6 @@ export default function SettingsPage() {
                 className="w-full justify-start"
                 onClick={() => {
                   window.open("/help", "_blank");
-                  toast.info("Opening help center...");
                 }}
               >
                 Help Center
@@ -996,9 +1117,7 @@ export default function SettingsPage() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  window.location.href =
-                    "mailto:support@friendfinder.com?subject=Support Request";
-                  toast.info("Opening email client...");
+                  window.location.href = "tel:+1-800-374-3631";
                 }}
               >
                 Contact Support
@@ -1007,9 +1126,7 @@ export default function SettingsPage() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  window.location.href =
-                    "mailto:bugs@friendfinder.com?subject=Bug Report";
-                  toast.info("Opening email client for bug report...");
+                  window.location.href = "/report";
                 }}
               >
                 Report a Bug
@@ -1019,7 +1136,6 @@ export default function SettingsPage() {
                 className="w-full justify-start"
                 onClick={() => {
                   window.open("/privacy", "_blank");
-                  toast.info("Opening privacy policy...");
                 }}
               >
                 Privacy Policy
@@ -1029,7 +1145,6 @@ export default function SettingsPage() {
                 className="w-full justify-start"
                 onClick={() => {
                   window.open("/terms", "_blank");
-                  toast.info("Opening terms of service...");
                 }}
               >
                 Terms of Service

@@ -97,7 +97,11 @@ function FormLabel({
     <Label
       data-slot="form-label"
       data-error={!!error}
-      className={cn("data-[error=true]:text-destructive", className)}
+      className={cn(
+        "text-gray-900 dark:text-white font-medium", 
+        "data-[error=true]:text-red-600 dark:data-[error=true]:text-red-400", 
+        className
+      )}
       htmlFor={formItemId}
       {...props}
     />
@@ -147,9 +151,14 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn("text-destructive text-sm", className)}
+      className={cn("text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-1", className)}
       {...props}
     >
+      {error && (
+        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+      )}
       {body}
     </p>
   )

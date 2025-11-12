@@ -95,7 +95,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground pb-24">
       <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="mb-4">
           <h2 className="text-2xl font-semibold">Search</h2>

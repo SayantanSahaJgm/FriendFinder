@@ -1,15 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function PostModal() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [text, setText] = useState("");
   const [media, setMedia] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Check if creating a story from URL params
+  const isStory = searchParams?.get('type') === 'story';
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files && e.target.files[0];
@@ -21,18 +25,18 @@ export default function PostModal() {
 
   async function submitPost() {
     if (!text && !media) {
-      alert("Please add some text or media to post.");
+      alert(isStory ? "Please add some media or text for your story." : "Please add some text or media to post.");
       return;
     }
     setLoading(true);
     try {
-  const fd = new FormData();
+      const fd = new FormData();
       fd.append("text", text);
       if (media) fd.append("media", media);
-  // include author id when available (optional)
-  const authorId = (session as any)?.user?.id || (session as any)?.user?.email || null;
-  if (authorId) fd.append("authorId", authorId);
-      fd.append("type", "post");
+      // include author id when available (optional)
+      const authorId = (session as any)?.user?.id || (session as any)?.user?.email || null;
+      if (authorId) fd.append("authorId", authorId);
+      fd.append("type", isStory ? "story" : "post");
 
       const res = await fetch("/api/posts", {
         method: "POST",
@@ -49,7 +53,7 @@ export default function PostModal() {
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Failed to create post. Check console.");
+      alert(`Failed to create ${isStory ? 'story' : 'post'}. Check console.`);
     } finally {
       setLoading(false);
     }
@@ -58,12 +62,21 @@ export default function PostModal() {
   return (
     <div className="min-h-screen flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-semibold mb-4">Create Post</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">
+            {isStory ? 'Create Story' : 'Create Post'}
+          </h2>
+          {isStory && (
+            <span className="text-xs text-gray-500 bg-yellow-100 px-2 py-1 rounded-full">
+              Expires in 24 hours
+            </span>
+          )}
+        </div>
 
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Share something with your friends..."
+          placeholder={isStory ? "Share your moment..." : "Share something with your friends..."}
           className="w-full border rounded-md p-3 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
@@ -76,9 +89,9 @@ export default function PostModal() {
           <button
             onClick={submitPost}
             disabled={loading}
-            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white ff-white px-4 py-2 rounded-md shadow hover:opacity-95 disabled:opacity-60"
+            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-md shadow hover:opacity-95 disabled:opacity-60"
           >
-            {loading ? "Posting..." : "Post"}
+            {loading ? (isStory ? "Sharing..." : "Posting...") : (isStory ? "Share Story" : "Post")}
           </button>
         </div>
 

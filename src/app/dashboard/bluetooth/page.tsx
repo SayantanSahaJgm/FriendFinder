@@ -317,7 +317,7 @@ export default function BluetoothPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 fade-in pb-24">
       {/* Modern Gradient Header */}
       <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white px-6 pt-8 pb-12 rounded-b-[28px] shadow-lg">
         <div className="max-w-4xl mx-auto">

@@ -132,13 +132,12 @@ export default function SelfieCapture({ onSelfieCaptured, onCancel }: SelfieCapt
         if (result.faceDetected && result.confidence > 0.6) {
             toast({
                 title: 'Live Face Verified!',
-                description: `Liveness: ${(livenessResult.confidence * 100).toFixed(0)}% | Face: ${(result.confidence * 100).toFixed(0)}% - Connecting to chat...`,
+                description: `Liveness: ${(livenessResult.confidence * 100).toFixed(0)}% | Face: ${(result.confidence * 100).toFixed(0)}%`,
             });
-            // Reduced delay for faster transition
             setTimeout(() => {
                 console.log('Calling onSelfieCaptured with last frame');
                 onSelfieCaptured(lastFrame);
-            }, 300); // Faster callback
+            }, 500);
         } else {
             setStatus('failed');
             toast({

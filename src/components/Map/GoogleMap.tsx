@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Wrapper, Status } from '@googlemaps/react-wrapper'
+import type { ReactElement } from 'react'
 
 interface GoogleMapProps {
   center: google.maps.LatLngLiteral
@@ -71,23 +72,23 @@ function MapComponent({ center, zoom, onMapLoad, children, mapStyle }: MapCompon
 }
 
 // Render callback for different loading states
-function MapRender(status: Status): JSX.Element {
+function MapRender(status: Status): ReactElement {
   switch (status) {
     case Status.LOADING:
       return (
-        <div className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-800">
+        <div className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-900">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
+            <p className="text-gray-900 dark:text-white font-medium">Loading map...</p>
           </div>
         </div>
       )
     case Status.FAILURE:
       return (
-        <div className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-800">
-          <div className="text-center text-red-500">
+        <div className="flex items-center justify-center w-full h-full bg-red-50 dark:bg-red-950">
+          <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 border-red-200 dark:border-red-800">
             <svg
-              className="w-12 h-12 mx-auto mb-4"
+              className="w-16 h-16 mx-auto mb-4 text-red-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -99,10 +100,20 @@ function MapRender(status: Status): JSX.Element {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            <p className="font-semibold mb-2">Failed to load map</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Please check your API key configuration
+            <p className="font-bold text-xl text-red-600 dark:text-red-400 mb-2">Failed to load Google Maps</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+              The Google Maps API key may be invalid or restricted.
             </p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                <strong className="text-red-600 dark:text-red-400">Common fixes:</strong>
+              </p>
+              <ul className="text-xs text-left text-gray-600 dark:text-gray-400 space-y-1">
+                <li>• Check if the API key is valid</li>
+                <li>• Enable Maps JavaScript API in Google Cloud Console</li>
+                <li>• Verify API restrictions and billing</li>
+              </ul>
+            </div>
           </div>
         </div>
       )
@@ -117,10 +128,10 @@ export default function GoogleMap({ center, zoom, onMapLoad, children, mapStyle 
 
   if (!apiKey) {
     return (
-      <div className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-800">
-        <div className="text-center text-yellow-600">
+      <div className="flex items-center justify-center w-full h-full bg-yellow-50 dark:bg-yellow-950">
+        <div className="text-center max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 border-yellow-200 dark:border-yellow-800">
           <svg
-            className="w-12 h-12 mx-auto mb-4"
+            className="w-16 h-16 mx-auto mb-4 text-yellow-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -132,10 +143,18 @@ export default function GoogleMap({ center, zoom, onMapLoad, children, mapStyle 
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <p className="font-semibold mb-2">Google Maps API Key Missing</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
-            Please add <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your .env.local file
+          <p className="font-bold text-xl text-yellow-600 dark:text-yellow-400 mb-2">Google Maps API Key Missing</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+            Please configure your Google Maps API key to use the map feature.
           </p>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-4">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+              <strong className="text-gray-900 dark:text-white">Add to .env.local:</strong>
+            </p>
+            <code className="block bg-gray-800 text-green-400 px-4 py-3 rounded text-xs font-mono break-all">
+              NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+            </code>
+          </div>
         </div>
       </div>
     )

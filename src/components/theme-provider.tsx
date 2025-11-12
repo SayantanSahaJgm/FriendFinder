@@ -70,8 +70,15 @@ export function ThemeProvider({
 
   return (
     <ThemeContext.Provider value={contextValue}>
-      {/* Force light theme by default and disable system switching to avoid night mode styles */}
-      <NextThemesProvider defaultTheme="light" enableSystem={false} attribute="class" {...props}>
+      {/* Enable theme switching with system detection */}
+      <NextThemesProvider 
+        defaultTheme="system" 
+        enableSystem={true} 
+        attribute="class"
+        themes={["light", "dark"]}
+        storageKey="friendfinder-theme"
+        {...props}
+      >
         {children}
       </NextThemesProvider>
     </ThemeContext.Provider>

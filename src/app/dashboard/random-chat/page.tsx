@@ -177,7 +177,7 @@ export default function RandomChatPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-24">
       {/* Show guest name prompt for unauthenticated users without a saved guest name */}
       <GuestNamePrompt />
       {/* Header */}

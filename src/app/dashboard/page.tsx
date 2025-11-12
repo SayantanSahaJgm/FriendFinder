@@ -6,60 +6,24 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Sample stories data
-const sampleStories = [
-  { name: "Your Story", image: null, isYourStory: true },
-  { name: "sarah_chen", image: "/images/sample1.jpg" },
-  { name: "alex_parker", image: "/images/sample2.jpg" },
-  { name: "maya_singh", image: "/images/sample3.jpg" },
-  { name: "john_doe", image: "/images/sample4.jpg" },
-  { name: "emma_wilson", image: "/images/sample5.jpg" },
-];
+// Helper to format timestamp
+function formatTimestamp(date: string | Date) {
+  const now = new Date();
+  const postDate = new Date(date);
+  const diffMs = now.getTime() - postDate.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
 
-// Sample posts data
-const samplePosts = [
-  {
-    id: "1",
-    author: { name: "sarah_chen", image: "/images/sample1.jpg" },
-    content: "Living my best life at the beach! 🏖️ #beachvibes #sunset",
-    image: "/images/post1.jpg",
-    likes: 1234,
-    comments: 48,
-    timestamp: "1 day ago",
-  },
-  {
-    id: "2",
-    author: { name: "alex_parker", image: "/images/sample2.jpg" },
-    content: "Amazing coffee and great vibes ☕✨",
-    image: "/images/post2.jpg",
-    likes: 892,
-    comments: 23,
-    timestamp: "1 day ago",
-  },
-  {
-    id: "3",
-    author: { name: "maya_singh", image: "/images/sample3.jpg" },
-    content: "Sunset views from the rooftop 🌆 #citylife #photography",
-    image: "/images/post3.jpg",
-    likes: 2156,
-    comments: 67,
-    timestamp: "1 day ago",
-  },
-  {
-    id: "4",
-    author: { name: "john_doe", image: "/images/sample4.jpg" },
-    content: "Adventure time! 🏔️ #hiking #nature #explore",
-    image: "/images/post4.jpg",
-    likes: 1543,
-    comments: 34,
-    timestamp: "1 day ago",
-  },
-];
+  if (diffHours < 1) return "just now";
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "1 day ago";
+  return `${diffDays} days ago`;
+}
 
 // Story Component
-function Story({ name, image, isYourStory, userImage }: any) {
+function Story({ name, image, isYourStory, userImage, onClick }: any) {
   return (
-    <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+    <div className="flex flex-col items-center space-y-1 flex-shrink-0" onClick={onClick}>
       <div
         className={`w-16 h-16 rounded-full p-[2px] ${
           isYourStory
@@ -71,7 +35,7 @@ function Story({ name, image, isYourStory, userImage }: any) {
           <Avatar className="w-full h-full">
             <AvatarImage src={isYourStory ? userImage : image} alt={name} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-              {name.charAt(0).toUpperCase()}
+              {name ? name.charAt(0).toUpperCase() : "?"}
             </AvatarFallback>
           </Avatar>
         </div>
@@ -84,10 +48,10 @@ function Story({ name, image, isYourStory, userImage }: any) {
 }
 
 // Post Component
-function Post({ author, content, image, likes, comments, timestamp }: any) {
+function Post({ author, content, image, likes: initialLikes, comments, timestamp, postId }: any) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(likes);
+  const [likeCount, setLikeCount] = useState(initialLikes || 0);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -100,13 +64,13 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
           <Avatar className="w-8 h-8">
-            <AvatarImage src={author.image} alt={author.name} />
+            <AvatarImage src={author?.profilePicture || author?.image} alt={author?.name || author?.username} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
-              {author.name.charAt(0).toUpperCase()}
+              {(author?.name || author?.username || "U").charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-sm text-gray-900">{author.name}</span>
+            <span className="font-semibold text-sm text-gray-900">{author?.username || author?.name || "Anonymous"}</span>
             <span className="text-gray-400 text-sm">•</span>
             <span className="text-gray-500 text-sm">{timestamp}</span>
           </div>
@@ -158,15 +122,19 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
         </div>
 
         {/* Likes */}
-        <div className="font-semibold text-sm text-gray-900 mb-2">
-          {likeCount.toLocaleString()} likes
-        </div>
+        {likeCount > 0 && (
+          <div className="font-semibold text-sm text-gray-900 mb-2">
+            {likeCount.toLocaleString()} likes
+          </div>
+        )}
 
         {/* Caption */}
-        <div className="text-sm text-gray-900">
-          <span className="font-semibold mr-2">{author.name}</span>
-          <span>{content}</span>
-        </div>
+        {content && (
+          <div className="text-sm text-gray-900">
+            <span className="font-semibold mr-2">{author?.username || author?.name || "Anonymous"}</span>
+            <span>{content}</span>
+          </div>
+        )}
 
         {/* Comments */}
         {comments > 0 && (
@@ -182,6 +150,42 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [stories, setStories] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch stories and posts from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch stories (only active ones from last 24 hours)
+        const storiesRes = await fetch('/api/posts?stories=true');
+        const storiesData = await storiesRes.json();
+        
+        // Fetch posts
+        const postsRes = await fetch('/api/posts');
+        const postsData = await postsRes.json();
+        
+        if (storiesData.ok) {
+          setStories(storiesData.results || []);
+        }
+        
+        if (postsData.ok) {
+          setPosts(postsData.results || []);
+        }
+      } catch (error) {
+        console.error('Error fetching feed data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (status === 'authenticated') {
+      fetchData();
+    }
+  }, [status]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -191,7 +195,7 @@ export default function DashboardPage() {
   }, [status, router]);
 
   // Show loading while checking auth
-  if (status === "loading") {
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center space-y-3">
@@ -207,6 +211,21 @@ export default function DashboardPage() {
     return null;
   }
 
+  // Prepare stories list with "Your Story" first
+  const storiesDisplay = [
+    { 
+      name: "Your Story", 
+      image: session?.user?.image, 
+      isYourStory: true 
+    },
+    ...stories.map((story: any) => ({
+      name: story.author?.username || story.author?.name || "User",
+      image: story.author?.profilePicture || story.media?.[0]?.url,
+      isYourStory: false,
+      storyId: story._id,
+    }))
+  ];
+
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Instagram-style Header */}
@@ -216,14 +235,18 @@ export default function DashboardPage() {
             FriendFinder
           </h1>
           <div className="flex items-center space-x-4">
-            <button className="hover:opacity-50 transition">
+            <button 
+              onClick={() => router.push("/dashboard/messages")}
+              className="hover:opacity-50 transition"
+            >
               <MessageCircle className="w-6 h-6 text-gray-900" />
             </button>
-            <button className="hover:opacity-50 transition relative">
+            <button 
+              onClick={() => router.push("/dashboard/notifications")}
+              className="hover:opacity-50 transition relative"
+            >
               <Heart className="w-6 h-6 text-gray-900" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                3
-              </span>
+              {/* You can add notification count here */}
             </button>
           </div>
         </div>
@@ -231,23 +254,56 @@ export default function DashboardPage() {
 
       <div className="max-w-2xl mx-auto">
         {/* Stories Section */}
-        <div className="px-4 py-4 border-b border-gray-200 bg-white">
-          <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-            {sampleStories.map((story, index) => (
-              <Story
-                key={index}
-                {...story}
-                userImage={session?.user?.image}
-              />
-            ))}
+        {storiesDisplay.length > 1 && (
+          <div className="px-4 py-4 border-b border-gray-200 bg-white">
+            <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+              {storiesDisplay.map((story: any, index: number) => (
+                <Story
+                  key={index}
+                  name={story.name}
+                  image={story.image}
+                  isYourStory={story.isYourStory}
+                  userImage={session?.user?.image}
+                  onClick={() => {
+                    if (story.isYourStory) {
+                      router.push('/dashboard/create?type=story');
+                    }
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Posts Feed */}
         <div>
-          {samplePosts.map((post) => (
-            <Post key={post.id} {...post} />
-          ))}
+          {posts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="text-center">
+                <p className="text-gray-500 text-lg mb-2">No posts yet</p>
+                <p className="text-gray-400 text-sm">Be the first to share something!</p>
+                <button
+                  onClick={() => router.push('/dashboard/create')}
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+                >
+                  Create Post
+                </button>
+              </div>
+            </div>
+          ) : (
+            posts.map((post: any) => (
+              <Post
+                key={post._id}
+                postId={post._id}
+                author={post.author}
+                content={post.text}
+                image={post.media?.[0]?.url}
+                likes={0}
+                comments={0}
+                timestamp={formatTimestamp(post.createdAt)}
+              />
+            ))
+          )}
         </div>
       </div>
 

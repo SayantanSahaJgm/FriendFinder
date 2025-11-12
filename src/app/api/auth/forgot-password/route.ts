@@ -48,10 +48,24 @@ export async function POST(request: NextRequest) {
     user.passwordResetOTPExpires = otpExpires;
     await user.save();
 
-    // Send password reset email (don't wait for it to complete)
-    sendPasswordResetEmail(user.email, user.username, otp).catch(err => {
-      console.error('Failed to send password reset email:', err);
-    });
+    console.log('🔐 Sending password reset email to:', user.email);
+
+    // Send password reset email and wait for result
+    const emailResult = await sendPasswordResetEmail(user.email, user.username, otp);
+
+    if (!emailResult.success) {
+      console.error('❌ Failed to send password reset email:', emailResult.error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to send password reset email',
+          details: emailResult.error,
+        },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ Password reset email sent successfully');
 
     return NextResponse.json(
       {

@@ -162,6 +162,36 @@ export function useUserPreferences() {
         }
       }
 
+      // Update discovery methods in settings if methods changed
+      if (discovery.methods) {
+        // Save each method to settings API
+        const methodsToUpdate = [
+          { key: 'gpsDiscovery', value: discovery.methods.gps },
+          { key: 'wifiDiscovery', value: discovery.methods.wifi },
+          { key: 'bluetoothDiscovery', value: discovery.methods.bluetooth },
+        ];
+
+        for (const method of methodsToUpdate) {
+          if (method.value !== undefined) {
+            const response = await fetch('/api/settings/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                settingType: method.key,
+                value: method.value,
+              }),
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+              throw new Error(result.error || `Failed to update ${method.key}`);
+            }
+          }
+        }
+      }
+
       setPreferences(newPreferences);
       saveToLocalStorage(newPreferences);
       
