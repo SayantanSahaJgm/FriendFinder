@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Find current user
-    const currentUser = await User.findOne({ email: session.user.email })
+    const currentUser = await User.findById(session.user.id)
     if (!currentUser) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -171,13 +171,13 @@ export async function POST(request: NextRequest) {
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
-    const currentUser = await User.findOne({ email: session.user.email });
+    const currentUser = await User.findById(session.user.id);
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -199,13 +199,13 @@ export async function GET(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
-    const currentUser = await User.findOne({ email: session.user.email });
+    const currentUser = await User.findById(session.user.id);
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

@@ -8,13 +8,13 @@ import mongoose from "mongoose";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
-    const currentUser = await User.findOne({ email: session.user.email });
+    const currentUser = await User.findById(session.user.id);
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

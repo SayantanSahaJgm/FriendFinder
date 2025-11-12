@@ -41,7 +41,7 @@ function Story({ name, image, isYourStory, userImage, onClick }: any) {
           </Avatar>
         </div>
       </div>
-      <span className="text-xs text-gray-900 max-w-[64px] truncate">
+      <span className="text-xs text-gray-900 dark:text-gray-200 max-w-[64px] truncate">
         {isYourStory ? "Your Story" : name}
       </span>
     </div>
@@ -62,7 +62,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
   };
 
   return (
-    <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 mb-4">
+    <div className="bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 mb-4 shadow-sm">
       {/* Report Modal */}
       <ReportModal
         isOpen={showReportModal}
@@ -73,9 +73,9 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
       />
 
       {/* Post Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center space-x-3">
-          <Avatar className="w-8 h-8">
+          <Avatar className="w-10 h-10">
             <AvatarImage src={author?.profilePicture || author?.image} alt={author?.name || author?.username} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
               {(author?.name || author?.username || "U").charAt(0).toUpperCase()}
@@ -83,7 +83,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
           </Avatar>
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-sm text-gray-900 dark:text-white">{author?.username || author?.name || "Anonymous"}</span>
-            <span className="text-gray-400 text-sm">•</span>
+            <span className="text-gray-400 dark:text-gray-500 text-sm">•</span>
             <span className="text-gray-500 dark:text-gray-400 text-sm">{timestamp}</span>
           </div>
         </div>
@@ -101,7 +101,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
                   setShowReportModal(true);
                   setShowPostMenu(false);
                 }}
-                className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 rounded-lg"
+                className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 rounded-lg"
               >
                 <Flag className="w-4 h-4" />
                 <span>Report Post</span>
@@ -113,40 +113,40 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
 
       {/* Post Image */}
       {image && (
-        <div className="w-full aspect-square bg-gray-100">
+        <div className="w-full aspect-square bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="post" className="w-full h-full object-cover" />
         </div>
       )}
 
       {/* Post Actions */}
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-5">
             <button
               onClick={handleLike}
-              className="hover:opacity-50 transition"
+              className="hover:opacity-70 transition"
             >
               <Heart
                 className={`w-7 h-7 ${
-                  liked ? "fill-red-500 text-red-500" : "text-gray-900"
+                  liked ? "fill-red-500 text-red-500" : "text-gray-900 dark:text-white"
                 }`}
               />
             </button>
-            <button className="hover:opacity-50 transition">
-              <MessageCircle className="w-7 h-7 text-gray-900" />
+            <button className="hover:opacity-70 transition">
+              <MessageCircle className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
-            <button className="hover:opacity-50 transition">
-              <Send className="w-7 h-7 text-gray-900" />
+            <button className="hover:opacity-70 transition">
+              <Send className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
           </div>
           <button
             onClick={() => setSaved(!saved)}
-            className="hover:opacity-50 transition"
+            className="hover:opacity-70 transition"
           >
             <Bookmark
               className={`w-7 h-7 ${
-                saved ? "fill-gray-900 text-gray-900" : "text-gray-900"
+                saved ? "fill-gray-900 text-gray-900 dark:fill-white dark:text-white" : "text-gray-900 dark:text-white"
               }`}
             />
           </button>
@@ -228,10 +228,10 @@ export default function DashboardPage() {
   // Show loading while checking auth
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
         <div className="flex flex-col items-center space-y-3">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          <p className="text-gray-600 font-medium">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
+          <p className="text-gray-600 dark:text-gray-300 font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -258,10 +258,10 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-950 min-h-screen pb-20">
+    <div className="bg-white dark:bg-gray-900 min-h-screen pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Stories Section */}
-        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-16 z-10">
+        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 sticky top-16 z-10 shadow-sm">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {storiesDisplay.map((story: any, index: number) => (
               <Story
@@ -281,12 +281,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Posts Feed */}
-        <div>
+        <div className="bg-gray-50 dark:bg-gray-900">
           {posts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="text-center">
-                <p className="text-gray-500 text-lg mb-2">No posts yet</p>
-                <p className="text-gray-400 text-sm">Be the first to share something!</p>
+                <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">No posts yet</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">Be the first to share something!</p>
                 <button
                   onClick={() => router.push('/dashboard/create')}
                   className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"

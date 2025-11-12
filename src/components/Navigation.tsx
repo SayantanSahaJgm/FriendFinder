@@ -120,7 +120,7 @@ export default function Navigation() {
                 className="relative hover:scale-110 transition-transform"
                 title="Messages"
               >
-                <Mail className="h-6 w-6 text-foreground" />
+                <Mail className="h-6 w-6 text-gray-900 dark:text-white" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center text-[10px]">
                   5
                 </span>
@@ -132,7 +132,7 @@ export default function Navigation() {
                 className="relative hover:scale-110 transition-transform"
                 title="Notifications"
               >
-                <Bell className="h-6 w-6 text-foreground" />
+                <Bell className="h-6 w-6 text-gray-900 dark:text-white" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center text-[10px]">
                   3
                 </span>
@@ -217,15 +217,15 @@ export default function Navigation() {
                   className={cn(
                     "relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
                     active
-                      ? "text-brand-primary bg-brand-accent/20 shadow-enhanced-sm border-l-4 border-brand-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary hover:shadow-enhanced-xs"
+                      ? "text-brand-primary dark:text-blue-400 bg-brand-accent/20 dark:bg-blue-500/20 shadow-enhanced-sm border-l-4 border-brand-primary dark:border-blue-400"
+                      : "text-gray-700 dark:text-gray-200 hover:text-foreground dark:hover:text-white hover:bg-surface-secondary dark:hover:bg-gray-700 hover:shadow-enhanced-xs"
                   )}
                 >
                   <Icon className={cn(
                     "h-5 w-5 transition-all duration-200",
-                    active ? "text-brand-primary" : "group-hover:scale-110"
+                    active ? "text-brand-primary dark:text-blue-400" : "group-hover:scale-110"
                   )} />
-                  <span>{item.label}</span>
+                  <span className="dark:text-gray-100">{item.label}</span>
                   {item.badge && (
                       <span className="ml-auto h-6 w-6 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
                       {item.badge}
@@ -237,21 +237,21 @@ export default function Navigation() {
           </nav>
 
           {/* Theme Toggle in Sidebar */}
-          <div className="border-t border-white/10 pt-4 mb-4">
+          <div className="border-t border-white/10 dark:border-gray-700 pt-4 mb-4">
             <div className="flex items-center justify-between px-4">
-              <span className="text-sm font-medium text-muted-foreground">Theme</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Theme</span>
               <ThemeToggleSwitch />
             </div>
           </div>
 
           {/* Sidebar User Menu */}
-          <div className="border-t border-white/10 pt-4">
+          <div className="border-t border-white/10 dark:border-gray-700 pt-4">
             <div className="flex items-center gap-3 mb-3 px-4">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground truncate">
+                <div className="font-semibold text-sm truncate text-gray-900 dark:text-white">
                   {session.user?.name || "User"}
                 </div>
-                <div className="text-xs text-muted-foreground truncate">
+                <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                   {session.user?.email}
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function Navigation() {
             <Button
               variant="outline"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full gap-2 hover:bg-toast-error hover:text-white hover:border-toast-error transition-all duration-200 mx-4"
+              className="w-full gap-2 hover:bg-toast-error hover:text-white hover:border-toast-error transition-all duration-200 mx-4 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600"
               style={{ width: 'calc(100% - 2rem)' }}
             >
               <LogOut className="h-4 w-4" />

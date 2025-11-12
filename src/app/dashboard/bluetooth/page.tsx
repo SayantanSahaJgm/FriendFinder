@@ -317,9 +317,9 @@ export default function BluetoothPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 fade-in pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 fade-in pb-24">
       {/* Modern Gradient Header */}
-      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 rounded-b-[28px] shadow-lg">
+      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 dark:from-indigo-600 dark:via-purple-700 dark:to-indigo-800 text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 rounded-b-[28px] shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
@@ -327,7 +327,7 @@ export default function BluetoothPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">Bluetooth Discovery</h1>
-              <p className="text-indigo-100 text-xs sm:text-sm mt-1">
+              <p className="text-indigo-100 dark:text-indigo-200 text-xs sm:text-sm mt-1">
                 Connect with people nearby
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function BluetoothPage() {
   <div className="max-w-4xl mx-auto px-3 sm:px-4 -mt-8 pb-16 space-y-4 sm:space-y-6">
 
       {/* Bluetooth Status Card */}
-      <Card className="glass border-0 shadow-soft">
+      <Card className="glass border-0 shadow-soft dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6">
           {/* Status Header */}
           <div className="flex items-center justify-between">
@@ -348,15 +348,15 @@ export default function BluetoothPage() {
                   <Bluetooth className="h-5 w-5 sm:h-6 sm:w-6 text-white animate-pulse-slow" />
                 </div>
               ) : (
-                <div className="p-2 sm:p-3 bg-gray-100 rounded-2xl">
-                  <BluetoothOff className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                <div className="p-2 sm:p-3 bg-gray-100 dark:bg-gray-700 rounded-2xl">
+                  <BluetoothOff className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 dark:text-gray-300" />
                 </div>
               )}
               <div>
-                <h3 className="font-semibold text-base sm:text-lg">
+                <h3 className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
                   {bluetoothEnabled ? "Discovery Active" : "Discovery Inactive"}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400">
                   {bluetoothEnabled 
                     ? "You're visible to nearby users" 
                     : "Enable to discover nearby users"}
