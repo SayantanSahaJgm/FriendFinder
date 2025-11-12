@@ -22,7 +22,7 @@ import {
   Bluetooth,
   MapPin
 } from "lucide-react";
-import { ThemeToggleCompact } from "@/components/theme-toggle";
+import { ThemeToggleCompact, ThemeToggleSwitch } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -255,10 +255,15 @@ export default function Navigation() {
 
           {/* Theme Toggle in Sidebar */}
           <div className="border-t border-white/10 pt-4 mb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-4">
               <span className="text-sm font-medium text-muted-foreground">Theme</span>
-              <ThemeToggleCompact />
+              <ThemeToggleSwitch />
+            </div>
+          </div>
+
           {/* Sidebar User Menu */}
+          <div className="border-t border-white/10 pt-4">
+            <div className="flex items-center gap-3 mb-3 px-4">
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-foreground truncate">
                   {session.user?.name || "User"}
@@ -271,7 +276,8 @@ export default function Navigation() {
             <Button
               variant="outline"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full gap-2 hover:bg-toast-error hover:text-white ff-white hover:border-toast-error transition-all duration-200"
+              className="w-full gap-2 hover:bg-toast-error hover:text-white hover:border-toast-error transition-all duration-200 mx-4"
+              style={{ width: 'calc(100% - 2rem)' }}
             >
               <LogOut className="h-4 w-4" />
               Sign Out

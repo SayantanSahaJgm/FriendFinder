@@ -38,6 +38,12 @@ const getTransporter = () => {
     return null;
   }
 
+  // Verify EMAIL_FROM is configured for SendGrid
+  if (!process.env.EMAIL_FROM) {
+    console.warn('⚠️ EMAIL_FROM not configured. This is required for SendGrid sender verification.');
+    console.warn('💡 Add EMAIL_FROM=your-verified-email@gmail.com to .env.local');
+  }
+
   transporter = nodemailer.createTransport(emailConfig);
   return transporter;
 };
@@ -77,8 +83,11 @@ export async function sendOTPEmail(
 
     console.log('📧 Attempting to send OTP email to:', email);
 
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    const fromName = process.env.EMAIL_FROM_NAME || 'FriendFinder';
+
     const mailOptions = {
-      from: `"FriendFinder" <${process.env.EMAIL_USER}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to: email,
       subject: 'Verify Your Email - FriendFinder',
       // Simplified HTML for faster sending
@@ -155,8 +164,11 @@ export async function sendVerificationLinkEmail(
 
     const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    const fromName = process.env.EMAIL_FROM_NAME || 'FriendFinder';
+
     const mailOptions = {
-      from: `"FriendFinder" <${process.env.EMAIL_USER}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to: email,
       subject: 'Verify Your Email - FriendFinder',
       html: `
@@ -291,8 +303,11 @@ export async function sendPasswordResetEmail(
 
     console.log('📧 Attempting to send password reset email to:', email);
 
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    const fromName = process.env.EMAIL_FROM_NAME || 'FriendFinder';
+
     const mailOptions = {
-      from: `"FriendFinder" <${process.env.EMAIL_USER}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to: email,
       subject: 'Reset Your Password - FriendFinder',
       html: `

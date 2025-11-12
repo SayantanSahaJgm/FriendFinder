@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { settingType, value } = body;
 
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findById(session.user.id);
     
     if (!user) {
       return NextResponse.json(
@@ -136,7 +136,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -145,7 +145,7 @@ export async function GET(request: Request) {
 
     await dbConnect();
     
-    const user = await User.findOne({ email: session.user.email }).select('settings');
+    const user = await User.findById(session.user.id).select('settings');
     
     if (!user) {
       return NextResponse.json(

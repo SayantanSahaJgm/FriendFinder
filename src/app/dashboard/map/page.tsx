@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/context/ToastContext'
 import { io, Socket } from 'socket.io-client'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import GoogleMap from '@/components/Map/GoogleMap'
 import { UserMarker } from '@/components/Map/MapMarker'
 import MapControls from '@/components/Map/MapControls'
@@ -47,6 +48,8 @@ export default function MapPage() {
   const [isLoadingFriends, setIsLoadingFriends] = useState(true)
   const [isLoadingNearby, setIsLoadingNearby] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showLocationPanel, setShowLocationPanel] = useState(true)
+  const [showNearbyPanel, setShowNearbyPanel] = useState(true)
   const lastUpdateRef = useRef<number>(0)
   const [selectedFriend, setSelectedFriend] = useState<FriendLocation | null>(null)
   const [showInfoWindow, setShowInfoWindow] = useState(false)
@@ -507,16 +510,27 @@ export default function MapPage() {
           {nearbyUsers.length > 0 && (
             <>
               <div className="my-4 border-t border-gray-200 dark:border-gray-700"></div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+              <div 
+                className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 p-2 rounded-lg transition-colors"
+                onClick={() => setShowNearbyPanel(!showNearbyPanel)}
+              >
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
                   Discoverable Nearby
                 </span>
-                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
-                  {nearbyUsers.length}
-                </span>
-              </h3>
-              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    {nearbyUsers.length}
+                  </span>
+                  {showNearbyPanel ? (
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  ) : (
+                    <ChevronUp className="w-4 h-4 text-gray-500" />
+                  )}
+                </div>
+              </div>
+              {showNearbyPanel && (
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
                 {nearbyUsers.map((user) => {
                   const distance = latitude && longitude
                     ? calculateDistance(latitude, longitude, user.location.lat, user.location.lng)
@@ -549,50 +563,65 @@ export default function MapPage() {
                     </div>
                   )
                 })}
-              </div>
+                </div>
+              )}
             </>
           )}
         </div>
 
     {/* Info Panel - Improved visibility */}
-    <div className="absolute bottom-6 right-6 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Your Location
-            </h3>
+    <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 max-w-sm">
+          <div 
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            onClick={() => setShowLocationPanel(!showLocationPanel)}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                Your Location
+              </h3>
+            </div>
+            {showLocationPanel ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            )}
           </div>
-          {latitude && longitude ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                <span className="text-gray-600 dark:text-gray-400">Latitude:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                <span className="text-gray-600 dark:text-gray-400">Longitude:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
-              </div>
-              {accuracy && (
-                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
-                  <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>
-                  <span className="font-medium text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
+          {showLocationPanel && (
+            <div className="px-4 pb-4">
+              {latitude && longitude ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                    <span className="text-gray-700 dark:text-gray-300">Latitude:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{latitude.toFixed(6)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                    <span className="text-gray-700 dark:text-gray-300">Longitude:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{longitude.toFixed(6)}</span>
+                  </div>
+                  {accuracy && (
+                    <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded">
+                      <span className="text-gray-700 dark:text-gray-300">Accuracy:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">±{Math.round(accuracy)}m</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800 mt-3">
+                    <span className="text-gray-900 dark:text-white font-medium">Friends visible:</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{friends.length}</span>
+                  </div>
+                  {nearbyUsers.length > 0 && (
+                    <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-800">
+                      <span className="text-gray-900 dark:text-white font-medium">Discoverable:</span>
+                      <span className="font-bold text-orange-600 dark:text-orange-400">{nearbyUsers.length}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-800 mt-3">
-                <span className="text-gray-900 dark:text-white font-medium">Friends visible:</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">{friends.length}</span>
-              </div>
-              {nearbyUsers.length > 0 && (
-                <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-900/30 rounded border border-orange-200 dark:border-orange-800">
-                  <span className="text-gray-900 dark:text-white font-medium">Discoverable:</span>
-                  <span className="font-bold text-orange-600 dark:text-orange-400">{nearbyUsers.length}</span>
-                </div>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {loading ? 'Detecting your location...' : 'Location not available'}
+                </p>
               )}
             </div>
-          ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {loading ? 'Detecting your location...' : 'Location not available'}
-            </p>
           )}
         </div>
         {showSettings && (

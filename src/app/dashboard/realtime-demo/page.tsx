@@ -194,7 +194,7 @@ export default function RealtimeDemoPage() {
                         onChange={handleTyping}
                         onBlur={() => stopTyping(recipientId, 'current-user-123')}
                         placeholder="Type a message..."
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
+                        className="flex-1 px-4 py-2 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground dark:bg-input/30"
                       />
                       <button
                         onClick={handleSendMessage}

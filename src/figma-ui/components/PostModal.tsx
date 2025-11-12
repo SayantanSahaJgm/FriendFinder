@@ -60,14 +60,14 @@ export default function PostModal() {
   }
 
   return (
-    <div className="min-h-screen flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-md p-6">
+    <div className="min-h-screen flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="w-full max-w-2xl bg-card text-card-foreground rounded-lg shadow-md p-6 border border-border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
             {isStory ? 'Create Story' : 'Create Post'}
           </h2>
           {isStory && (
-            <span className="text-xs text-gray-500 bg-yellow-100 px-2 py-1 rounded-full">
+            <span className="text-xs text-muted-foreground bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-full">
               Expires in 24 hours
             </span>
           )}
@@ -77,11 +77,11 @@ export default function PostModal() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={isStory ? "Share your moment..." : "Share something with your friends..."}
-          className="w-full border rounded-md p-3 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-input rounded-md p-3 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-background text-foreground placeholder:text-muted-foreground dark:bg-input/30"
         />
 
         <div className="mt-3 flex items-center space-x-4">
-          <label className="cursor-pointer inline-flex items-center px-3 py-2 bg-slate-100 rounded-md text-sm">
+          <label className="cursor-pointer inline-flex items-center px-3 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm transition-colors">
             <input type="file" accept="image/*,video/*" onChange={onFileChange} className="hidden" />
             <span>Add Photo/Video</span>
           </label>
@@ -89,7 +89,7 @@ export default function PostModal() {
           <button
             onClick={submitPost}
             disabled={loading}
-            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-md shadow hover:opacity-95 disabled:opacity-60"
+            className="ml-auto bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 rounded-md shadow transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (isStory ? "Sharing..." : "Posting...") : (isStory ? "Share Story" : "Post")}
           </button>
@@ -97,7 +97,7 @@ export default function PostModal() {
 
         {preview && (
           <div className="mt-4">
-            <div className="border rounded-md overflow-hidden">
+            <div className="border border-border rounded-md overflow-hidden bg-muted/30">
               {/* basic preview handling: image or video by file type */}
               {media?.type.startsWith("image/") ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -112,7 +112,7 @@ export default function PostModal() {
                 setPreview(null);
                 setMedia(null);
               }}
-              className="mt-2 text-sm text-red-600"
+              className="mt-2 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
             >
               Remove
             </button>
