@@ -261,11 +261,21 @@ export default function HelpCenter() {
                   variant="outline"
                   className="w-full justify-start text-sm"
                   onClick={() =>
-                    (window.location.href = "tel:+1-800-FRIEND-1")
+                    (window.location.href = "tel:+919474652645")
                   }
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Call Support
+                  Call Support: +91 9474652645
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-sm"
+                  onClick={() =>
+                    (window.location.href = "mailto:sayantan@starnexx.in")
+                  }
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Email: sayantan@starnexx.in
                 </Button>
               </CardContent>
             </Card>

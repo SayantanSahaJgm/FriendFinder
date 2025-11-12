@@ -1,10 +1,11 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Home, Search, PlusSquare, Video, User } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Home, Search, PlusSquare, Video, User, Flag } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ReportModal from "@/components/ReportModal";
 
 // Helper to format timestamp
 function formatTimestamp(date: string | Date) {
@@ -52,6 +53,8 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikes || 0);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showPostMenu, setShowPostMenu] = useState(false);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -59,7 +62,16 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 mb-4">
+    <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 mb-4">
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportType="post"
+        itemId={postId}
+        itemName={`Post by ${author?.username || author?.name || "Anonymous"}`}
+      />
+
       {/* Post Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
@@ -70,14 +82,33 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
             </AvatarFallback>
           </Avatar>
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-sm text-gray-900">{author?.username || author?.name || "Anonymous"}</span>
+            <span className="font-semibold text-sm text-gray-900 dark:text-white">{author?.username || author?.name || "Anonymous"}</span>
             <span className="text-gray-400 text-sm">•</span>
-            <span className="text-gray-500 text-sm">{timestamp}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-sm">{timestamp}</span>
           </div>
         </div>
-        <button className="hover:bg-gray-100 p-2 rounded-full transition">
-          <MoreHorizontal className="w-5 h-5 text-gray-900" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowPostMenu(!showPostMenu)}
+            className="hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-full transition"
+          >
+            <MoreHorizontal className="w-5 h-5 text-gray-900 dark:text-white" />
+          </button>
+          {showPostMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+              <button
+                onClick={() => {
+                  setShowReportModal(true);
+                  setShowPostMenu(false);
+                }}
+                className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2 rounded-lg"
+              >
+                <Flag className="w-4 h-4" />
+                <span>Report Post</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Post Image */}
@@ -227,53 +258,27 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="bg-white min-h-screen pb-20">
-      {/* Instagram-style Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "serif" }}>
-            FriendFinder
-          </h1>
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => router.push("/dashboard/messages")}
-              className="hover:opacity-50 transition"
-            >
-              <MessageCircle className="w-6 h-6 text-gray-900" />
-            </button>
-            <button 
-              onClick={() => router.push("/dashboard/notifications")}
-              className="hover:opacity-50 transition relative"
-            >
-              <Heart className="w-6 h-6 text-gray-900" />
-              {/* You can add notification count here */}
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="bg-white dark:bg-gray-950 min-h-screen pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Stories Section */}
-        {storiesDisplay.length > 1 && (
-          <div className="px-4 py-4 border-b border-gray-200 bg-white">
-            <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-              {storiesDisplay.map((story: any, index: number) => (
-                <Story
-                  key={index}
-                  name={story.name}
-                  image={story.image}
-                  isYourStory={story.isYourStory}
-                  userImage={session?.user?.image}
-                  onClick={() => {
-                    if (story.isYourStory) {
-                      router.push('/dashboard/create?type=story');
-                    }
-                  }}
-                />
-              ))}
-            </div>
+        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-16 z-10">
+          <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+            {storiesDisplay.map((story: any, index: number) => (
+              <Story
+                key={index}
+                name={story.name}
+                image={story.image}
+                isYourStory={story.isYourStory}
+                userImage={session?.user?.image}
+                onClick={() => {
+                  if (story.isYourStory) {
+                    router.push('/dashboard/create?type=story');
+                  }
+                }}
+              />
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Posts Feed */}
         <div>

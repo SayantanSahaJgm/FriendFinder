@@ -988,16 +988,38 @@ export default function SettingsPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete your account? This action cannot be undone."
-                      )
-                    ) {
-                      toast.error(
-                        "Account deletion functionality is temporarily disabled for safety."
-                      );
-                      // TODO: Implement account deletion with proper safeguards
+                  onClick={async () => {
+                    const confirmation = window.prompt(
+                      'This will permanently delete your account and all associated data. This action CANNOT be undone.\n\nType "DELETE" to confirm:'
+                    );
+                    
+                    if (confirmation === 'DELETE') {
+                      try {
+                        const response = await fetch('/api/account/delete', {
+                          method: 'DELETE',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ confirmation: 'DELETE' }),
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                          toast.success('Account deleted successfully. Redirecting...');
+                          // Sign out and redirect to home
+                          setTimeout(() => {
+                            window.location.href = '/auth/signin';
+                          }, 2000);
+                        } else {
+                          toast.error(result.error || 'Failed to delete account');
+                        }
+                      } catch (error) {
+                        console.error('Error deleting account:', error);
+                        toast.error('Failed to delete account. Please try again.');
+                      }
+                    } else if (confirmation !== null) {
+                      toast.error('Confirmation text did not match. Account deletion cancelled.');
                     }
                   }}
                 >
@@ -1117,10 +1139,19 @@ export default function SettingsPage() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() => {
-                  window.location.href = "tel:+1-800-374-3631";
+                  window.location.href = "tel:+919474652645";
                 }}
               >
-                Contact Support
+                Call Support: +91 9474652645
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => {
+                  window.location.href = "mailto:sayantan@starnexx.in";
+                }}
+              >
+                Email: sayantan@starnexx.in
               </Button>
               <Button
                 variant="outline"

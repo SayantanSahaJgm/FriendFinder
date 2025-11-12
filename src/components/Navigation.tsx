@@ -20,7 +20,9 @@ import {
   Moon,
   Monitor,
   Bluetooth,
-  MapPin
+  MapPin,
+  Bell,
+  Mail
 } from "lucide-react";
 import { ThemeToggleCompact, ThemeToggleSwitch } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -100,51 +102,53 @@ export default function Navigation() {
       )}>
         <div className="max-w-6xl mx-auto mobile-padding">
           <div className="flex justify-between items-center h-16">
-            {/* Enhanced Logo */}
+            {/* Circular Logo Only */}
             <Link
               href="/dashboard"
-              className="flex items-center text-responsive-lg font-bold text-brand-primary hover:text-brand-secondary transition-all duration-200 hover:scale-105 group"
+              className="flex items-center hover:scale-105 transition-all duration-200"
             >
-              <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-white ff-white text-sm font-bold mr-3 shadow-enhanced-sm group-hover:shadow-enhanced-md transition-all duration-200">
+              <div className="w-10 h-10 gradient-primary rounded-full flex items-center justify-center text-white ff-white text-base font-bold shadow-enhanced-sm hover:shadow-enhanced-md transition-all duration-200">
                 FF
               </div>
-              <span className="hidden sm:block">FriendFinder</span>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {navigationItems.slice(0, 5).map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
-                
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105",
-                      active
-                        ? "text-brand-primary bg-brand-accent/10 shadow-enhanced-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary"
-                    )}
-                  >
-                    <Icon className={cn(
-                      "h-4 w-4 transition-colors",
-                      active && "text-brand-primary"
-                    )} />
-                    <span className="hidden xl:block">{item.label}</span>
-                    {item.badge && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+            {/* Right Side Icons */}
+            <div className="flex items-center space-x-4">
+              {/* Messages Icon */}
+              <Link
+                href="/dashboard/messages"
+                className="relative hover:scale-110 transition-transform"
+                title="Messages"
+              >
+                <Mail className="h-6 w-6 text-foreground" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center text-[10px]">
+                  5
+                </span>
+              </Link>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center space-x-2">
+              {/* Notifications Icon */}
+              <Link
+                href="/dashboard/notifications"
+                className="relative hover:scale-110 transition-transform"
+                title="Notifications"
+              >
+                <Bell className="h-6 w-6 text-foreground" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-toast-error text-white ff-white text-xs rounded-full flex items-center justify-center text-[10px]">
+                  3
+                </span>
+              </Link>
+
+              {/* Profile Avatar */}
+              <Link
+                href="/dashboard/profile"
+                className="hover:scale-110 transition-transform"
+                title="Profile"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white ff-white font-semibold shadow-sm">
+                  {session.user?.name?.charAt(0).toUpperCase() || session.user?.email?.charAt(0).toUpperCase() || "U"}
+                </div>
+              </Link>
+
               {/* Mobile Menu Button */}
               <Button
                 variant="ghost"
@@ -155,27 +159,6 @@ export default function Navigation() {
               >
                 {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
-
-              {/* Desktop User Menu */}
-              <div className="hidden lg:flex items-center space-x-3">
-                <div className="text-right">
-                  <div className="text-sm font-medium text-foreground">
-                    {session.user?.name || "User"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {session.user?.email}
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden xl:block">Sign Out</span>
-                </Button>
-              </div>
             </div>
           </div>
         </div>
