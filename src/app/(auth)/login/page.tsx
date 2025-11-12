@@ -50,6 +50,9 @@ export default function LoginPage() {
     if (searchParams.get("verified") === "true") {
       toast.success("Email verified! You can now sign in.");
     }
+    if (searchParams.get("reset") === "success") {
+      toast.success("Password reset successfully! You can now sign in with your new password.");
+    }
   }, [searchParams]);
 
   const form = useForm<LoginFormData>({
@@ -186,6 +189,15 @@ export default function LoginPage() {
                 </FormItem>
               )}
             />
+
+            <div className="flex items-center justify-end">
+              <Link 
+                href="/forgot-password" 
+                className="text-sm text-purple-600 hover:text-purple-700 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
             <Button
               type="submit"

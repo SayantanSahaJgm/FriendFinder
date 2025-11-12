@@ -44,6 +44,12 @@ export interface IUser extends Document {
   verificationOTP?: string;
   verificationOTPExpires?: Date;
 
+  // Password reset
+  passwordResetOTP?: string;
+  passwordResetOTPExpires?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
+
   // Social connections
   friends: mongoose.Types.ObjectId[];
   friendRequests: IFriendRequest[];
@@ -226,6 +232,25 @@ const UserSchema = new Schema<IUser>({
     index: true,
   },
   verificationOTPExpires: {
+    type: Date,
+    select: false,
+  },
+  // Password reset fields
+  passwordResetOTP: {
+    type: String,
+    select: false,
+    index: true,
+  },
+  passwordResetOTPExpires: {
+    type: Date,
+    select: false,
+  },
+  passwordResetToken: {
+    type: String,
+    select: false,
+    index: true,
+  },
+  passwordResetExpires: {
     type: Date,
     select: false,
   },
