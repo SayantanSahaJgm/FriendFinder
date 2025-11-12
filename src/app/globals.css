@@ -250,6 +250,29 @@
   animation: slide-in 0.3s ease-out;
 }
 
+/*
+  Force Tailwind's `bg-gray-50` (and variants like `bg-gray-50/80` or
+  `hover:bg-gray-50`) to render as the light-mode page background in
+  non-dark (light) mode. This lets the codebase keep subtle gray-50
+  utilities for spacing/highlights while guaranteeing the app's overall
+  light background is pure white as requested.
+*/
+:not(.dark) [class*="bg-gray-50"] {
+  background-color: var(--background) !important;
+}
+
+/* Also ensure hover utilities that include the substring are respected */
+:not(.dark) [class*="hover:bg-gray-50"]:hover {
+  background-color: var(--background) !important;
+}
+
+/* If a component used the bg-gray-50 text-muted combo, keep text contrast */
+:not(.dark) [class*="bg-gray-50"] .text-muted-foreground,
+:not(.dark) [class*="bg-gray-50"] .text-gray-500,
+:not(.dark) [class*="bg-gray-50"] .text-gray-600 {
+  color: var(--muted-foreground) !important;
+}
+
 /* Page-scoped force-light helper
    Use by adding the attribute `data-force-light` to a container element. This
    forces a light background and dark foreground for all descendants and
