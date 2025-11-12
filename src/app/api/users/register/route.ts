@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import { registerSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { generateOTP, sendOTPEmail } from '@/lib/email';
 
 /**
  * User Registration API
@@ -63,23 +64,42 @@ export async function POST(request: NextRequest) {
       friends: [],
       friendRequests: [],
       lastSeen: new Date(),
+      isEmailVerified: false, // Email not verified yet
     });
+
+    // Generate and send OTP for email verification
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    newUser.verificationOTP = otp;
+    newUser.verificationOTPExpires = otpExpires;
+    await newUser.save();
+
+    // Send OTP email (don't fail registration if email fails)
+    const emailResult = await sendOTPEmail(newUser.email, newUser.username, otp);
+    
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+    }
 
     // Return success response (password automatically excluded by schema)
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully',
+        message: 'User registered successfully. Please check your email for verification code.',
+        requiresVerification: true,
         data: {
           user: {
             id: newUser._id,
             username: newUser.username,
             email: newUser.email,
+            isEmailVerified: newUser.isEmailVerified,
             isDiscoveryEnabled: newUser.isDiscoveryEnabled,
             discoveryRange: newUser.discoveryRange,
             createdAt: newUser.createdAt,
           },
         },
+        emailSent: emailResult.success,
       },
       { status: 201 }
     );

@@ -37,6 +37,13 @@ export interface IUser extends Document {
   bio?: string;
   profilePicture?: string;
 
+  // Email verification
+  isEmailVerified?: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+  verificationOTP?: string;
+  verificationOTPExpires?: Date;
+
   // Social connections
   friends: mongoose.Types.ObjectId[];
   friendRequests: IFriendRequest[];
@@ -197,6 +204,30 @@ const UserSchema = new Schema<IUser>({
     required: [true, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters long'],
     select: false, // Don't include password in queries by default
+  },
+  // Email verification fields
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  emailVerificationToken: {
+    type: String,
+    select: false,
+    index: true,
+  },
+  emailVerificationExpires: {
+    type: Date,
+    select: false,
+  },
+  verificationOTP: {
+    type: String,
+    select: false,
+    index: true,
+  },
+  verificationOTPExpires: {
+    type: Date,
+    select: false,
   },
   bio: {
     type: String,

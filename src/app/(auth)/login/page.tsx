@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,6 +43,14 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Show success message if coming from verification
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      toast.success("Email verified! You can now sign in.");
+    }
+  }, [searchParams]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -63,7 +72,21 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        // Check if it's an email verification error
+        if (result.error.includes("verify your email")) {
+          setError("Please verify your email before logging in");
+          toast.error("Email not verified", {
+            description: "Check your email for the verification code",
+            action: {
+              label: "Resend",
+              onClick: () => {
+                router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+              },
+            },
+          });
+        } else {
+          setError("Invalid email or password");
+        }
       } else {
         // Refresh session and redirect
         await getSession();

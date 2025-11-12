@@ -27,10 +27,7 @@ export default function MapControls({
   const [isExpanded, setIsExpanded] = useState(true)
 
   return (
-    <div className="absolute z-50 bg-black/60 dark:bg-black/60 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-800 overflow-hidden transition-all duration-300
-      left-6 top-6 lg:left-6 lg:top-6
-      sm:top-20 sm:left-1/2 sm:-translate-x-1/2 sm:w-[90%] sm:max-w-md
-      w-80">
+    <div className="absolute top-6 left-6 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300">
       {/* Header */}
       <div 
         className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-500 cursor-pointer hover:from-blue-600 hover:to-purple-600 transition-all"
@@ -51,11 +48,11 @@ export default function MapControls({
 
       {/* Content */}
       {isExpanded && (
-  <div className="p-5 space-y-4 w-full">
+        <div className="p-5 space-y-4 w-80">
           {/* Distance Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-white">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Distance radius
               </label>
               <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
@@ -74,7 +71,7 @@ export default function MapControls({
                 background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxDistance / 100000) * 100}%, #e5e7eb ${(maxDistance / 100000) * 100}%, #e5e7eb 100%)`
               }}
             />
-            <div className="flex justify-between text-xs text-gray-200">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>100m</span>
               <span>50km</span>
               <span>100km</span>
@@ -84,7 +81,7 @@ export default function MapControls({
           {/* Toggle Options */}
           <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
             {/* Show Offline */}
-            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/40 cursor-pointer transition-colors group">
+            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors group">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
                   <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,8 +89,8 @@ export default function MapControls({
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-white">Show offline friends</span>
-                  <span className="text-xs text-gray-200">Display inactive friends</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Show offline friends</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Display inactive friends</span>
                 </div>
               </div>
               <div className="relative">
@@ -109,7 +106,7 @@ export default function MapControls({
             </label>
 
             {/* Cluster Markers */}
-            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/40 cursor-pointer transition-colors group">
+            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors group">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40 transition-colors">
                   <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,8 +114,8 @@ export default function MapControls({
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-white">Cluster markers</span>
-                  <span className="text-xs text-gray-200">Group nearby friends</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Cluster markers</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Group nearby friends</span>
                 </div>
               </div>
               <div className="relative">
@@ -134,7 +131,7 @@ export default function MapControls({
             </label>
 
             {/* Dark Map Style */}
-            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/40 cursor-pointer transition-colors group">
+            <label className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors group">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-800 dark:bg-gray-600 flex items-center justify-center group-hover:bg-gray-900 dark:group-hover:bg-gray-500 transition-colors">
                   <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -142,8 +139,8 @@ export default function MapControls({
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-white">Dark map style</span>
-                  <span className="text-xs text-gray-200">Night mode theme</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Dark map style</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Night mode theme</span>
                 </div>
               </div>
               <div className="relative">

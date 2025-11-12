@@ -49,6 +49,11 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password');
           }
 
+          // Check if email is verified
+          if (!user.isEmailVerified) {
+            throw new Error('Please verify your email before logging in');
+          }
+
           // Check password
           const isPasswordValid = await user.comparePassword(validatedData.password);
           
@@ -123,6 +128,7 @@ export const authOptions: NextAuthOptions = {
               friends: [],
               friendRequests: [],
               sentRequests: [],
+              isEmailVerified: true, // Google accounts are pre-verified
             });
           }
 

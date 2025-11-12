@@ -93,23 +93,12 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess("Account created successfully! Signing you in...");
+      setSuccess("Account created successfully! Redirecting to verification...");
 
-      // Auto sign in after successful registration
-      const signInResult = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setError(
-          "Account created but sign in failed. Please try logging in manually."
-        );
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      // Redirect to email verification page
+      setTimeout(() => {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      }, 1500);
     } catch (error) {
       setError("Something went wrong. Please try again.");
     } finally {
