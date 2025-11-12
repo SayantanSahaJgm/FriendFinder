@@ -83,13 +83,30 @@
        utility is not present. The CSS variable --border is defined above. */
     border-color: var(--border);
   }
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-  }
+  
   html {
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+  }
+  
+  /* Ensure dark theme applies to all elements */
+  .dark,
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+  
+  /* Light theme */
+  .light,
+  [data-theme="light"] {
+    color-scheme: light;
   }
 }
 

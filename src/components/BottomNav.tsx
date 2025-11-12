@@ -19,7 +19,7 @@ export default function BottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]" 
+      className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]" 
       role="navigation" 
       aria-label="Main mobile navigation"
     >
@@ -35,7 +35,7 @@ export default function BottomNav() {
               className={`relative flex flex-col items-center p-2.5 rounded-2xl transition-all duration-300 min-w-[64px] group ${
                 active 
                   ? 'scale-105' 
-                  : 'hover:bg-gray-50/80'
+                  : 'hover:bg-gray-50/80 dark:hover:bg-gray-800/80'
               }`}
               aria-label={item.label}
             >
@@ -46,13 +46,13 @@ export default function BottomNav() {
                 <div className={`relative p-2.5 rounded-xl transition-all duration-300 ${
                   active 
                     ? `bg-gradient-to-br ${item.color} shadow-lg` 
-                    : 'bg-gray-100/50 group-hover:bg-gray-200/70'
+                    : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/70 dark:group-hover:bg-gray-700/70'
                 }`}>
-                  <Icon className={`w-5 h-5 transition-colors ${active ? 'text-white' : 'text-gray-600'}`} />
+                  <Icon className={`w-5 h-5 transition-colors ${active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`} />
                 </div>
               </div>
               <span className={`text-[10px] font-medium transition-all ${
-                active ? 'text-gray-900' : 'text-gray-500'
+                active ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
               }`}>
                 {item.label}
               </span>
