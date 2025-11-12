@@ -51,7 +51,13 @@ export function ThemeToggle({
       variant="outline"
       size={variant === "icon" ? "icon" : "sm"}
       className={className}
-      onClick={toggleTheme}
+      // Prevent clicks from bubbling to parent elements (fixes accidental toggles
+      // when clicking nearby controls) and ensure this is a button action
+      type="button"
+      onClick={(e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleTheme();
+      }}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
@@ -68,7 +74,5 @@ export function ThemeToggle({
 }
 
 export function ThemeToggleCompact({ className }: { className?: string }) {
-  return (
-    <ThemeToggle showLabel={false} variant="icon" className={cn("size-8", className)} />
-  );
+  return <ThemeToggle showLabel={false} variant="icon" className={cn("size-8", className)} />;
 }
