@@ -118,44 +118,44 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+    <Card className="w-full shadow-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <CardHeader className="space-y-1 pb-4 sm:pb-6">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-center text-gray-900 dark:text-white">
           Welcome back
         </CardTitle>
-        <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+        <CardDescription className="text-center text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Sign in to your account to continue
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {error && (
-          <div className="p-4 text-sm font-medium text-red-700 dark:text-red-200 bg-red-50 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 rounded-lg flex items-start gap-3 shadow-sm">
+          <div className="p-3 sm:p-4 text-sm font-medium text-red-700 dark:text-red-200 bg-red-50 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 rounded-lg flex items-start gap-2 sm:gap-3 shadow-sm">
             <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
             <div>
-              <div className="font-bold">Login Failed</div>
-              <div className="mt-1">{error}</div>
+              <div className="font-bold text-xs sm:text-sm">Login Failed</div>
+              <div className="mt-1 text-xs sm:text-sm">{error}</div>
             </div>
           </div>
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Email</FormLabel>
+                  <FormLabel className="text-sm sm:text-base text-gray-900 dark:text-white">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         {...field}
                         type="email"
                         placeholder="Enter your email"
-                        className="pl-10"
+                        className="pl-10 h-10 sm:h-11 text-sm sm:text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                         disabled={isLoading}
                       />
                     </div>
@@ -170,21 +170,21 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Password</FormLabel>
+                  <FormLabel className="text-sm sm:text-base text-gray-900 dark:text-white">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         {...field}
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 h-10 sm:h-11 text-sm sm:text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
                         disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                         disabled={isLoading}
                       >
                         {showPassword ? <EyeOff /> : <Eye />}
@@ -199,7 +199,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-end">
               <Link 
                 href="/forgot-password" 
-                className="text-sm text-purple-600 hover:text-purple-700 hover:underline dark:text-purple-400 dark:hover:text-purple-300"
+                className="text-xs sm:text-sm text-purple-600 hover:text-purple-700 hover:underline dark:text-purple-400 dark:hover:text-purple-300"
               >
                 Forgot password?
               </Link>
@@ -207,7 +207,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="w-full h-10 sm:h-11 text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -224,10 +224,10 @@ export default function LoginPage() {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
+            <Separator className="w-full bg-gray-200 dark:bg-gray-800" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
+            <span className="bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">
               Or continue with
             </span>
           </div>
@@ -236,7 +236,7 @@ export default function LoginPage() {
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full h-10 sm:h-11 text-sm sm:text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
         >
@@ -270,8 +270,8 @@ export default function LoginPage() {
           )}
         </Button>
       </CardContent>
-      <CardFooter>
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 w-full">
+      <CardFooter className="pt-2 sm:pt-4">
+        <p className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 w-full">
           Don't have an account?{" "}
           <Link
             href="/register"

@@ -87,16 +87,16 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"
+            className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-black dark:bg-opacity-75"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white dark:bg-gray-800 shadow-xl">
-            <div className="flex h-16 items-center justify-between px-4 border-b dark:border-gray-700">
+          <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white dark:bg-gray-950 shadow-xl border-r border-gray-200 dark:border-gray-800">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
                   <span className="text-white ff-white text-sm font-bold">FF</span>
@@ -121,7 +121,7 @@ export default function DashboardLayout({
                 const baseClasses = "group flex items-center px-3 py-3 text-base font-medium rounded-md transition-colors touch-target-44";
                 const activeClasses = isActive
                   ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-r-2 border-blue-700 dark:border-blue-400"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white";
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white";
                 
                 return (
                   <Link
@@ -154,10 +154,10 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-col flex-1">
         {/* Top navigation */}
-        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white/95 dark:bg-gray-950/95 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-800">
           <button
             type="button"
-            className="px-4 border-r border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden touch-target-44"
+            className="px-4 border-r border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden touch-target-44"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
           >
@@ -246,8 +246,8 @@ export default function DashboardLayout({
         </div>
 
         {/* Page content */}
-        <main className="flex-1 bg-white dark:bg-gray-900 pb-20">
-          <div className="max-w-7xl mx-auto bg-white dark:bg-gray-900">
+        <main className="flex-1 bg-gray-50 dark:bg-black pb-20">
+          <div className="max-w-7xl mx-auto bg-gray-50 dark:bg-black">
             {children}
           </div>
         </main>
