@@ -1,25 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { wifiService } from "@/services/wifiService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Key, RefreshCw, Copy, Clock, Network, Hash } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Hash, RefreshCw, Copy, Clock, UserPlus, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   onUpdated?: () => void;
 }
 
+interface DiscoveredUser {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  profilePicture?: string;
+  bio?: string;
+  isFriend: boolean;
+  hasPendingRequest: boolean;
+}
+
 export default function CodeConnectionManager({ onUpdated }: Props = {}) {
-  const [networkName, setNetworkName] = useState("");
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [codeExpires, setCodeExpires] = useState<Date | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [pairingCode, setPairingCode] = useState("");
-  const [isPairing, setIsPairing] = useState(false);
+  const [lookupCode, setLookupCode] = useState("");
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [discoveredUser, setDiscoveredUser] = useState<DiscoveredUser | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [isSendingRequest, setIsSendingRequest] = useState(false);
 
   useEffect(() => {
     if (!codeExpires) {
@@ -52,16 +64,23 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
   const handleGenerateCode = async () => {
     try {
       setIsGenerating(true);
-      // Generate code without network name - just use empty string
-      const result = await wifiService.generatePairingCode('');
-      setGeneratedCode(result.pairingCode);
-      setCodeExpires(new Date(result.expiresAt));
-      toast.success("Pairing code generated!");
-      window.dispatchEvent(new CustomEvent("wifiUpdated"));
-      onUpdated?.();
+      const response = await fetch('/api/discover/code', {
+        method: 'POST',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setGeneratedCode(result.code);
+        setCodeExpires(new Date(result.expiresAt));
+        toast.success("Discovery code generated!");
+        onUpdated?.();
+      } else {
+        toast.error(result.error || "Failed to generate code");
+      }
     } catch (error: any) {
       console.error("Code generation error:", error);
-      toast.error(error?.message || "Failed to generate pairing code");
+      toast.error(error?.message || "Failed to generate code");
     } finally {
       setIsGenerating(false);
     }
@@ -74,26 +93,61 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
     }
   };
 
-  const handleSubmitPairingCode = async () => {
-    if (!pairingCode.trim()) {
-      toast.error("Please enter a pairing code");
+  const handleLookupCode = async () => {
+    if (!lookupCode.trim() || lookupCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
       return;
     }
 
     try {
-      setIsPairing(true);
-      const result = await wifiService.pairWithCode(pairingCode.trim());
-      if (result.success) {
-        toast.success(result.message || "Pairing successful! Friend request sent.");
-        setPairingCode("");
-        window.dispatchEvent(new CustomEvent("wifiUpdated"));
-        onUpdated?.();
+      setIsLookingUp(true);
+      const response = await fetch(`/api/discover/code?code=${lookupCode.trim()}`);
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        setDiscoveredUser(result.user);
+        toast.success(`Found ${result.user.name}!`);
+      } else {
+        toast.error(result.error || "Invalid or expired code");
+        setDiscoveredUser(null);
       }
     } catch (error: any) {
-      console.error("Pairing error:", error);
-      toast.error(error?.message || "Failed to pair with code");
+      console.error("Lookup error:", error);
+      toast.error(error?.message || "Failed to lookup code");
+      setDiscoveredUser(null);
     } finally {
-      setIsPairing(false);
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleSendFriendRequest = async () => {
+    if (!discoveredUser) return;
+
+    try {
+      setIsSendingRequest(true);
+      const response = await fetch('/api/friends/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: discoveredUser.id }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Friend request sent to ${discoveredUser.name}!`);
+        setDiscoveredUser({
+          ...discoveredUser,
+          hasPendingRequest: true,
+        });
+        onUpdated?.();
+      } else {
+        toast.error(result.error || "Failed to send friend request");
+      }
+    } catch (error: any) {
+      console.error("Friend request error:", error);
+      toast.error(error?.message || "Failed to send friend request");
+    } finally {
+      setIsSendingRequest(false);
     }
   };
 
@@ -101,7 +155,7 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
     <Card className="border-0 shadow-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
-          <Key className="h-5 w-5 text-blue-600" />
+          <Hash className="h-5 w-5 text-indigo-600" />
           <span>Code Connection</span>
         </CardTitle>
       </CardHeader>
@@ -109,8 +163,8 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
       <CardContent className="space-y-6">
         <div className="space-y-3">
           <div className="flex items-center space-x-2 mb-2">
-            <Network className="h-4 w-4 text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-700">Share Your Code</h3>
+            <Hash className="h-4 w-4 text-indigo-600" />
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Share Your Code</h3>
           </div>
 
           {!generatedCode ? (
@@ -118,7 +172,7 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
               <Button
                 onClick={handleGenerateCode}
                 disabled={isGenerating}
-                className="w-full h-11"
+                className="w-full h-11 bg-indigo-600 hover:bg-indigo-700"
               >
                 {isGenerating ? (
                   <>
@@ -127,21 +181,21 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                   </>
                 ) : (
                   <>
-                    <Key className="h-4 w-4 mr-2" />
-                    Generate Pairing Code
+                    <Hash className="h-4 w-4 mr-2" />
+                    Generate Discovery Code
                   </>
                 )}
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg p-4">
                 <div className="text-center">
-                  <p className="text-xs text-gray-600 mb-2">Your Pairing Code</p>
-                  <p className="text-3xl font-bold text-blue-600 tracking-wider mb-3 font-mono">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Your Discovery Code</p>
+                  <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-wider mb-3 font-mono">
                     {generatedCode}
                   </p>
-                  <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+                  <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                     <Clock className="h-3 w-3" />
                     <span>
                       {timeRemaining === "Expired" ? (
@@ -177,48 +231,113 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
             </div>
           )}
 
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Share this 6-digit code with someone nearby to connect
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Share this 6-digit code with someone nearby to let them discover you
           </p>
         </div>
 
-        <div className="border-t border-gray-200" />
+        <div className="border-t border-gray-200 dark:border-gray-700" />
 
         <div className="space-y-3">
           <div className="flex items-center space-x-2 mb-2">
-            <Network className="h-4 w-4 text-green-600" />
-            <h3 className="text-sm font-semibold text-gray-700">Enter Someone's Code</h3>
+            <Hash className="h-4 w-4 text-green-600" />
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Enter Someone's Code</h3>
           </div>
 
           <Input
-            value={pairingCode}
-            onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            value={lookupCode}
+            onChange={(e) => setLookupCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="Enter 6-digit code"
-            disabled={isPairing}
+            disabled={isLookingUp}
             className="w-full h-11 text-center text-2xl tracking-wider font-mono"
             maxLength={6}
           />
 
           <Button
-            onClick={handleSubmitPairingCode}
-            disabled={isPairing || pairingCode.length !== 6}
-            className="w-full h-11"
+            onClick={handleLookupCode}
+            disabled={isLookingUp || lookupCode.length !== 6}
+            className="w-full h-11 bg-green-600 hover:bg-green-700"
           >
-            {isPairing ? (
+            {isLookingUp ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Connecting...
+                Looking up...
               </>
             ) : (
               <>
-                <Key className="h-4 w-4 mr-2" />
-                Connect with Code
+                <Hash className="h-4 w-4 mr-2" />
+                Discover User
               </>
             )}
           </Button>
 
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Enter the code from someone to send a friend request
+          {discoveredUser && (
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={discoveredUser.profilePicture} alt={discoveredUser.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
+                    {discoveredUser.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                    {discoveredUser.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    @{discoveredUser.username}
+                  </p>
+                </div>
+              </div>
+
+              {discoveredUser.bio && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                  {discoveredUser.bio}
+                </p>
+              )}
+
+              {discoveredUser.isFriend ? (
+                <Button
+                  disabled
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Already Friends
+                </Button>
+              ) : discoveredUser.hasPendingRequest ? (
+                <Button
+                  disabled
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Request Pending
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSendFriendRequest}
+                  disabled={isSendingRequest}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isSendingRequest ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Send Friend Request
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Enter someone's code to see who they are and connect with them
           </p>
         </div>
       </CardContent>

@@ -22,7 +22,7 @@ import {
   MapPin,
   Wifi,
   Bluetooth,
-  Key,
+  Hash,
   Radar,
   Users,
   ToggleLeft,
@@ -544,7 +544,7 @@ export default function DiscoverPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Key
+                  <Hash
                     className={`w-5 h-5 ${
                       activeMethod === "code" ? "text-indigo-600" : "text-gray-600"
                     }`}

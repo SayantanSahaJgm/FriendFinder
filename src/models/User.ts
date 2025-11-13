@@ -91,6 +91,10 @@ export interface IUser extends Document {
   wifiPairingCode?: string;
   wifiPairingCodeExpires?: Date;
 
+  // Discovery Code (for Code Connection)
+  discoveryCode?: string;
+  discoveryCodeExpires?: Date;
+
   // Random Chat Preferences
   interests?: string[]; // User interests for better matching
   ageRange?: {
@@ -414,6 +418,16 @@ const UserSchema = new Schema<IUser>({
   },
   wifiPairingCodeExpires: {
     type: Date,
+  },
+
+  // Discovery Code (for Code Connection feature)
+  discoveryCode: {
+    type: String,
+    index: true,
+  },
+  discoveryCodeExpires: {
+    type: Date,
+    index: true,
   },
 
   // Random Chat Preferences
