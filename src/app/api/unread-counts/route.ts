@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/mongoose';
 import Message from '@/models/Message';
-import Notification from '@/models/Notification';
+import User from '@/models/User';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,25 +14,23 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
-    // Get user ID from session
-    const userEmail = session.user.email;
+    // Get user from database to get their _id
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-    // Count unread messages
-    const unreadMessages = await Message.countDocuments({
-      recipientEmail: userEmail,
-      read: false,
-    });
+    // Count unread messages using the static method
+    const unreadMessages = await Message.getUnreadCount(user._id.toString());
 
-    // Count unread notifications
-    const unreadNotifications = await Notification.countDocuments({
-      userId: userEmail,
-      read: false,
-    });
+    // For notifications, we'll count friend requests (a simple proxy for now)
+    // In the future, create a proper Notification model
+    const friendRequests = user.friendRequests?.length || 0;
 
     return NextResponse.json({
       success: true,
       messages: unreadMessages,
-      notifications: unreadNotifications,
+      notifications: friendRequests, // Using friend requests as proxy for notifications
     });
   } catch (error) {
     console.error('Error fetching unread counts:', error);
