@@ -49,6 +49,14 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password');
           }
 
+          // Check if account is marked for deletion
+          if (user.isDeleted) {
+            if (user.scheduledDeletionDate && new Date() > user.scheduledDeletionDate) {
+              throw new Error('Your account has been permanently deleted. Please sign up again.');
+            }
+            throw new Error('Your account is scheduled for deletion. Please restore your account first.');
+          }
+
           // Check if email is verified
           if (!user.isEmailVerified) {
             throw new Error('Please verify your email before logging in');
@@ -130,6 +138,14 @@ export const authOptions: NextAuthOptions = {
               sentRequests: [],
               isEmailVerified: true, // Google accounts are pre-verified
             });
+          } else {
+            // Check if existing user's account is deleted
+            if (existingUser.isDeleted) {
+              if (existingUser.scheduledDeletionDate && new Date() > existingUser.scheduledDeletionDate) {
+                throw new Error('Account has been permanently deleted');
+              }
+              throw new Error('Account is scheduled for deletion');
+            }
           }
 
           token.userId = (existingUser._id as string).toString();

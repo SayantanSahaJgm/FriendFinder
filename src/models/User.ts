@@ -102,6 +102,11 @@ export interface IUser extends Document {
     [key: string]: any
   };
 
+  // Soft Delete fields
+  deletedAt?: Date; // When the account was marked for deletion
+  scheduledDeletionDate?: Date; // When the account will be permanently deleted (30 days after deletedAt)
+  isDeleted?: boolean; // Quick flag to check if account is in deletion grace period
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -402,6 +407,21 @@ const UserSchema = new Schema<IUser>({
       type: Schema.Types.ObjectId,
       ref: 'User',
     }],
+  },
+
+  // Soft Delete fields
+  deletedAt: {
+    type: Date,
+    index: true,
+  },
+  scheduledDeletionDate: {
+    type: Date,
+    index: true,
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true,
   },
 }, {
   timestamps: true,

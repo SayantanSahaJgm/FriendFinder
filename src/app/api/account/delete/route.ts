@@ -7,6 +7,7 @@ import Message from '@/models/Message';
 import Post from '@/models/Post';
 import Report from '@/models/Report';
 import mongoose from 'mongoose';
+import { signOut } from 'next-auth/react';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -37,51 +38,39 @@ export async function DELETE(request: NextRequest) {
     // Convert to ObjectId for queries
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
-    // Delete user's messages
-    await Message.deleteMany({
-      $or: [{ sender: userObjectId }, { recipient: userObjectId }],
-    });
+    // Find the user
+    const user = await User.findById(userObjectId);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
 
-    // Delete user's posts
-    await Post.deleteMany({ userId: userObjectId });
+    // Set soft delete flags
+    const deletionDate = new Date();
+    const scheduledDeletion = new Date(deletionDate.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
-    // Delete reports made by or about the user
-    await Report.deleteMany({
-      $or: [
-        { reportedBy: userObjectId },
-        { reportedUser: userObjectId },
-      ],
-    });
+    user.isDeleted = true;
+    user.deletedAt = deletionDate;
+    user.scheduledDeletionDate = scheduledDeletion;
+    await user.save();
 
-    // Remove user from friends lists
-    await User.updateMany(
-      { friends: userObjectId },
-      { $pull: { friends: userObjectId } }
-    );
-
-    // Remove user from friend requests
-    await User.updateMany(
-      { 'friendRequests.from': userObjectId },
-      { $pull: { friendRequests: { from: userObjectId } } }
-    );
-
-    // Remove NextAuth sessions and accounts for this user (if adapter used collections)
+    // Invalidate all sessions for this user
     try {
       const conn = mongoose.connection;
       if (conn && conn.collection) {
         await conn.collection('sessions').deleteMany({ userId: userId.toString() });
-        await conn.collection('accounts').deleteMany({ userId: userId.toString() });
       }
     } catch (err) {
-      console.warn('Could not remove next-auth sessions/accounts from DB:', err);
+      console.warn('Could not remove next-auth sessions from DB:', err);
     }
-
-    // Finally, delete the user account
-    await User.findByIdAndDelete(userObjectId);
 
     return NextResponse.json({
       success: true,
-      message: 'Account deleted successfully',
+      message: 'Account scheduled for deletion. You have 30 days to recover your account.',
+      scheduledDeletionDate: scheduledDeletion.toISOString(),
+      daysRemaining: 30,
     });
   } catch (error) {
     console.error('Error deleting account:', error);
