@@ -157,7 +157,10 @@ export default function WiFiPage() {
               <div className="relative mb-6 w-full h-[320px] flex items-center justify-center">
                 {/* Center user - show user's profile picture in circle */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-20 animate-pulse-slow"></div>
-                <div className="relative z-10 flex flex-col items-center">
+                <button 
+                  onClick={() => router.push('/dashboard/profile')}
+                  className="relative z-10 flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
+                >
                   <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-2xl ring-4 ring-white">
                     <Avatar className="w-full h-full">
                       <AvatarImage src={session?.user?.image || undefined} alt="You" />
@@ -167,7 +170,7 @@ export default function WiFiPage() {
                     </Avatar>
                   </div>
                   <p className="text-sm font-semibold text-gray-700 mt-2">You</p>
-                </div>
+                </button>
                 
                 {/* Orbiting users */}
                 {nearbyUsers.slice(0, 5).map((user, index) => {
