@@ -1,15 +1,12 @@
 "use client";
 import Link from "next/link";
-import TopHeader from "./TopHeader";
 
 export default function HomeScreen() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50">
-      <TopHeader />
+      {/* No TopHeader here on the public landing page (logo-only header removed) */}
 
-
-
-  <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">
             Connect with
