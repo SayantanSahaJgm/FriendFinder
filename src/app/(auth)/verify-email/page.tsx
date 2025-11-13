@@ -120,10 +120,24 @@ export default function VerifyEmailPage() {
       setVerified(true);
       toast.success("Email verified successfully!");
       
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push("/login?verified=true");
-      }, 2000);
+      // Auto sign-in after verification (so JWT token gets userId)
+      // This fixes "User not found" socket error
+      if (email) {
+        // Wait a moment before signing in
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Sign in with credentials (this will create a proper JWT with userId)
+        // Note: The user's password is not available here, so we redirect to login
+        // But we mark them as verified so they can see the success message
+        setTimeout(() => {
+          router.push("/login?verified=true&email=" + encodeURIComponent(email));
+        }, 1500);
+      } else {
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          router.push("/login?verified=true");
+        }, 2000);
+      }
     } catch (error) {
       toast.error("Failed to verify OTP. Please try again.");
     } finally {

@@ -424,12 +424,21 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         })
 
         if (!decoded?.userId && !decoded?.email) {
+          console.error('Socket auth: Invalid token - no userId or email in decoded token:', { 
+            hasDecoded: !!decoded,
+            decodedKeys: decoded ? Object.keys(decoded) : []
+          })
           return next(new Error('Invalid token'))
         }
 
         // Get user from database - try userId first, fall back to email
         await dbConnect()
         let user
+        
+        console.log('Socket auth: Looking up user with:', { 
+          userId: decoded.userId ? 'present' : 'missing',
+          email: decoded.email ? decoded.email.substring(0, 3) + '***' : 'missing'
+        })
         
         if (decoded.userId) {
           user = await User.findById(decoded.userId).select('username email')
@@ -438,8 +447,17 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         }
 
         if (!user) {
+          console.error('Socket auth: User not found in database. Decoded token had:', {
+            userId: decoded.userId,
+            email: decoded.email ? decoded.email.substring(0, 3) + '***' : null
+          })
           return next(new Error('User not found'))
         }
+        
+        console.log('Socket auth: User found successfully:', {
+          userId: (user._id as any).toString(),
+          username: user.username
+        })
 
         // Store user data in socket
         socket.data.user = {
