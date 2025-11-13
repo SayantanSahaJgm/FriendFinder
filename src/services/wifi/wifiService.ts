@@ -96,26 +96,127 @@ class WiFiService {
   }
 
   /**
-   * Simplified registration using a connection test
-   * This pings the server which will extract network info server-side (if possible)
-   * For web apps, users will need to manually trigger or we use IP-based detection
+   * Get effective connection type from Network Information API
+   */
+  private getConnectionType(): string | null {
+    if (typeof navigator !== 'undefined' && 'connection' in navigator) {
+      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+      if (connection) {
+        return connection.effectiveType || connection.type || null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get local IP address and subnet for network identification
+   */
+  private async getLocalNetworkInfo(): Promise<{ localIP: string; subnet: string } | null> {
+    try {
+      // Use WebRTC to get local IP address
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      const noop = () => {};
+      
+      pc.createDataChannel('');
+      
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      return new Promise((resolve) => {
+        pc.onicecandidate = (ice) => {
+          if (!ice || !ice.candidate || !ice.candidate.candidate) {
+            resolve(null);
+            return;
+          }
+          
+          const candidateStr = ice.candidate.candidate;
+          const ipMatch = candidateStr.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+          
+          if (ipMatch && ipMatch[0]) {
+            const localIP = ipMatch[0];
+            // Extract subnet (first 3 octets)
+            const subnet = localIP.split('.').slice(0, 3).join('.');
+            pc.close();
+            resolve({ localIP, subnet });
+          }
+        };
+        
+        // Timeout after 2 seconds
+        setTimeout(() => {
+          pc.close();
+          resolve(null);
+        }, 2000);
+      });
+    } catch (error) {
+      console.error('[WiFi] Error getting local network info:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Automatically detect WiFi network
+   * Uses multiple methods: Network API, local IP subnet detection
+   */
+  private async detectNetwork(): Promise<{ networkName: string; networkBSSID: string } | null> {
+    try {
+      // Method 1: Try to get local network info via WebRTC
+      const networkInfo = await this.getLocalNetworkInfo();
+      
+      if (networkInfo) {
+        const { localIP, subnet } = networkInfo;
+        console.log('[WiFi] Detected local network:', { localIP, subnet });
+        
+        // Use subnet as network identifier - all devices on same local network will have same subnet
+        const networkName = `WiFi-${subnet}`;
+        const networkBSSID = this.generatePseudoBSSID(subnet);
+        
+        return { networkName, networkBSSID };
+      }
+
+      // Method 2: Connection type from Network Information API (less precise)
+      const connectionType = this.getConnectionType();
+      if (connectionType && connectionType !== 'none') {
+        console.log('[WiFi] Detected connection type:', connectionType);
+        
+        // Use a fallback identifier
+        const timestamp = Math.floor(Date.now() / (1000 * 60 * 10)); // Changes every 10 minutes
+        const networkName = `Network-${connectionType}`;
+        const networkBSSID = this.generatePseudoBSSID(`${connectionType}-${timestamp}`);
+        
+        return { networkName, networkBSSID };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[WiFi] Network detection error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Simplified registration using automatic network detection
+   * Automatically detects the user's WiFi network without asking for input
    * 
    * Also acts as a heartbeat - call every 30-60 seconds to stay discoverable
    */
   async registerCurrentNetwork(): Promise<{ success: boolean; message: string }> {
     try {
-      // For web browsers, since we can't access actual WiFi SSID/BSSID,
-      // we'll use a manual network name approach
+      // Try automatic detection first
+      const detectedNetwork = await this.detectNetwork();
       
-      // Option 1: Use stored network name from localStorage
+      if (detectedNetwork) {
+        console.log('[WiFi] Auto-detected network:', detectedNetwork.networkName);
+        return await this.registerNetwork(detectedNetwork.networkName, detectedNetwork.networkBSSID);
+      }
+
+      // If auto-detection fails, fall back to stored network or prompt user
       let networkName = localStorage.getItem('wifiNetworkName');
       
       if (!networkName) {
-        // Prompt user to enter their WiFi network name
+        // Last resort: prompt user
         networkName = window.prompt(
-          'Enter your WiFi network name (SSID) to discover nearby users.\n\n' +
-          'Only users on the same WiFi network will be visible.\n' +
-          'This will be saved for future use.',
+          'Unable to detect your WiFi network automatically.\n\n' +
+          'Please enter your WiFi network name (SSID) manually:',
           ''
         );
         
@@ -124,19 +225,16 @@ class WiFiService {
         }
         
         networkName = networkName.trim();
-        // Save for future use
         localStorage.setItem('wifiNetworkName', networkName);
       }
       
-      // Create a consistent BSSID-like identifier from the network name
-      // All users entering the same network name will get the same hash
+      // Create identifier from manual network name
       const networkBSSID = this.generatePseudoBSSID(networkName);
-      
-      console.log('[WiFi] Registering network:', networkName);
+      console.log('[WiFi] Using manual network name:', networkName);
       
       return await this.registerNetwork(networkName, networkBSSID);
     } catch (error) {
-      console.error('[WiFi] Error auto-registering network:', error);
+      console.error('[WiFi] Error registering network:', error);
       throw error;
     }
   }
