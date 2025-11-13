@@ -423,13 +423,19 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
           secret: process.env.NEXTAUTH_SECRET,
         })
 
-        if (!decoded?.email) {
+        if (!decoded?.userId && !decoded?.email) {
           return next(new Error('Invalid token'))
         }
 
-        // Get user from database
+        // Get user from database - try userId first, fall back to email
         await dbConnect()
-        const user = await User.findOne({ email: decoded.email }).select('username email')
+        let user
+        
+        if (decoded.userId) {
+          user = await User.findById(decoded.userId).select('username email')
+        } else if (decoded.email) {
+          user = await User.findOne({ email: decoded.email }).select('username email')
+        }
 
         if (!user) {
           return next(new Error('User not found'))
