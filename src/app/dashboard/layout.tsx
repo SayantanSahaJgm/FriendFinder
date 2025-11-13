@@ -173,6 +173,27 @@ export default function DashboardLayout({
               </div>
             </Link>
 
+            {/* Center: Navigation Menu (hidden on mobile) */}
+            <nav className="hidden md:flex items-center space-x-1">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? 'text-gray-900 dark:text-white'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
             {/* Right: Messages, Notifications, Profile */}
             <div className="flex items-center space-x-3">
               {/* Messages Icon with Badge */}
