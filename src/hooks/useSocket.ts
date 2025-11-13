@@ -130,10 +130,14 @@ export function useSocket() {
         } else {
           // Register as guest for random chat
           const guestId = localStorage.getItem('guestUserId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          const guestUsername = localStorage.getItem('guestUsername') || `Guest${Math.floor(Math.random() * 9999)}`
           localStorage.setItem('guestUserId', guestId)
+          if (!localStorage.getItem('guestUsername')) {
+            localStorage.setItem('guestUsername', guestUsername)
+          }
           newSocket.emit('user-register', {
             userId: guestId,
-            username: localStorage.getItem('guestUsername') || 'Guest',
+            username: guestUsername,
             isGuest: true
           })
         }
