@@ -104,24 +104,64 @@ class WiFiService {
    */
   async registerCurrentNetwork(): Promise<{ success: boolean; message: string }> {
     try {
-      // For web browsers, we can use a simpler approach:
-      // 1. Use IP address to approximate network
-      // 2. Ask user to manually enter network name
-      // 3. Use server-side detection if deployed on same network
+      // For web browsers, since we can't access actual WiFi SSID/BSSID,
+      // we'll use a manual network name approach
       
-      // Get public IP as a fallback identifier
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipResponse.json();
+      // Option 1: Use stored network name from localStorage
+      let networkName = localStorage.getItem('wifiNetworkName');
       
-      // Use IP as network identifier (less precise than BSSID but works in browsers)
-      const networkBSSID = `ip-${ip}`;
-      const networkSSID = `Network-${ip.split('.')[0]}`; // Simplified name
+      if (!networkName) {
+        // Prompt user to enter their WiFi network name
+        networkName = window.prompt(
+          'Enter your WiFi network name (SSID) to discover nearby users.\n\n' +
+          'Only users on the same WiFi network will be visible.\n' +
+          'This will be saved for future use.',
+          ''
+        );
+        
+        if (!networkName || networkName.trim() === '') {
+          throw new Error('WiFi network name is required for discovery');
+        }
+        
+        networkName = networkName.trim();
+        // Save for future use
+        localStorage.setItem('wifiNetworkName', networkName);
+      }
       
-      return await this.registerNetwork(networkSSID, networkBSSID);
+      // Create a consistent BSSID-like identifier from the network name
+      // All users entering the same network name will get the same hash
+      const networkBSSID = this.generatePseudoBSSID(networkName);
+      
+      console.log('[WiFi] Registering network:', networkName);
+      
+      return await this.registerNetwork(networkName, networkBSSID);
     } catch (error) {
       console.error('[WiFi] Error auto-registering network:', error);
       throw error;
     }
+  }
+
+  /**
+   * Clear stored network name and unregister
+   */
+  async clearStoredNetwork(): Promise<void> {
+    localStorage.removeItem('wifiNetworkName');
+    await this.unregister();
+  }
+
+  /**
+   * Change WiFi network (prompts user for new network name)
+   */
+  async changeNetwork(): Promise<{ success: boolean; message: string }> {
+    localStorage.removeItem('wifiNetworkName');
+    return this.registerCurrentNetwork();
+  }
+
+  /**
+   * Get currently stored network name
+   */
+  getStoredNetworkName(): string | null {
+    return localStorage.getItem('wifiNetworkName');
   }
 
   /**
@@ -147,6 +187,9 @@ class WiFiService {
         throw new Error(data.error || 'Failed to unregister');
       }
 
+      // Clear stored network name
+      localStorage.removeItem('wifiNetworkName');
+      
       console.log('[WiFi] Unregistered from WiFi discovery');
     } catch (error) {
       console.error('[WiFi] Error unregistering:', error);
