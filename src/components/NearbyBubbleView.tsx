@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bluetooth, ExternalLink, X, MapPin, Clock, Mail, User, Shield, Signal } from "lucide-react";
+import UserProfileModal from "@/components/UserProfileModal";
 
 export interface NearbyUser {
   id: string;

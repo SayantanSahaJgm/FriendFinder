@@ -10,6 +10,8 @@ import NearbyUsersCard from "@/components/location/NearbyUsersCard";
 import WifiManager from "@/components/WifiManager";
 import BluetoothManager from "@/components/BluetoothManager";
 import FriendRequestButton from "@/components/friends/FriendRequestButton";
+import UserProfileModal, { ProfileUser } from "@/components/UserProfileModal";
+import { sendFriendRequest } from "@/server/actions/friend-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -75,6 +77,8 @@ export default function DiscoverPage() {
   );
   
   const [isLoading, setIsLoading] = useState(false);
+  // Modal state for WiFi/Bluetooth profile popup
+  const [modalUser, setModalUser] = useState<ProfileUser | null>(null);
   const [isAutoSearching, setIsAutoSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState(0);
   const [autoSearchInterval, setAutoSearchInterval] =
@@ -369,6 +373,30 @@ export default function DiscoverPage() {
                   style={{ width: `${searchProgress}%` }}
                 ></div>
               </div>
+                {/* Profile Modal for WiFi/Bluetooth users */}
+                {modalUser && (
+                  <UserProfileModal
+                    user={modalUser}
+                    onClose={() => setModalUser(null)}
+                    onConnect={async (id: string) => {
+                      try {
+                        const result = await sendFriendRequest(id);
+                        if (result?.success) {
+                          toast.success(result.message || 'Friend request sent');
+                          // Refresh WiFi list to reflect pending status
+                          await findWiFiUsers();
+                        } else {
+                          toast.error(result?.message || 'Failed to send friend request');
+                        }
+                      } catch (err: any) {
+                        console.error('Modal send friend request error:', err);
+                        toast.error(err?.message || 'Failed to send friend request');
+                      } finally {
+                        setModalUser(null);
+                      }
+                    }}
+                  />
+                )}
             </div>
             <Button
               onClick={handleStopAutoSearch}
@@ -643,10 +671,11 @@ export default function DiscoverPage() {
                       }
 
                       return (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
+                          <div
+                            key={user.id}
+                            onClick={() => setModalUser(user as unknown as ProfileUser)}
+                            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-12 w-12">
                               <AvatarImage
@@ -710,31 +739,35 @@ export default function DiscoverPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             {/* Friend Request Button - handles all relationship states */}
-                            <FriendRequestButton
-                              targetUserId={user.id}
-                              targetUserName={user.username}
-                              currentStatus={relationshipStatus}
-                              size="sm"
-                              onStatusChange={() => {
-                                // Refresh the WiFi users list to update relationship status
-                                findWiFiUsers();
-                              }}
-                            />
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <FriendRequestButton
+                                targetUserId={user.id}
+                                targetUserName={user.username}
+                                currentStatus={relationshipStatus}
+                                size="sm"
+                                onStatusChange={() => {
+                                  // Refresh the WiFi users list to update relationship status
+                                  findWiFiUsers();
+                                }}
+                              />
+                            </div>
 
                             {/* Message Button - only show for friends */}
                             {user.isFriend && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 w-8 p-0"
-                                onClick={() => {
-                                  // Navigate to messages with this friend
-                                  window.location.href = `/dashboard/messages?userId=${user.id}`;
-                                }}
-                                title="Send Message"
-                              >
-                                <MessageCircle className="w-3 h-3" />
-                              </Button>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => {
+                                    // Navigate to messages with this friend
+                                    window.location.href = `/dashboard/messages?userId=${user.id}`;
+                                  }}
+                                  title="Send Message"
+                                >
+                                  <MessageCircle className="w-3 h-3" />
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
