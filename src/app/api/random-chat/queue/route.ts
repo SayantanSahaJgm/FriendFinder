@@ -7,6 +7,7 @@ import User from '@/models/User';
 import RandomChatQueue from '@/models/RandomChatQueue';
 import RandomChatSession from '@/models/RandomChatSession';
 import RandomChatReport from '@/models/RandomChatReport';
+import { getIO } from '@/lib/socketServer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -135,6 +136,44 @@ export async function POST(request: NextRequest) {
         userId: { $in: [user._id, potentialMatch.userId] },
       });
 
+      console.log(`✅ Random chat match created via API: ${user.username} <-> ${potentialMatch.username} (session: ${sessionId})`);
+
+      // Emit socket events to BOTH users
+      try {
+        const io = getIO();
+        
+        // Emit to the current user (who just joined and got immediate match)
+        io.to(`user:${user._id.toString()}`).emit('random-chat:match-found', {
+          sessionId,
+          partner: {
+            userId: potentialMatch.userId.toString(),
+            anonymousId: potentialMatch.anonymousId,
+            username: potentialMatch.username || potentialMatch.anonymousId,
+            isActive: true,
+          },
+          userAnonymousId: anonymousId,
+          chatType: validatedPreferences.chatType,
+        });
+
+        // Emit to the matched user (who was waiting in queue)
+        io.to(`user:${potentialMatch.userId.toString()}`).emit('random-chat:match-found', {
+          sessionId,
+          partner: {
+            userId: user._id.toString(),
+            anonymousId,
+            username: user.username || anonymousId,
+            isActive: true,
+          },
+          userAnonymousId: potentialMatch.anonymousId,
+          chatType: validatedPreferences.chatType,
+        });
+
+        console.log(`✅ Socket events emitted to both users: ${user._id.toString()} and ${potentialMatch.userId.toString()}`);
+      } catch (socketError) {
+        console.error('Error emitting socket events for match:', socketError);
+        // Don't fail the request if socket emission fails
+      }
+
       // Return immediate match
       return NextResponse.json({
         success: true,
@@ -142,10 +181,12 @@ export async function POST(request: NextRequest) {
           type: 'match_found',
           sessionId,
           partner: {
+            userId: potentialMatch.userId.toString(),
             anonymousId: potentialMatch.anonymousId,
             username: potentialMatch.username || potentialMatch.anonymousId,
             isActive: true,
           },
+          userAnonymousId: anonymousId,
           chatType: validatedPreferences.chatType,
           estimatedWaitTime: 0,
         },

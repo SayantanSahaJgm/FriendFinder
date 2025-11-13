@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
+import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
 import crypto from "crypto";
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const user = await User.findOne({ email: session.user.email });
     

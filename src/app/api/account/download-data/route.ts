@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { connectDB } from "@/lib/mongodb";
+import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
 import Message from "@/models/Message";
 import Conversation from "@/models/Conversation";
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const user = await User.findOne({ email: session.user.email })
       .populate("friends", "name username email profilePicture")
