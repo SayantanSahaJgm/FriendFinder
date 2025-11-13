@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationCenter from "@/components/NotificationCenter";
 import WifiManager from "@/components/WifiManager";
 import BottomNav from "@/components/BottomNav";
+import VideoCameraIcon from "@/components/icons/VideoCameraIcon";
 import {
   Users,
   MessageCircle,
@@ -131,7 +132,7 @@ export default function DashboardLayout({
                     onClick={() => setSidebarOpen(false)}
                   >
                     {item.name === "Random Chat" ? (
-                      <img src="/random-logo.png" alt="Random Chat" className={`mr-3 h-5 w-5`} />
+                      <VideoCameraIcon className={`mr-3 h-5 w-5`} />
                     ) : (
                       <item.icon
                         className={`mr-3 h-5 w-5 ${
@@ -192,7 +193,7 @@ export default function DashboardLayout({
                     }`}
                   >
                     {item.name === "Random Chat" ? (
-                      <img src="/random-logo.png" alt="Random Chat" className="w-5 h-5 object-contain rounded" />
+                      <VideoCameraIcon className="w-5 h-5" />
                     ) : (
                       <item.icon className="w-5 h-5" />
                     )}
