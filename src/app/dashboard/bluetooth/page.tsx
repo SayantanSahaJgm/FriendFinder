@@ -44,12 +44,6 @@ export default function BluetoothPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
   const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
-  const [deviceName, setDeviceName] = useState('');
-  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
-  const [codeExpires, setCodeExpires] = useState<string | null>(null);
-  const [generatingCode, setGeneratingCode] = useState(false);
-  const [pairingCodeInput, setPairingCodeInput] = useState('');
-  const [pairingSubmitting, setPairingSubmitting] = useState(false);
 
   // Check if user has Bluetooth enabled
   useEffect(() => {
@@ -365,128 +359,40 @@ export default function BluetoothPage() {
             </div>
           </div>
           {/* Status Indicators */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}>
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className={`p-2.5 sm:p-3 rounded-xl ${isAvailable ? 'bg-green-500' : 'bg-red-500'} shadow-lg`}>
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-center">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Device</p>
-                <p className="text-xs sm:text-sm font-semibold mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Device</p>
+                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
                   {isAvailable ? "Compatible" : "Not Available"}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${hasPermission ? 'bg-green-500' : 'bg-yellow-500'}`}>
-                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className={`p-2.5 sm:p-3 rounded-xl ${hasPermission ? 'bg-green-500' : 'bg-yellow-500'} shadow-lg`}>
+                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-center">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Permission</p>
-                <p className="text-xs sm:text-sm font-semibold mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Permission</p>
+                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
                   {hasPermission ? "Granted" : "Required"}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${bluetoothEnabled ? 'bg-blue-500' : 'bg-gray-400'}`}>
-                <Waves className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className={`p-2.5 sm:p-3 rounded-xl ${bluetoothEnabled ? 'bg-blue-500' : 'bg-gray-400'} shadow-lg`}>
+                <Waves className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="text-center">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Discovery</p>
-                <p className="text-xs sm:text-sm font-semibold mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Discovery</p>
+                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
                   {bluetoothEnabled ? "Active" : "Inactive"}
                 </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pairing Code Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="p-3 sm:p-4 glass-dark rounded-2xl">
-              <p className="text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">Create Pairing Code</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">Generate a 6-digit code for others to connect with you</p>
-              <div className="flex gap-2">
-                <input
-                  value={deviceName}
-                  onChange={(e) => setDeviceName(e.target.value)}
-                  placeholder="Device name"
-                  className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-input bg-background text-foreground rounded-xl focus:outline-none focus:ring-2 focus:ring-ring text-xs sm:text-sm placeholder:text-muted-foreground dark:bg-input/30"
-                />
-                <Button onClick={async () => {
-                  try {
-                    setGeneratingCode(true);
-                    const nameToUse = deviceName.trim() || 'device';
-                    const res = await bluetoothService.generatePairingCode(nameToUse);
-                    if (res.success) {
-                      setGeneratedCode(res.pairingCode || null);
-                      setCodeExpires(res.pairingCodeExpires || null);
-                      toast.success('Pairing code generated');
-                      await checkBluetoothStatus();
-                    } else {
-                      toast.error(res.message || 'Failed to generate pairing code');
-                    }
-                  } catch (err: any) {
-                    console.error('Generate code error', err);
-                    toast.error(err.message || 'Failed to generate pairing code');
-                  } finally {
-                    setGeneratingCode(false);
-                  }
-                }} disabled={generatingCode} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4">
-                  {generatingCode ? 'Generating...' : 'Generate'}
-                </Button>
-              </div>
-
-              {generatedCode && (
-                <div className="mt-2 sm:mt-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">Your pairing code</p>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                    <div className="text-2xl sm:text-3xl font-mono font-bold tracking-widest bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm text-indigo-600">
-                      {generatedCode}
-                    </div>
-                    {codeExpires && (
-                      <div className="text-[10px] sm:text-xs text-muted-foreground">
-                        Expires: {new Date(codeExpires).toLocaleTimeString()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-3 sm:p-4 glass-dark rounded-2xl">
-              <p className="text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">Enter Pairing Code</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">Have someone's code? Enter it to connect instantly</p>
-              <div className="flex gap-2">
-                <input
-                  value={pairingCodeInput}
-                  onChange={(e) => setPairingCodeInput(e.target.value)}
-                  placeholder="6-digit code"
-                  className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-input bg-background text-foreground rounded-xl focus:outline-none focus:ring-2 focus:ring-ring text-xs sm:text-sm placeholder:text-muted-foreground dark:bg-input/30"
-                />
-                <Button onClick={async () => {
-                  if (!pairingCodeInput.trim()) { toast.error('Please enter a pairing code'); return; }
-                  try {
-                    setPairingSubmitting(true);
-                    const res = await bluetoothService.pairWithCode(pairingCodeInput.trim());
-                    if (res.success) {
-                      toast.success(res.message || 'Connected! Friend request sent');
-                      setPairingCodeInput('');
-                      await handleScanNearby();
-                    } else {
-                      toast.error(res.message || 'Failed to pair using code');
-                    }
-                  } catch (err: any) {
-                    console.error('Pairing submit error', err);
-                    toast.error(err.message || 'Failed to pair using code');
-                  } finally {
-                    setPairingSubmitting(false);
-                  }
-                }} disabled={pairingSubmitting} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4">
-                  {pairingSubmitting ? 'Checking...' : 'Connect'}
-                </Button>
               </div>
             </div>
           </div>
