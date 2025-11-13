@@ -42,21 +42,30 @@ export async function POST(request: NextRequest) {
         const verificationCode = generateCode();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Store code temporarily
-        if (!user.settings) {
-          user.settings = {};
-        }
-        user.settings.twoFactorCode = verificationCode;
-        user.settings.twoFactorCodeExpires = expiresAt;
+        // Store code in user document (new fields)
+        user.twoFactorCode = verificationCode;
+        user.twoFactorCodeExpires = expiresAt;
         
         await user.save();
 
+        // Determine where to send the code
+        let sendTo = user.email;
+        let sendMethod = "email";
+        
+        if (user.recoveryEmail) {
+          sendTo = user.recoveryEmail;
+          sendMethod = "recovery email";
+        } else if (user.phone) {
+          sendTo = user.phone;
+          sendMethod = "phone";
+        }
+
         // In production, send this via email/SMS
-        console.log(`2FA Code for ${user.email}: ${verificationCode}`);
+        console.log(`2FA Code for ${user.email} (sending to ${sendTo}): ${verificationCode}`);
 
         return NextResponse.json({
           success: true,
-          message: "Verification code sent to your email",
+          message: `Verification code sent to your ${sendMethod}${user.recoveryEmail ? ` (${user.recoveryEmail})` : user.phone ? ` (${user.phone})` : ''}`,
           // For development only - remove in production
           code: process.env.NODE_ENV === "development" ? verificationCode : undefined,
         });
@@ -70,7 +79,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (!user.settings?.twoFactorCode || !user.settings?.twoFactorCodeExpires) {
+        if (!user.twoFactorCode || !user.twoFactorCodeExpires) {
           return NextResponse.json(
             { success: false, error: "No verification code found. Please request a new one." },
             { status: 400 }
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if code expired
-        if (new Date() > new Date(user.settings.twoFactorCodeExpires)) {
+        if (new Date() > new Date(user.twoFactorCodeExpires)) {
           return NextResponse.json(
             { success: false, error: "Verification code has expired. Please request a new one." },
             { status: 400 }
@@ -86,7 +95,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if code matches
-        if (user.settings.twoFactorCode !== code) {
+        if (user.twoFactorCode !== code) {
           return NextResponse.json(
             { success: false, error: "Invalid verification code" },
             { status: 400 }
@@ -94,10 +103,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Enable 2FA
-        user.settings.twoFactorAuth = true;
+        user.twoFactorEnabled = true;
         // Clear the temporary code
-        delete user.settings.twoFactorCode;
-        delete user.settings.twoFactorCodeExpires;
+        user.twoFactorCode = undefined;
+        user.twoFactorCodeExpires = undefined;
         
         await user.save();
 
@@ -108,12 +117,10 @@ export async function POST(request: NextRequest) {
 
       case "disable":
         // Disable 2FA
-        if (user.settings) {
-          user.settings.twoFactorAuth = false;
-          // Clear any temporary codes
-          delete user.settings.twoFactorCode;
-          delete user.settings.twoFactorCodeExpires;
-        }
+        user.twoFactorEnabled = false;
+        // Clear any temporary codes
+        user.twoFactorCode = undefined;
+        user.twoFactorCodeExpires = undefined;
         
         await user.save();
 
@@ -151,7 +158,7 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
     
-    const user = await User.findOne({ email: session.user.email }).select('settings');
+    const user = await User.findOne({ email: session.user.email }).select('twoFactorEnabled');
     
     if (!user) {
       return NextResponse.json(
@@ -162,7 +169,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      enabled: user.settings?.twoFactorAuth || false,
+      enabled: user.twoFactorEnabled || false,
     });
   } catch (error) {
     console.error("Error checking 2FA status:", error);

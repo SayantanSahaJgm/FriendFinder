@@ -48,6 +48,15 @@ export default function SettingsPage() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [verificationCode, setVerificationCode] = useState(""); // For dev mode display
   const [is2FALoading, setIs2FALoading] = useState(false);
+  
+  // Change Password Dialog
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -68,6 +77,8 @@ export default function SettingsPage() {
     soundEnabled: true, // Hidden from UI but available for app functionality
     vibrationEnabled: true, // Hidden from UI but available for app functionality
     language: "English",
+    emailVisibleToFriends: false,
+    phoneVisibleToFriends: false,
   });
 
   // Load user settings when component mounts
@@ -78,6 +89,7 @@ export default function SettingsPage() {
         discoveryMode: user.isDiscoveryEnabled || false,
         discoveryRange: user.discoveryRange || 100,
         locationSharing: !!user.location,
+        twoFactorAuth: (user as any).twoFactorEnabled || false,
       }));
     }
   }, [user]);
@@ -139,6 +151,13 @@ export default function SettingsPage() {
         if (!result.success) {
           throw new Error(result.error || `Failed to update ${field}`);
         }
+      } else if (["phone", "recoveryEmail"].includes(field)) {
+        // Update user profile fields
+        const result = await updateUserProfile({ [field]: value });
+        if (!result.success) {
+          throw new Error(result.error || `Failed to update ${field}`);
+        }
+        await refreshUser();
       } else {
         // Call API to update setting in database
         const response = await fetch('/api/settings/update', {
@@ -385,6 +404,75 @@ export default function SettingsPage() {
     setVerificationCode('');
   };
 
+  // Change Password handlers
+  const handlePasswordChange = async () => {
+    if (!passwordData.oldPassword || !passwordData.newPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    setIsPasswordLoading(true);
+    try {
+      const response = await fetch('/api/account/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast.success(result.message || 'Password changed successfully');
+        setShowPasswordDialog(false);
+        setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        toast.error(result.error || 'Failed to change password');
+      }
+    } catch (error) {
+      toast.error('Failed to change password');
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
+  const handleDownloadData = async () => {
+    try {
+      toast.info('Preparing your data export...');
+      const response = await fetch('/api/account/download-data');
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to download data');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `friendfinder-data-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Data downloaded successfully!');
+    } catch (error: any) {
+      console.error('Error downloading data:', error);
+      toast.error(error.message || 'Failed to download data');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
@@ -440,6 +528,69 @@ export default function SettingsPage() {
                   disabled={is2FALoading || twoFactorCode.length !== 6}
                 >
                   {is2FALoading ? 'Verifying...' : 'Verify & Enable'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Change Password Dialog */}
+      {showPasswordDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="old-password">Current Password</Label>
+                <Input
+                  id="old-password"
+                  type="password"
+                  placeholder="Enter current password"
+                  value={passwordData.oldPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password (min 6 characters)"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Re-enter new password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => {
+                    setShowPasswordDialog(false);
+                    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                  disabled={isPasswordLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handlePasswordChange}
+                  className="flex-1"
+                  disabled={isPasswordLoading || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                >
+                  {isPasswordLoading ? 'Changing...' : 'Change Password'}
                 </Button>
               </div>
             </CardContent>
@@ -780,6 +931,183 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Privacy Settings - Phone and Email */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Eye className="h-5 w-5" />
+                <span>Contact Privacy</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                {editingField === "phone" ? (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <Input
+                      type="tel"
+                      value={tempValues.phone || ""}
+                      onChange={(e) =>
+                        setTempValues((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      placeholder="+1234567890"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleFieldSave("phone")}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <RefreshCw className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Save className="h-3 w-3" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleFieldCancel("phone")}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {user?.phone || "Not set"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingField("phone");
+                        setTempValues({ ...tempValues, phone: user?.phone || "" });
+                      }}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Phone number for account recovery and 2FA
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="recoveryEmail">Recovery Email</Label>
+                {editingField === "recoveryEmail" ? (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <Input
+                      type="email"
+                      value={tempValues.recoveryEmail || ""}
+                      onChange={(e) =>
+                        setTempValues((prev) => ({
+                          ...prev,
+                          recoveryEmail: e.target.value,
+                        }))
+                      }
+                      placeholder="recovery@example.com"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleFieldSave("recoveryEmail")}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <RefreshCw className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Save className="h-3 w-3" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleFieldCancel("recoveryEmail")}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {user?.recoveryEmail || "Not set"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingField("recoveryEmail");
+                        setTempValues({ ...tempValues, recoveryEmail: (user as any)?.recoveryEmail || "" });
+                      }}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Alternative email for account recovery
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Show Email to Friends</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Let your friends see your email address
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={settings.emailVisibleToFriends || false}
+                    onCheckedChange={() => handleToggle("emailVisibleToFriends")}
+                    disabled={isLoading}
+                  />
+                  <Badge
+                    variant={settings.emailVisibleToFriends ? "default" : "secondary"}
+                    className={
+                      settings.emailVisibleToFriends
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }
+                  >
+                    {settings.emailVisibleToFriends ? "Visible" : "Hidden"}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Show Phone to Friends</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Let your friends see your phone number
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={settings.phoneVisibleToFriends || false}
+                    onCheckedChange={() => handleToggle("phoneVisibleToFriends")}
+                    disabled={isLoading}
+                  />
+                  <Badge
+                    variant={settings.phoneVisibleToFriends ? "default" : "secondary"}
+                    className={
+                      settings.phoneVisibleToFriends
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }
+                  >
+                    {settings.phoneVisibleToFriends ? "Visible" : "Hidden"}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Discovery Settings */}
           <Card>
             <CardHeader>
@@ -951,9 +1279,7 @@ export default function SettingsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() =>
-                    toast.info("Password change functionality coming soon!")
-                  }
+                  onClick={() => setShowPasswordDialog(true)}
                 >
                   Change
                 </Button>
@@ -969,10 +1295,7 @@ export default function SettingsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    toast.info("Preparing data export...");
-                    // TODO: Implement data export functionality
-                  }}
+                  onClick={handleDownloadData}
                 >
                   Download
                 </Button>

@@ -50,6 +50,15 @@ export interface IUser extends Document {
   passwordResetToken?: string;
   passwordResetExpires?: Date;
 
+  // Two-Factor Authentication
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
+  twoFactorCode?: string;
+  twoFactorCodeExpires?: Date;
+  recoveryEmail?: string;
+  phone?: string;
+  phoneVerified?: boolean;
+
   // Social connections
   friends: mongoose.Types.ObjectId[];
   friendRequests: IFriendRequest[];
@@ -258,6 +267,38 @@ const UserSchema = new Schema<IUser>({
   passwordResetExpires: {
     type: Date,
     select: false,
+  },
+  // Two-Factor Authentication fields
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  twoFactorSecret: {
+    type: String,
+    select: false,
+  },
+  twoFactorCode: {
+    type: String,
+    select: false,
+    index: true,
+  },
+  twoFactorCodeExpires: {
+    type: Date,
+    select: false,
+  },
+  recoveryEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false,
   },
   bio: {
     type: String,
