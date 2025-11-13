@@ -26,8 +26,10 @@ import {
   X,
   RefreshCw,
   Edit,
+  LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import { signOut } from "next-auth/react";
 
 export default function SettingsPage() {
   const { user, refreshUser, updateUserProfile, updateDiscoverySettings } =
@@ -927,6 +929,30 @@ export default function SettingsPage() {
                     )}
                   </Button>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Sign Out</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Log out of your account on this device
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const confirm = window.confirm("Are you sure you want to sign out?");
+                    if (confirm) {
+                      toast.info("Signing out...");
+                      await signOut({ callbackUrl: "/" });
+                    }
+                  }}
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
               </div>
             </CardContent>
           </Card>
