@@ -255,7 +255,7 @@ export function useSocket() {
     // Determine a production-friendly health URL:
     // 1. NEXT_PUBLIC_SOCKET_HEALTH_URL (explicit)
     // 2. derive from socketUrl (e.g. https://host -> https://host/health)
-    // 3. fallback to localhost:(socketPort+1)/health (dev)
+    // 3. fallback to localhost health endpoint (dev)
     const explicitHealth = process.env.NEXT_PUBLIC_SOCKET_HEALTH_URL
     let healthUrl = ''
     if (explicitHealth) {
@@ -265,7 +265,9 @@ export function useSocket() {
         const u = new URL(socketUrl)
         healthUrl = `${u.origin.replace(/\/$/, '')}/health`
       } catch (e) {
-        const healthPort = parseInt(socketPort) + 1
+        // Fallback for development
+        const defaultSocketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || '3004'
+        const healthPort = parseInt(defaultSocketPort) + 1
         healthUrl = `http://localhost:${healthPort}/health`
       }
     }
@@ -280,7 +282,7 @@ export function useSocket() {
         // Silently handle health check errors to avoid console spam
       }
     }, 30000) // Check every 30 seconds
-  }, [socketPort])
+  }, [socketUrl])
 
   const stopHealthCheck = useCallback(() => {
     if (healthCheckIntervalRef.current) {
