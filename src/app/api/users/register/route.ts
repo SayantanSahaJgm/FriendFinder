@@ -22,11 +22,21 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await dbConnect();
 
-    // Check if user already exists
+    // Check if user already exists (excluding soft-deleted accounts)
     const existingUser = await User.findOne({
-      $or: [
-        { email: validatedData.email },
-        { username: validatedData.username },
+      $and: [
+        {
+          $or: [
+            { email: validatedData.email },
+            { username: validatedData.username },
+          ],
+        },
+        {
+          $or: [
+            { isDeleted: { $exists: false } },
+            { isDeleted: false },
+          ],
+        },
       ],
     });
 

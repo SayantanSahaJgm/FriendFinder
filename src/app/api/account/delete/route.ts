@@ -47,16 +47,58 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Set soft delete flags
-    const deletionDate = new Date();
-    const scheduledDeletion = new Date(deletionDate.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    // PERMANENT DELETION - Remove all user data from MongoDB
+    console.log(`Permanently deleting user: ${userId}`);
 
-    user.isDeleted = true;
-    user.deletedAt = deletionDate;
-    user.scheduledDeletionDate = scheduledDeletion;
-    await user.save();
+    // 1. Delete all messages sent by this user
+    await Message.deleteMany({ senderId: userObjectId });
 
-    // Invalidate all sessions for this user
+    // 2. Delete all messages received by this user
+    await Message.deleteMany({ receiverId: userObjectId });
+
+    // 3. Delete all posts created by this user
+    await Post.deleteMany({ userId: userObjectId });
+
+    // 4. Remove likes from this user on other posts
+    await Post.updateMany(
+      { likes: userObjectId },
+      { $pull: { likes: userObjectId } }
+    );
+
+    // 5. Delete comments by this user
+    await Post.updateMany(
+      { 'comments.userId': userObjectId },
+      { $pull: { comments: { userId: userObjectId } } }
+    );
+
+    // 6. Delete all reports by this user
+    await Report.deleteMany({ reporterId: userObjectId });
+
+    // 7. Delete all reports about this user
+    await Report.deleteMany({ reportedUserId: userObjectId });
+
+    // 8. Remove this user from all friend lists
+    await User.updateMany(
+      { friends: userObjectId },
+      { $pull: { friends: userObjectId } }
+    );
+
+    // 9. Remove this user from all friend requests
+    await User.updateMany(
+      { friendRequests: userObjectId },
+      { $pull: { friendRequests: userObjectId } }
+    );
+
+    // 10. Remove this user from all sent requests
+    await User.updateMany(
+      { sentRequests: userObjectId },
+      { $pull: { sentRequests: userObjectId } }
+    );
+
+    // 11. Delete the user account permanently
+    await User.findByIdAndDelete(userObjectId);
+
+    // 12. Invalidate all sessions for this user
     try {
       const conn = mongoose.connection;
       if (conn && conn.collection) {
@@ -66,11 +108,11 @@ export async function DELETE(request: NextRequest) {
       console.warn('Could not remove next-auth sessions from DB:', err);
     }
 
+    console.log(`Successfully deleted user ${userId} and all associated data`);
+
     return NextResponse.json({
       success: true,
-      message: 'Account scheduled for deletion. You have 30 days to recover your account.',
-      scheduledDeletionDate: scheduledDeletion.toISOString(),
-      daysRemaining: 30,
+      message: 'Account and all associated data have been permanently deleted.',
     });
   } catch (error) {
     console.error('Error deleting account:', error);

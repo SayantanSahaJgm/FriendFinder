@@ -120,8 +120,18 @@ export const authOptions: NextAuthOptions = {
         try {
           await dbConnect();
           
-          // Check if user exists
-          let existingUser = await User.findOne({ email: user.email });
+          // Check if user exists (excluding soft-deleted accounts)
+          let existingUser = await User.findOne({ 
+            email: user.email,
+            $and: [
+              {
+                $or: [
+                  { isDeleted: { $exists: false } },
+                  { isDeleted: false },
+                ],
+              },
+            ],
+          });
           
           if (!existingUser) {
             // Create new user from Google account
@@ -138,15 +148,8 @@ export const authOptions: NextAuthOptions = {
               sentRequests: [],
               isEmailVerified: true, // Google accounts are pre-verified
             });
-          } else {
-            // Check if existing user's account is deleted
-            if (existingUser.isDeleted) {
-              if (existingUser.scheduledDeletionDate && new Date() > existingUser.scheduledDeletionDate) {
-                throw new Error('Account has been permanently deleted');
-              }
-              throw new Error('Account is scheduled for deletion');
-            }
           }
+          // If user exists and is not deleted, proceed with sign-in
 
           token.userId = (existingUser._id as string).toString();
           token.username = existingUser.username;
