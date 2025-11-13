@@ -11,6 +11,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import WifiManager from "@/components/WifiManager";
 import BottomNav from "@/components/BottomNav";
 import VideoCameraIcon from "@/components/icons/VideoCameraIcon";
+import { useUnreadCounts } from "@/hooks/useUnreadCounts";
 import {
   Users,
   MessageCircle,
@@ -60,6 +61,9 @@ export default function DashboardLayout({
   const displayName = user?.username || session?.user?.name || "User";
   const userEmail = user?.email || session?.user?.email;
   const userImage = session?.user?.image;
+
+  // Use unread counts hook
+  const { unreadMessages, unreadNotifications } = useUnreadCounts();
 
   // Safe avatar initials calculation
   const getInitials = (name: string | undefined | null): string => {
@@ -211,10 +215,12 @@ export default function DashboardLayout({
                 className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <MessageCircle className="w-6 h-6" />
-                {/* Badge - replace with actual unread count */}
-                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-                  2
-                </span>
+                {/* Dynamic unread count badge */}
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
               </Link>
 
               {/* Notifications */}
