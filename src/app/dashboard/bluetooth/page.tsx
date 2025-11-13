@@ -317,17 +317,17 @@ export default function BluetoothPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 fade-in pb-24">
+    <div className="min-h-screen bg-white dark:bg-gray-900 fade-in pb-24">
       {/* Modern Gradient Header */}
-      <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 dark:from-indigo-600 dark:via-purple-700 dark:to-indigo-800 text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 rounded-b-[28px] shadow-lg">
+      <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-xl rounded-2xl">
-              <Bluetooth className="h-6 w-6 sm:h-8 sm:w-8" />
+            <div className="p-2.5 sm:p-3 bg-blue-100 dark:bg-blue-900 rounded-2xl">
+              <Bluetooth className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-300" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">Bluetooth Discovery</h1>
-              <p className="text-indigo-100 dark:text-indigo-200 text-xs sm:text-sm mt-1">
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mt-1">
                 Connect with people nearby
               </p>
             </div>
@@ -344,7 +344,7 @@ export default function BluetoothPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
               {bluetoothEnabled ? (
-                <div className="p-2 sm:p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-glow">
+                <div className="p-2 sm:p-3 bg-blue-600 rounded-2xl">
                   <Bluetooth className="h-5 w-5 sm:h-6 sm:w-6 text-white animate-pulse-slow" />
                 </div>
               ) : (
@@ -366,8 +366,8 @@ export default function BluetoothPage() {
           </div>
           {/* Status Indicators */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${isAvailable ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'}`}>
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
+              <div className={`p-1.5 sm:p-2.5 rounded-xl ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}>
                 <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="text-center">
@@ -378,8 +378,8 @@ export default function BluetoothPage() {
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${hasPermission ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-yellow-400 to-yellow-500'}`}>
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
+              <div className={`p-1.5 sm:p-2.5 rounded-xl ${hasPermission ? 'bg-green-500' : 'bg-yellow-500'}`}>
                 <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="text-center">
@@ -390,8 +390,8 @@ export default function BluetoothPage() {
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-sm">
-              <div className={`p-1.5 sm:p-2.5 rounded-xl ${bluetoothEnabled ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-gray-300 to-gray-400'}`}>
+            <div className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-sm">
+              <div className={`p-1.5 sm:p-2.5 rounded-xl ${bluetoothEnabled ? 'bg-blue-500' : 'bg-gray-400'}`}>
                 <Waves className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div className="text-center">
@@ -434,13 +434,13 @@ export default function BluetoothPage() {
                   } finally {
                     setGeneratingCode(false);
                   }
-                }} disabled={generatingCode} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-xs sm:text-sm px-2 sm:px-4">
+                }} disabled={generatingCode} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4">
                   {generatingCode ? 'Generating...' : 'Generate'}
                 </Button>
               </div>
 
               {generatedCode && (
-                <div className="mt-2 sm:mt-3 p-3 sm:p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+                <div className="mt-2 sm:mt-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                   <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">Your pairing code</p>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                     <div className="text-2xl sm:text-3xl font-mono font-bold tracking-widest bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm text-indigo-600">
@@ -484,7 +484,7 @@ export default function BluetoothPage() {
                   } finally {
                     setPairingSubmitting(false);
                   }
-                }} disabled={pairingSubmitting} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-xs sm:text-sm px-2 sm:px-4">
+                }} disabled={pairingSubmitting} className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm px-2 sm:px-4">
                   {pairingSubmitting ? 'Checking...' : 'Connect'}
                 </Button>
               </div>
@@ -496,7 +496,7 @@ export default function BluetoothPage() {
             {!bluetoothEnabled ? (
               <Button 
                 onClick={handleEnableBluetooth}
-                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-glow text-white border-0"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
                 size="lg"
                 disabled={isLoadingUsers}
               >
@@ -535,7 +535,7 @@ export default function BluetoothPage() {
                 </Button>
                 <Button 
                   onClick={handleScanNearby}
-                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-glow text-white border-0"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
                   size="lg"
                   disabled={isLoadingUsers}
                 >
@@ -556,8 +556,8 @@ export default function BluetoothPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex-shrink-0">
+          <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
+            <div className="p-1.5 sm:p-2 bg-blue-600 rounded-xl flex-shrink-0">
               <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
             </div>
             <div className="text-xs sm:text-sm text-gray-700 min-w-0">
