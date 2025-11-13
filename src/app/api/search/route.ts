@@ -1,107 +1,168 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/mongodb";
+import User from "@/models/User";
+import mongoose from "mongoose";
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ ok: false, results: [], error: "Unauthorized" }, { status: 401 });
+    }
+
+    await dbConnect();
+
     const url = new URL(request.url);
     const q = url.searchParams.get("q") || "";
+    const type = url.searchParams.get("type") || "all"; // all, users, hashtags, posts
+    const limit = parseInt(url.searchParams.get("limit") || "20");
 
-    // Enhanced demo data with more realistic user profiles
-    const demo = [
-      { 
-        id: "u1", 
-        username: "alex_johnson", 
-        name: "Alex Johnson",
-        avatar: "https://i.pravatar.cc/150?img=12",
-        bio: "Travel enthusiast • Photographer 📸",
-        isFollowing: false,
-        mutual: 3,
-        location: "New York, USA"
-      },
-      { 
-        id: "u2", 
-        username: "maya_patel", 
-        name: "Maya Patel",
-        avatar: "https://i.pravatar.cc/150?img=45",
-        bio: "Software Engineer @ Tech Co",
-        isFollowing: true,
-        mutual: 8,
-        location: "San Francisco, CA"
-      },
-      { 
-        id: "u3", 
-        username: "sam_lee", 
-        name: "Sam Lee",
-        avatar: "https://i.pravatar.cc/150?img=33",
-        bio: "Food blogger 🍕 | Coffee lover ☕",
-        isFollowing: false,
-        mutual: 0,
-        location: "Seoul, South Korea"
-      },
-      { 
-        id: "u4", 
-        username: "sarah_wilson", 
-        name: "Sarah Wilson",
-        avatar: "https://i.pravatar.cc/150?img=47",
-        bio: "Digital Artist • Designer 🎨",
-        isFollowing: false,
-        mutual: 5,
-        location: "London, UK"
-      },
-      { 
-        id: "u5", 
-        username: "mike_chen", 
-        name: "Mike Chen",
-        avatar: "https://i.pravatar.cc/150?img=15",
-        bio: "Fitness coach | Motivational speaker",
-        isFollowing: true,
-        mutual: 12,
-        location: "Los Angeles, CA"
-      },
-      { 
-        id: "u6", 
-        username: "emma_rodriguez", 
-        name: "Emma Rodriguez",
-        avatar: "https://i.pravatar.cc/150?img=48",
-        bio: "Fashion blogger • Style influencer 👗",
-        isFollowing: false,
-        mutual: 2,
-        location: "Miami, FL"
-      },
-      { 
-        id: "u7", 
-        username: "david_kim", 
-        name: "David Kim",
-        avatar: "https://i.pravatar.cc/150?img=60",
-        bio: "Gaming streamer 🎮 | Tech reviewer",
-        isFollowing: false,
-        mutual: 0,
-        location: "Tokyo, Japan"
-      },
-      { 
-        id: "u8", 
-        username: "olivia_brown", 
-        name: "Olivia Brown",
-        avatar: "https://i.pravatar.cc/150?img=44",
-        bio: "Yoga instructor 🧘‍♀️ | Wellness coach",
-        isFollowing: true,
-        mutual: 6,
-        location: "Austin, TX"
-      },
-    ];
+    if (!q || q.trim().length < 1) {
+      return NextResponse.json({ ok: true, results: [], hashtags: [], posts: [] });
+    }
 
-    // Filter results based on search query
-    const results = q
-      ? demo.filter((d) => 
-          d.username.toLowerCase().includes(q.toLowerCase()) || 
-          (d.name || "").toLowerCase().includes(q.toLowerCase()) ||
-          (d.bio || "").toLowerCase().includes(q.toLowerCase()) ||
-          (d.location || "").toLowerCase().includes(q.toLowerCase())
-        )
-      : [];
+    const currentUser = await User.findOne({ email: session.user.email }).select("_id friends friendRequests sentRequests");
+    if (!currentUser) {
+      return NextResponse.json({ ok: false, results: [], error: "User not found" }, { status: 404 });
+    }
 
-    return NextResponse.json({ ok: true, results });
+    const results: any = {
+      users: [],
+      hashtags: [],
+      posts: []
+    };
+
+    // Search for users
+    if (type === "all" || type === "users") {
+      const searchRegex = new RegExp(q.trim(), "i");
+      
+      const users = await User.find({
+        _id: { $ne: currentUser._id }, // Exclude current user
+        $or: [
+          { username: searchRegex },
+          { name: searchRegex },
+          { email: searchRegex },
+          { bio: searchRegex },
+          { interests: { $in: [searchRegex] } }
+        ]
+      })
+      .select("_id username name email profilePicture bio interests isOnline lastSeen friends")
+      .limit(limit)
+      .lean();
+
+      // Calculate mutual friends and relationship status
+      results.users = users.map((user: any) => {
+        const userId = user._id.toString();
+        const isFriend = currentUser.friends.some((f: any) => f.toString() === userId);
+        
+        // Check if there's a pending request
+        const hasPendingRequestTo = currentUser.sentRequests?.some(
+          (req: any) => req.to?.toString() === userId && req.status === 'pending'
+        ) || false;
+        
+        const hasPendingRequestFrom = currentUser.friendRequests?.some(
+          (req: any) => req.from?.toString() === userId && req.status === 'pending'
+        ) || false;
+
+        // Calculate mutual friends
+        const mutualFriends = currentUser.friends.filter((f: any) => 
+          user.friends?.some((uf: any) => uf.toString() === f.toString())
+        ).length;
+
+        return {
+          id: user._id.toString(),
+          username: user.username,
+          name: user.name || user.username,
+          avatar: user.profilePicture,
+          bio: user.bio,
+          interests: user.interests || [],
+          isOnline: user.isOnline,
+          lastSeen: user.lastSeen,
+          isFriend,
+          hasPendingRequestTo,
+          hasPendingRequestFrom,
+          mutual: mutualFriends
+        };
+      });
+    }
+
+    // Search for hashtags (extract from users' bios and interests)
+    if (type === "all" || type === "hashtags") {
+      const hashtagRegex = new RegExp(`^${q.trim().replace(/^#/, "")}`, "i");
+      
+      // Get unique hashtags from user interests
+      const usersWithHashtags = await User.find({
+        interests: hashtagRegex
+      })
+      .select("interests")
+      .limit(50)
+      .lean();
+
+      const hashtagCounts = new Map<string, number>();
+      
+      usersWithHashtags.forEach((user: any) => {
+        user.interests?.forEach((tag: string) => {
+          if (hashtagRegex.test(tag)) {
+            const normalizedTag = tag.toLowerCase();
+            hashtagCounts.set(normalizedTag, (hashtagCounts.get(normalizedTag) || 0) + 1);
+          }
+        });
+      });
+
+      // Also search in bios for hashtags
+      const biosWithHashtags = await User.find({
+        bio: new RegExp(`#${q.trim().replace(/^#/, "")}`, "i")
+      })
+      .select("bio")
+      .limit(50)
+      .lean();
+
+      biosWithHashtags.forEach((user: any) => {
+        const bioHashtags = user.bio?.match(/#[\w]+/g) || [];
+        bioHashtags.forEach((tag: string) => {
+          const cleanTag = tag.substring(1).toLowerCase();
+          if (hashtagRegex.test(cleanTag)) {
+            hashtagCounts.set(cleanTag, (hashtagCounts.get(cleanTag) || 0) + 1);
+          }
+        });
+      });
+
+      results.hashtags = Array.from(hashtagCounts.entries())
+        .map(([tag, count]) => ({ tag: `#${tag}`, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+    }
+
+    // For posts search - placeholder for future implementation
+    if (type === "all" || type === "posts") {
+      // TODO: Implement posts search when Post model is created
+      results.posts = [];
+    }
+
+    // Return combined results based on type
+    if (type === "all") {
+      return NextResponse.json({ 
+        ok: true, 
+        results: results.users,
+        hashtags: results.hashtags,
+        posts: results.posts
+      });
+    } else if (type === "users") {
+      return NextResponse.json({ ok: true, results: results.users });
+    } else if (type === "hashtags") {
+      return NextResponse.json({ ok: true, hashtags: results.hashtags });
+    } else {
+      return NextResponse.json({ ok: true, posts: results.posts });
+    }
+
   } catch (err) {
     console.error("/api/search error", err);
-    return NextResponse.json({ ok: false, results: [] }, { status: 500 });
+    return NextResponse.json({ 
+      ok: false, 
+      results: [], 
+      error: err instanceof Error ? err.message : "Search failed" 
+    }, { status: 500 });
   }
 }

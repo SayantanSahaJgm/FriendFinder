@@ -1,11 +1,27 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { Search as SearchIcon, UserPlus, Hash, Clock, Loader2, X } from "lucide-react";
+import { Search as SearchIcon, UserPlus, Hash, Clock, Loader2, X, TrendingUp, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-type Result = { id: string; username: string; name?: string; avatar?: string; isFollowing?: boolean; mutual?: number };
+type Result = { 
+  id: string; 
+  username: string; 
+  name?: string; 
+  avatar?: string; 
+  bio?: string;
+  interests?: string[];
+  isOnline?: boolean;
+  isFriend?: boolean; 
+  hasPendingRequestTo?: boolean;
+  hasPendingRequestFrom?: boolean;
+  mutual?: number 
+};
+
+type Hashtag = { tag: string; count: number };
 
 function useDebounce<T>(value: T, delay = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -22,9 +38,10 @@ export default function SearchPage() {
   const debouncedQuery = useDebounce(query, 300);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
+  const [hashtags, setHashtags] = useState<Hashtag[]>([]);
   const [recent, setRecent] = useState<Result[]>([]);
   const [showRecent, setShowRecent] = useState(true);
-  const [activeTab, setActiveTab] = useState<"users" | "posts" | "tags">("users");
+  const [activeTab, setActiveTab] = useState<"all" | "users" | "hashtags">("all");
 
   useEffect(() => {
     try {
@@ -39,34 +56,41 @@ export default function SearchPage() {
     const doSearch = async () => {
       if (!debouncedQuery || debouncedQuery.trim().length < 1) {
         setResults([]);
+        setHashtags([]);
         setLoading(false);
+        setShowRecent(true);
         return;
       }
 
       setLoading(true);
+      setShowRecent(false);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
-        if (!res.ok) throw new Error("Search failed");
+        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}&type=${activeTab}`);
+        if (!res.ok) {
+          throw new Error("Search failed");
+        }
         const data = await res.json();
-        const mapped: Result[] = (data.results || []).map((r: any) => ({
-          id: r.id || r._id || r.username,
-          username: r.username || r.name || "unknown",
-          name: r.name,
-          avatar: r.avatar || undefined,
-          isFollowing: r.isFollowing || false,
-          mutual: r.mutual || 0,
-        }));
-        setResults(mapped);
+        
+        if (data.ok) {
+          setResults(data.results || []);
+          setHashtags(data.hashtags || []);
+        } else {
+          toast.error(data.error || "Search failed");
+          setResults([]);
+          setHashtags([]);
+        }
       } catch (err) {
         console.error(err);
+        toast.error("Failed to search. Please try again.");
         setResults([]);
+        setHashtags([]);
       } finally {
         setLoading(false);
       }
     };
 
     doSearch();
-  }, [debouncedQuery]);
+  }, [debouncedQuery, activeTab]);
 
   const saveRecent = (r: Result) => {
     try {
@@ -87,12 +111,21 @@ export default function SearchPage() {
 
   const suggestionItems = useMemo(
     () => [
-      { key: "users", label: "People", icon: <UserPlus className="w-4 h-4" /> },
-      { key: "tags", label: "Tags", icon: <Hash className="w-4 h-4" /> },
-      { key: "recent", label: "Recent", icon: <Clock className="w-4 h-4" /> },
+      { key: "all", label: "All", icon: <SearchIcon className="w-4 h-4" /> },
+      { key: "users", label: "People", icon: <Users className="w-4 h-4" /> },
+      { key: "hashtags", label: "Tags", icon: <Hash className="w-4 h-4" /> },
     ],
     []
   );
+
+  const handleTabClick = (key: string) => {
+    setActiveTab(key as "all" | "users" | "hashtags");
+  };
+
+  const handleHashtagClick = (tag: string) => {
+    setQuery(tag);
+    setActiveTab("users");
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -134,10 +167,18 @@ export default function SearchPage() {
 
         <div className="mb-4 flex items-center gap-3">
           {suggestionItems.map((s) => (
-            <div key={s.key} className="flex items-center gap-2 bg-card border rounded-lg px-3 py-2 text-sm cursor-default">
-              <div className="text-primary">{s.icon}</div>
+            <button
+              key={s.key}
+              onClick={() => handleTabClick(s.key)}
+              className={`flex items-center gap-2 border rounded-lg px-3 py-2 text-sm cursor-pointer transition-colors ${
+                activeTab === s.key
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card border-border hover:bg-muted'
+              }`}
+            >
+              <div>{s.icon}</div>
               <div className="font-medium">{s.label}</div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -154,62 +195,129 @@ export default function SearchPage() {
                 </div>
               ))}
             </div>
-          ) : results.length === 0 && debouncedQuery ? (
-            <div className="p-6 bg-card rounded text-center text-sm text-muted-foreground">
-              No results for <strong className="text-foreground">{debouncedQuery}</strong>
-            </div>
-          ) : results.length === 0 ? (
+          ) : showRecent && results.length === 0 && !debouncedQuery ? (
             <div>
               {recent.length > 0 ? (
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Recent searches</h3>
+                  <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Recent searches
+                  </h3>
                   <div className="space-y-2">
                     {recent.map((r) => (
-                      <button key={r.id} onClick={() => onSelect(r)} className="flex items-center gap-3 w-full p-3 bg-card rounded hover:bg-gray-50">
+                      <button key={r.id} onClick={() => onSelect(r)} className="flex items-center gap-3 w-full p-3 bg-card rounded hover:bg-muted transition-colors">
                         <Avatar className="w-10 h-10">
                           {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>}
                         </Avatar>
-                        <div className="text-left">
+                        <div className="text-left flex-1">
                           <div className="font-medium">{r.username}</div>
                           {r.name && <div className="text-xs text-muted-foreground">{r.name}</div>}
                         </div>
-                        <div className="ml-auto text-sm text-primary">View</div>
+                        <div className="text-sm text-primary">View</div>
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
                 <div className="p-6 bg-card rounded text-center">
+                  <SearchIcon className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                   <div className="text-sm text-muted-foreground mb-2">Try searching for people or hashtags</div>
-                  <div className="flex items-center justify-center gap-3">
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
                     <div className="text-xs px-3 py-2 bg-muted rounded">@username</div>
                     <div className="text-xs px-3 py-2 bg-muted rounded">#travel</div>
-                    <div className="text-xs px-3 py-2 bg-muted rounded">beach</div>
+                    <div className="text-xs px-3 py-2 bg-muted rounded">#photography</div>
                   </div>
                 </div>
               )}
             </div>
+          ) : results.length === 0 && hashtags.length === 0 && debouncedQuery ? (
+            <div className="p-6 bg-card rounded text-center text-sm text-muted-foreground">
+              No results for <strong className="text-foreground">{debouncedQuery}</strong>
+            </div>
           ) : (
-            <div className="space-y-2">
-              {results.map((r) => (
-                <div key={r.id} className="flex items-center gap-3 p-3 bg-card rounded hover:bg-gray-50">
-                  <Avatar className="w-12 h-12">
-                    {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>}
-                  </Avatar>
-                  <div className="flex-1 text-left">
-                    <div className="font-medium">{r.username}</div>
-                    {r.name && <div className="text-sm text-muted-foreground">{r.name}</div>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onSelect(r)}
-                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium"
-                    >
-                      View
-                    </button>
+            <div className="space-y-4">
+              {/* Hashtags section */}
+              {hashtags.length > 0 && (activeTab === "all" || activeTab === "hashtags") && (
+                <div>
+                  <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    Hashtags
+                  </h3>
+                  <div className="space-y-2">
+                    {hashtags.map((h) => (
+                      <button
+                        key={h.tag}
+                        onClick={() => handleHashtagClick(h.tag)}
+                        className="flex items-center justify-between w-full p-3 bg-card rounded hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Hash className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium">{h.tag}</div>
+                            <div className="text-xs text-muted-foreground">{h.count} {h.count === 1 ? 'user' : 'users'}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Users section */}
+              {results.length > 0 && (activeTab === "all" || activeTab === "users") && (
+                <div>
+                  {hashtags.length > 0 && activeTab === "all" && (
+                    <h3 className="text-sm font-medium mb-2 flex items-center gap-2 mt-4">
+                      <Users className="w-4 h-4" />
+                      People
+                    </h3>
+                  )}
+                  <div className="space-y-2">
+                    {results.map((r) => (
+                      <div key={r.id} className="flex items-center gap-3 p-3 bg-card rounded hover:bg-muted transition-colors">
+                        <Avatar className="w-12 h-12">
+                          {r.avatar ? <AvatarImage src={r.avatar} alt={r.username} /> : <AvatarFallback>{r.username?.charAt(0).toUpperCase() || "?"}</AvatarFallback>}
+                        </Avatar>
+                        <div className="flex-1 text-left">
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium">{r.username}</div>
+                            {r.isOnline && <div className="w-2 h-2 bg-green-500 rounded-full" />}
+                          </div>
+                          {r.name && r.name !== r.username && <div className="text-sm text-muted-foreground">{r.name}</div>}
+                          {r.bio && <div className="text-xs text-muted-foreground mt-1 line-clamp-1">{r.bio}</div>}
+                          {r.mutual ? (
+                            <div className="text-xs text-muted-foreground mt-1">{r.mutual} mutual {r.mutual === 1 ? 'friend' : 'friends'}</div>
+                          ) : null}
+                          {r.interests && r.interests.length > 0 && (
+                            <div className="flex gap-1 mt-2">
+                              {r.interests.slice(0, 3).map((interest, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">{interest}</Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {r.isFriend ? (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700">Friends</Badge>
+                          ) : r.hasPendingRequestTo ? (
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">Pending</Badge>
+                          ) : r.hasPendingRequestFrom ? (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700">Respond</Badge>
+                          ) : null}
+                          <button
+                            onClick={() => onSelect(r)}
+                            className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
