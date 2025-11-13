@@ -58,7 +58,7 @@ export default function NearbyBubbleView({ users, onConnect, onRescan }: Props) 
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="relative w-full h-[320px] flex items-center justify-center">
+      <div className="relative w-full max-w-2xl h-[320px] flex items-center justify-center mx-auto">
         {/* center user */}
         <div className="z-20 flex flex-col items-center">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-glow text-white animate-pulse-slow">

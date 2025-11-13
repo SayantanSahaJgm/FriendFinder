@@ -5,7 +5,7 @@ import { wifiService } from "@/services/wifiService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wifi, RefreshCw, Copy, Clock, Network } from "lucide-react";
+import { Key, RefreshCw, Copy, Clock, Network, Hash } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -52,7 +52,8 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
   const handleGenerateCode = async () => {
     try {
       setIsGenerating(true);
-      const result = await wifiService.generatePairingCode(networkName.trim());
+      // Generate code without network name - just use empty string
+      const result = await wifiService.generatePairingCode('');
       setGeneratedCode(result.pairingCode);
       setCodeExpires(new Date(result.expiresAt));
       toast.success("Pairing code generated!");
@@ -100,7 +101,7 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
     <Card className="border-0 shadow-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
-          <Wifi className="h-5 w-5 text-blue-600" />
+          <Key className="h-5 w-5 text-blue-600" />
           <span>Code Connection</span>
         </CardTitle>
       </CardHeader>
@@ -126,7 +127,7 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                   </>
                 ) : (
                   <>
-                    <Wifi className="h-4 w-4 mr-2" />
+                    <Key className="h-4 w-4 mr-2" />
                     Generate Pairing Code
                   </>
                 )}
@@ -210,7 +211,7 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
               </>
             ) : (
               <>
-                <Wifi className="h-4 w-4 mr-2" />
+                <Key className="h-4 w-4 mr-2" />
                 Connect with Code
               </>
             )}

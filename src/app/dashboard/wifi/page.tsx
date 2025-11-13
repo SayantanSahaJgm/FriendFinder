@@ -136,7 +136,7 @@ export default function WiFiPage() {
         <Card className="p-6 bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl">
           <div className="flex flex-col items-center">
             {nearbyUsers.length > 0 ? (
-              <div className="relative mb-6 w-full h-[320px] flex items-center justify-center">
+              <div className="relative mb-6 w-full max-w-2xl h-[320px] flex items-center justify-center mx-auto">
                 {/* Center user - show user's profile picture in circle */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-20 animate-pulse-slow"></div>
                 <button 
