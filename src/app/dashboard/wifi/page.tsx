@@ -102,24 +102,6 @@ export default function WiFiPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        {/* User Profile Modal (opened when orbit/list avatar clicked) */}
-        {selectedUser && (
-          <UserProfileModal
-            user={{
-              id: selectedUser.id,
-              username: selectedUser.name || selectedUser.username,
-              profilePicture: selectedUser.profilePicture,
-              bio: selectedUser.bio,
-              lastSeen: selectedUser.lastSeenWiFi,
-              rssi: (selectedUser as any).signal,
-              isFriend: selectedUser.isFriend,
-              hasPendingRequestTo: selectedUser.hasPendingRequestTo,
-              hasPendingRequestFrom: selectedUser.hasPendingRequestFrom,
-            }}
-            onClose={() => setSelectedUser(null)}
-            onConnect={(id) => handleConnect(id)}
-          />
-        )}
       </div>
     );
   }
@@ -255,7 +237,8 @@ export default function WiFiPage() {
             {nearbyUsers.map((user) => (
               <Card 
                 key={user.id}
-                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all"
+                onClick={() => setSelectedUser(user)}
+                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1">
@@ -336,6 +319,25 @@ export default function WiFiPage() {
           </div>
         )}
       </div>
+
+      {/* User Profile Modal (opened when orbit/list avatar clicked) */}
+      {selectedUser && (
+        <UserProfileModal
+          user={{
+            id: selectedUser.id,
+            username: selectedUser.name || selectedUser.username,
+            profilePicture: selectedUser.profilePicture,
+            bio: selectedUser.bio,
+            lastSeen: selectedUser.lastSeenWiFi,
+            rssi: (selectedUser as any).signal,
+            isFriend: selectedUser.isFriend,
+            hasPendingRequestTo: selectedUser.hasPendingRequestTo,
+            hasPendingRequestFrom: selectedUser.hasPendingRequestFrom,
+          }}
+          onClose={() => setSelectedUser(null)}
+          onConnect={(id) => handleConnect(id)}
+        />
+      )}
     </div>
   );
 }
