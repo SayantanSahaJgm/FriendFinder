@@ -25,6 +25,7 @@ export default function TopHeader() {
             {/* Messages icon - redirects to messages page */}
             <Link href={session?.user ? "/dashboard/messages" : "/register"} className="relative hover:text-blue-600 transition-colors" title="Messages">
               <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">2</span>
             </Link>
 
             {/* Notifications icon - redirects to notifications page */}
