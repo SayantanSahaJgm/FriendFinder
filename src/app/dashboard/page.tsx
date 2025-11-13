@@ -62,7 +62,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-4 shadow-sm rounded-sm">
+    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 mb-4 shadow-sm rounded-sm">
       {/* Report Modal */}
       <ReportModal
         isOpen={showReportModal}

@@ -311,9 +311,9 @@ export default function BluetoothPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 fade-in pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 fade-in pb-24">
       {/* Modern Gradient Header */}
-      <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-500 text-white px-4 sm:px-6 pt-6 sm:pt-8 pb-10 sm:pb-12 border-0 shadow-2xl rounded-b-[32px]">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2.5 sm:p-3 bg-blue-100 dark:bg-blue-900 rounded-2xl">
@@ -332,7 +332,7 @@ export default function BluetoothPage() {
   <div className="max-w-4xl mx-auto px-3 sm:px-4 -mt-8 pb-16 space-y-4 sm:space-y-6">
 
       {/* Bluetooth Status Card */}
-      <Card className="glass border-0 shadow-soft dark:bg-gray-800 dark:border-gray-700">
+      <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl">
         <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6">
           {/* Status Header */}
           <div className="flex items-center justify-between">
@@ -481,7 +481,7 @@ export default function BluetoothPage() {
 
       {/* Nearby Users */}
       {bluetoothEnabled && (
-        <Card className="glass border-0 shadow-soft overflow-hidden">
+        <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
@@ -545,8 +545,8 @@ export default function BluetoothPage() {
       )}
 
       {/* Privacy & Safety */}
-      <Card className="glass-dark border-0 shadow-soft overflow-hidden">
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-indigo-50">
+      <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="p-2 sm:p-2.5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
               <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
