@@ -164,83 +164,41 @@ export default function DashboardLayout({
             <Menu className="h-6 w-6" />
           </button>
 
-          {/* Desktop Navigation Tabs and Mobile Content */}
-          <div className="flex-1 flex items-center px-4">
-            {/* Desktop Brand Logo - show on lg+ screens */}
-            <div className="hidden lg:flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                <span className="text-white ff-white text-sm font-bold">FF</span>
+          {/* Header Content */}
+          <div className="flex-1 flex items-center justify-between px-4">
+            {/* Left: FF Logo */}
+            <Link href="/dashboard" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                <span className="text-white ff-white text-lg font-bold">FF</span>
               </div>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
-                FriendFinder
-              </span>
-            </div>
+            </Link>
 
-            {/* Desktop Navigation tabs - centered */}
-            <div className="hidden lg:flex flex-1 justify-center">
-              <div className="flex items-center space-x-1">
-                {navigation.map((item) => {
-                  const isActive = pathname === item.href;
-                  const baseClasses = "flex items-center px-4 text-base font-medium rounded-lg transition-colors touch-target-44";
-                  const sizeClasses = "py-2 text-sm";
-                  const iconClasses = "w-4 h-4 mr-2";
-                  const activeClasses = isActive
-                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700"
-                    : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700";
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`${baseClasses} ${sizeClasses} ${activeClasses}`}
-                    >
-                      <item.icon className={iconClasses} />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Right: Messages, Notifications, Profile */}
+            <div className="flex items-center space-x-3">
+              {/* Messages Icon with Badge */}
+              <Link
+                href="/dashboard/messages"
+                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <MessageCircle className="w-6 h-6" />
+                {/* Badge - replace with actual unread count */}
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  2
+                </span>
+              </Link>
 
-            {/* Mobile brand logo - show on small screens only */}
-            <div className="flex lg:hidden items-center space-x-2 flex-1">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                <span className="text-white ff-white text-sm font-bold">FF</span>
-              </div>
-              <span className="text-lg font-bold text-gray-900">
-                FriendFinder
-              </span>
-            </div>
-
-            {/* Right side items - always visible */}
-            <div className="flex items-center space-x-2">
               {/* Notifications */}
               <NotificationCenter />
 
-              {/* Profile section */}
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-9 w-9 lg:h-10 lg:w-10 ring-2 ring-gray-100">
+              {/* Profile Avatar */}
+              <Link href="/dashboard/profile" className="flex items-center">
+                <Avatar className="h-10 w-10 ring-2 ring-blue-500 hover:ring-blue-600 transition-all cursor-pointer">
                   <AvatarImage src={userImage || undefined} alt={displayName} />
                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white ff-white font-semibold">
                     {getInitials(displayName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden lg:block">
-                  <div className="text-sm font-semibold text-gray-800">
-                    {displayName}
-                  </div>
-                  <div className="text-xs text-gray-500">{userEmail}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="text-gray-400 hover:text-red-500 transition-colors p-2 lg:p-2 h-10 w-10"
-                  title="Sign out"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
