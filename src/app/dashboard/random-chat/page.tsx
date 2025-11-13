@@ -52,6 +52,7 @@ export default function RandomChatPage() {
   } = useRandomChat();
 
   const [showPreferences, setShowPreferences] = useState(true);
+  const [optimisticQueued, setOptimisticQueued] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentChatType, setCurrentChatType] = useState<
     "text" | "voice" | "video"
@@ -68,10 +69,19 @@ export default function RandomChatPage() {
 
   const handleJoinQueue = async (preferences: ChatPreferences) => {
     setCurrentChatType(preferences.chatType);
+    // Optimistic UI: show queue immediately so users see feedback
+    setOptimisticQueued(true);
     const result = await joinQueue(preferences);
 
     if (!result.success) {
+      setOptimisticQueued(false);
       toast.error(result.error || "Failed to join queue");
+    } else {
+      // keep optimistic UI until context updates queueStatus or activeSession
+      // after a short timeout, if queueStatus isn't updated, leave optimistic state to avoid stuck UI
+      setTimeout(() => {
+        setOptimisticQueued(false);
+      }, 10000);
     }
   };
 
@@ -277,15 +287,18 @@ export default function RandomChatPage() {
         <div className="w-full">
           {/* Show preferences when not in queue and no active session */}
           {showPreferences && !queueStatus.inQueue && !activeSession && (
-            <PreferencesSelector onStart={handleJoinQueue} />
+            <PreferencesSelector
+              onJoinQueue={handleJoinQueue}
+              isLoading={isJoiningQueue}
+              disabled={!isConnected}
+            />
           )}
 
           {/* Show queue status when waiting */}
           {queueStatus.inQueue && !activeSession && (
             <QueueStatus
-              position={queueStatus.position}
-              estimatedWaitTime={queueStatus.estimatedWaitTime}
-              onCancel={handleLeaveQueue}
+              queueStatus={queueStatus}
+              onLeaveQueue={handleLeaveQueue}
               isLoading={isLeavingQueue}
             />
           )}

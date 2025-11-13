@@ -114,13 +114,6 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
 
           {!generatedCode ? (
             <div className="space-y-3">
-              <Input
-                value={networkName}
-                onChange={(e) => setNetworkName(e.target.value)}
-                placeholder="Optional: Enter network or device name"
-                disabled={isGenerating}
-                className="w-full h-11"
-              />
               <Button
                 onClick={handleGenerateCode}
                 disabled={isGenerating}
@@ -172,7 +165,6 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                   onClick={() => {
                     setGeneratedCode(null);
                     setCodeExpires(null);
-                    setNetworkName("");
                   }}
                   variant="outline"
                   className="flex-1"
