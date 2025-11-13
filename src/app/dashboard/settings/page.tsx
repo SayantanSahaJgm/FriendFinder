@@ -461,8 +461,8 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Push Notifications</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Push Notifications</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Receive notifications on your device
                   </p>
                 </div>
@@ -489,8 +489,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Email Notifications</h3>
-                  <p className="text-sm text-gray-600">Get updates via email</p>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Email Notifications</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Get updates via email</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -515,8 +515,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Friend Requests</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Friend Requests</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Notify when someone sends a friend request
                   </p>
                 </div>
@@ -541,8 +541,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">New Messages</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">New Messages</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Notify when you receive new messages
                   </p>
                 </div>
@@ -567,8 +567,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Nearby Friends</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Nearby Friends</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Notify when friends are discovered nearby
                   </p>
                 </div>
@@ -604,8 +604,8 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Profile Visibility</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Profile Visibility</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Who can see your profile information
                   </p>
                 </div>
@@ -667,8 +667,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Discovery Mode</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Discovery Mode</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow others to find you through discovery
                   </p>
                 </div>
@@ -693,8 +693,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Location Sharing</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Location Sharing</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Share your location for friend discovery
                   </p>
                 </div>
@@ -719,8 +719,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Read Receipts</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Read Receipts</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Let others know when you've read their messages
                   </p>
                 </div>
@@ -745,7 +745,7 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Two-Factor Authentication</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Two-Factor Authentication</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Add extra security to your account
                   </p>
@@ -809,7 +809,7 @@ export default function SettingsPage() {
                       step={10}
                       className="w-24"
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       meters (10-10000m)
                     </span>
                     <Button
@@ -836,7 +836,7 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">
                       {settings.discoveryRange}m
                     </span>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       How far others can discover you
                     </span>
                     <Button
@@ -852,8 +852,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">GPS Discovery</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">GPS Discovery</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Use GPS coordinates for location-based discovery
                   </p>
                 </div>
@@ -878,8 +878,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">WiFi Discovery</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">WiFi Discovery</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Find friends on the same WiFi network
                   </p>
                 </div>
@@ -904,8 +904,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Bluetooth Discovery</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Bluetooth Discovery</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Discover nearby friends via Bluetooth
                   </p>
                 </div>
@@ -943,8 +943,8 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Change Password</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Change Password</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Update your account password
                   </p>
                 </div>
@@ -961,8 +961,8 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-medium">Download Data</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Download Data</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Export your personal data
                   </p>
                 </div>
@@ -981,7 +981,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium text-red-600">Delete Account</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Permanently delete your account and data
                   </p>
                 </div>
@@ -1104,7 +1104,7 @@ export default function SettingsPage() {
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       {settings.language}
                     </span>
                     <Button
