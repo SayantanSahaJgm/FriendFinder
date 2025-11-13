@@ -298,7 +298,7 @@ export default function MapPage() {
   ]
 
   return (
-  <div className="flex flex-col h-screen bg-background text-foreground">
+  <div className="flex flex-col h-screen bg-white">
       {/* Distance Alert Manager */}
       {latitude && longitude && (
         <DistanceAlertManager
@@ -309,7 +309,7 @@ export default function MapPage() {
       )}
 
       {/* Header */}
-  <div className="bg-background border-b border-border px-6 py-4">
+  <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

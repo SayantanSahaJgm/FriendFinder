@@ -258,10 +258,10 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Stories Section */}
-        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 sticky top-16 z-10 shadow-sm">
+        <div className="px-4 py-4 border-b border-gray-200 bg-white sticky top-16 z-10 shadow-sm">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {storiesDisplay.map((story: any, index: number) => (
               <Story
@@ -281,7 +281,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Posts Feed */}
-        <div className="bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white">
           {posts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="text-center">
