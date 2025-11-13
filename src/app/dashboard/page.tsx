@@ -62,7 +62,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700 mb-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-4 shadow-sm rounded-sm">
       {/* Report Modal */}
       <ReportModal
         isOpen={showReportModal}
@@ -73,7 +73,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
       />
 
       {/* Post Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
           <Avatar className="w-10 h-10">
             <AvatarImage src={author?.profilePicture || author?.image} alt={author?.name || author?.username} />
@@ -120,7 +120,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
       )}
 
       {/* Post Actions */}
-      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-5">
             <button
@@ -154,14 +154,14 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
 
         {/* Likes */}
         {likeCount > 0 && (
-          <div className="font-semibold text-sm text-gray-900 mb-2">
+          <div className="font-semibold text-sm text-gray-900 dark:text-white mb-2">
             {likeCount.toLocaleString()} likes
           </div>
         )}
 
         {/* Caption */}
         {content && (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm text-gray-900 dark:text-white">
             <span className="font-semibold mr-2">{author?.username || author?.name || "Anonymous"}</span>
             <span>{content}</span>
           </div>
@@ -169,7 +169,7 @@ function Post({ author, content, image, likes: initialLikes, comments, timestamp
 
         {/* Comments */}
         {comments > 0 && (
-          <button className="text-sm text-gray-500 mt-2">
+          <button className="text-sm text-gray-500 dark:text-gray-400 mt-2 hover:text-gray-700 dark:hover:text-gray-300">
             View all {comments} comments
           </button>
         )}
@@ -258,10 +258,10 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-white dark:bg-black min-h-screen pb-20">
       <div className="max-w-2xl mx-auto">
         {/* Stories Section */}
-        <div className="px-4 py-4 border-b border-gray-200 bg-white sticky top-16 z-10 shadow-sm">
+        <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black sticky top-16 z-10 shadow-sm">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {storiesDisplay.map((story: any, index: number) => (
               <Story
@@ -281,12 +281,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Posts Feed */}
-        <div className="bg-white">
+        <div className="bg-white dark:bg-black">
           {posts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="text-center">
-                <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">No posts yet</p>
-                <p className="text-gray-400 dark:text-gray-500 text-sm">Be the first to share something!</p>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-2">No posts yet</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Be the first to share something!</p>
                 <button
                   onClick={() => router.push('/dashboard/create')}
                   className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
@@ -313,38 +313,38 @@ export default function DashboardPage() {
       </div>
 
       {/* Instagram-style Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 z-20">
         <div className="max-w-2xl mx-auto px-6 py-2">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push("/dashboard")}
               className="flex flex-col items-center space-y-1 hover:opacity-50 transition"
             >
-              <Home className="w-7 h-7 text-gray-900" />
+              <Home className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
             <button
               onClick={() => router.push("/dashboard/search")}
               className="flex flex-col items-center space-y-1 hover:opacity-50 transition"
             >
-              <Search className="w-7 h-7 text-gray-900" />
+              <Search className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
             <button
               onClick={() => router.push("/dashboard/create")}
               className="flex flex-col items-center space-y-1 hover:opacity-50 transition"
             >
-              <PlusSquare className="w-7 h-7 text-gray-900" />
+              <PlusSquare className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
             <button
               onClick={() => router.push("/dashboard/random-chat")}
               className="flex flex-col items-center space-y-1 hover:opacity-50 transition"
             >
-              <Video className="w-7 h-7 text-gray-900" />
+              <Video className="w-7 h-7 text-gray-900 dark:text-white" />
             </button>
             <button
               onClick={() => router.push("/dashboard/profile")}
               className="flex flex-col items-center space-y-1 hover:opacity-50 transition"
             >
-              <div className="w-7 h-7 rounded-full border-2 border-gray-900 overflow-hidden">
+              <div className="w-7 h-7 rounded-full border-2 border-gray-900 dark:border-white overflow-hidden">
                 <Avatar className="w-full h-full">
                   <AvatarImage src={session?.user?.image || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
