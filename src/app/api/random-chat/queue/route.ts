@@ -143,7 +143,8 @@ export async function POST(request: NextRequest) {
           sessionId,
           partner: {
             anonymousId: potentialMatch.anonymousId,
-            username: potentialMatch.anonymousId,
+            username: potentialMatch.username || potentialMatch.anonymousId,
+            isActive: true,
           },
           chatType: validatedPreferences.chatType,
           estimatedWaitTime: 0,

@@ -473,12 +473,13 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
       // Anonymous path: allow socket to connect if client explicitly requests it
       const isAnonymous = socket.handshake.auth?.anonymous === true
       const anonymousId = socket.handshake.auth?.anonymousId || socket.handshake.query?.anonymousId
+      const username = socket.handshake.auth?.username || anonymousId
 
       if (isAnonymous && anonymousId) {
         // Create a synthetic user id using a prefix so it doesn't collide with real DB ids
         socket.data.user = {
           id: `anon:${anonymousId}`,
-          username: anonymousId,
+          username: username,
           email: '',
           socketId: socket.id,
         }
@@ -839,11 +840,12 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         }
 
         const anonId = socket.data.user.username || socket.data.user.id.replace('anon:', '')
+        const username = socket.data.user.username || anonId
         const chatType = preferences?.chatType || 'text'
 
         // If Redis is configured, push into Redis queue and attempt to pop a pair atomically
         if (redisClient) {
-          const payload = { anonId, joinedAt: Date.now(), chatType, preferences: preferences || {} }
+          const payload = { anonId, username, joinedAt: Date.now(), chatType, preferences: preferences || {} }
           const payloadStr = JSON.stringify(payload)
           await pushAnonQueueRedis(chatType, payloadStr)
 
@@ -873,8 +875,10 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
             })
 
             // Notify participants by their user room (works across instances if adapter is configured)
-            io.to(`user:anon:${a.anonId}`).emit('random-chat:match-found', { sessionId, partner: { anonymousId: b.anonId, username: b.anonId }, chatType: a.chatType })
-            io.to(`user:anon:${b.anonId}`).emit('random-chat:match-found', { sessionId, partner: { anonymousId: a.anonId, username: a.anonId }, chatType: a.chatType })
+            const partnerA = { anonymousId: b.anonId, username: b.username || b.anonId, isActive: true }
+            const partnerB = { anonymousId: a.anonId, username: a.username || a.anonId, isActive: true }
+            io.to(`user:anon:${a.anonId}`).emit('random-chat:match-found', { sessionId, partner: partnerA, chatType: a.chatType, userAnonymousId: a.anonId })
+            io.to(`user:anon:${b.anonId}`).emit('random-chat:match-found', { sessionId, partner: partnerB, chatType: a.chatType, userAnonymousId: b.anonId })
 
             console.log(`Redis anonymous match created: ${a.anonId} <-> ${b.anonId} (session ${sessionId})`)
             return
@@ -896,6 +900,7 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         anonymousQueue.set(anonId, {
           socketId: socket.id,
           anonymousId: anonId,
+          username: username,
           preferences: preferences || { chatType: 'text' },
           joinedAt: Date.now(),
         })
@@ -925,9 +930,9 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
           anonymousQueue.delete(me.anonymousId)
           anonymousQueue.delete(match.anonymousId)
 
-          // Notify both participants
-          const payloadA = { sessionId, partner: { anonymousId: match.anonymousId, username: match.anonymousId }, chatType: me.preferences.chatType }
-          const payloadB = { sessionId, partner: { anonymousId: me.anonymousId, username: me.anonymousId }, chatType: me.preferences.chatType }
+          // Notify both participants with proper usernames
+          const payloadA = { sessionId, partner: { anonymousId: match.anonymousId, username: match.username || match.anonymousId, isActive: true }, chatType: me.preferences.chatType, userAnonymousId: me.anonymousId }
+          const payloadB = { sessionId, partner: { anonymousId: me.anonymousId, username: me.username || me.anonymousId, isActive: true }, chatType: me.preferences.chatType, userAnonymousId: match.anonymousId }
 
           socket.emit('random-chat:match-found', payloadA)
           if (otherSocket) otherSocket.emit('random-chat:match-found', payloadB)

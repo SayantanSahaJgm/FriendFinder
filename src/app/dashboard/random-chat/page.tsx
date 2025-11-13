@@ -237,7 +237,7 @@ export default function RandomChatPage() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">
-                      {activeSession.partner.anonymousId}
+                      {activeSession.partner.username || activeSession.partner.anonymousId}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {activeSession.partner.isActive ? "Online" : "Offline"}

@@ -195,6 +195,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   const connectAnon = async () => {
     if (anonSocket) return
     const id = anonId || ensureAnonId()
+    const guestName = anonName || ensureAnonName() || id
     try {
       const s = io(socketUrl, {
         path: '/socket.io/',
@@ -205,17 +206,16 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
         autoConnect: true,
         forceNew: true,
         withCredentials: true,
-        auth: { anonymous: true, anonymousId: id }
+        auth: { anonymous: true, anonymousId: id, username: guestName }
       })
 
       s.on('connect', () => {
         console.log('Anonymous socket connected', s.id)
         setAnonConnected(true)
         // register anonymous user for convenience; include friendly guest name if available
-        const name = anonName || ensureAnonName() || id
         s.emit('user-register', {
           userId: `anon:${id}`,
-          username: name || id,
+          username: guestName,
         })
       })
 
@@ -345,19 +345,6 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
       loadPersistedState();
     }
   }, [commSocket, commConnected, session]);
-
-  // Load persisted state when component mounts or becomes visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && session?.user) {
-        console.log('Tab became visible, loading persisted state');
-        loadPersistedState();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [session]);
 
   // Function to load persisted state from localStorage and server
   const loadPersistedState = async () => {
