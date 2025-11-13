@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationCenter from "@/components/NotificationCenter";
 import WifiManager from "@/components/WifiManager";
+import BottomNav from "@/components/BottomNav";
 import {
   Users,
   MessageCircle,
@@ -224,11 +225,14 @@ export default function DashboardLayout({
         </div>
 
         {/* Page content */}
-        <main className="flex-1 bg-gray-50 dark:bg-black">
+        <main className="flex-1 bg-gray-50 dark:bg-black pb-20">
           <div className="max-w-7xl mx-auto bg-gray-50 dark:bg-black">
             {children}
           </div>
         </main>
+
+        {/* Bottom Navigation - Always visible on all pages */}
+        <BottomNav />
       </div>
     </div>
   );

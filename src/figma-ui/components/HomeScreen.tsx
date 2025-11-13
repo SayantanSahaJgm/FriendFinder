@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import TopHeader from "./TopHeader";
-import BottomNavigation from "./BottomNavigation";
 
 export default function HomeScreen() {
   return (
@@ -54,8 +53,6 @@ export default function HomeScreen() {
           © 2025 FriendFinder. All rights reserved.
         </div>
       </footer>
-
-      <BottomNavigation />
     </div>
   );
 }
