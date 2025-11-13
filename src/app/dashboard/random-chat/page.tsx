@@ -32,9 +32,7 @@ import ChatInterface from "@/components/random-chat/ChatInterface";
 import WebRTCInterface from "@/components/random-chat/WebRTCInterface";
 import ReportModal from "@/components/random-chat/ReportModal";
 import type { ChatPreferences } from "@/context/RandomChatContext";
-import RandomChatClient from "@/components/random-chat/RandomChatClient";
 import GuestNamePrompt from '@/components/random-chat/GuestNamePrompt'
-import { useSession } from 'next-auth/react'
 
 export default function RandomChatPage() {
   const {
@@ -196,10 +194,6 @@ export default function RandomChatPage() {
           <Badge variant={isConnected ? "default" : "destructive"}>
             {isConnected ? "Online" : "Offline"}
           </Badge>
-          {/* Dev/demo: open standalone client (uses local camera & demo verification) */}
-          <Button variant="outline" size="sm" onClick={() => setShowReportModal(false)}>
-            Demo Client
-          </Button>
         </div>
       </div>
 
@@ -281,37 +275,35 @@ export default function RandomChatPage() {
 
         {/* Main Chat Interface - Full Width */}
         <div className="w-full">
-          {/* If demo client enabled, render the standalone RandomChatClient for testing video verification */}
-          {true ? (
-            <RandomChatClient />
-          ) : activeSession ? (
-            activeSession!.chatType === "text" ? (
-              <ChatInterface session={activeSession!} />
+          {/* Show preferences when not in queue and no active session */}
+          {showPreferences && !queueStatus.inQueue && !activeSession && (
+            <PreferencesSelector onStart={handleJoinQueue} />
+          )}
+
+          {/* Show queue status when waiting */}
+          {queueStatus.inQueue && !activeSession && (
+            <QueueStatus
+              position={queueStatus.position}
+              estimatedWaitTime={queueStatus.estimatedWaitTime}
+              onCancel={handleLeaveQueue}
+              isLoading={isLeavingQueue}
+            />
+          )}
+
+          {/* Show active chat interface */}
+          {activeSession && (
+            activeSession.chatType === "text" ? (
+              <ChatInterface session={activeSession} />
             ) : (
               <WebRTCInterface
-                session={activeSession!}
+                session={activeSession}
                 onEndCall={handleEndSession}
               />
             )
-          ) : queueStatus.inQueue ? (
-            <Card className="h-[500px] sm:h-[600px] flex items-center justify-center">
-              <div className="text-center space-y-4 p-6">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <div>
-                  <h3 className="text-lg font-medium">
-                    Looking for a chat partner...
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    Position in queue: {queueStatus.position}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Estimated wait:{" "}
-                    {Math.ceil(queueStatus.estimatedWaitTime / 60)} minutes
-                  </p>
-                </div>
-              </div>
-            </Card>
-          ) : (
+          )}
+
+          {/* Show empty state when idle */}
+          {!showPreferences && !queueStatus.inQueue && !activeSession && (
             <Card className="h-[500px] sm:h-[600px] flex items-center justify-center">
               <div className="text-center space-y-4 p-6">
                 <Shuffle className="h-16 w-16 text-muted-foreground mx-auto" />
@@ -323,6 +315,13 @@ export default function RandomChatPage() {
                     Select your preferences and join the queue to be matched
                     with someone new.
                   </p>
+                  <Button
+                    className="mt-4"
+                    onClick={() => setShowPreferences(true)}
+                  >
+                    <Shuffle className="h-4 w-4 mr-2" />
+                    Start New Chat
+                  </Button>
                 </div>
               </div>
             </Card>
