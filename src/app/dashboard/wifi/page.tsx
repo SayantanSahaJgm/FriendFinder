@@ -155,13 +155,18 @@ export default function WiFiPage() {
           <div className="flex flex-col items-center">
             {nearbyUsers.length > 0 ? (
               <div className="relative mb-6 w-full h-[320px] flex items-center justify-center">
-                {/* Center user - only shown when peers found */}
+                {/* Center user - show user's profile picture in circle */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl opacity-20 animate-pulse-slow"></div>
-                <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl">
-                  <div className="text-center">
-                    <Wifi className="w-10 h-10 text-white mx-auto" />
-                    <p className="text-xs text-white font-medium mt-1">You</p>
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-2xl ring-4 ring-white">
+                    <Avatar className="w-full h-full">
+                      <AvatarImage src={session?.user?.image || undefined} alt="You" />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-2xl font-bold">
+                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
+                  <p className="text-sm font-semibold text-gray-700 mt-2">You</p>
                 </div>
                 
                 {/* Orbiting users */}
