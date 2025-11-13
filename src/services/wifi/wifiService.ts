@@ -99,6 +99,8 @@ class WiFiService {
    * Simplified registration using a connection test
    * This pings the server which will extract network info server-side (if possible)
    * For web apps, users will need to manually trigger or we use IP-based detection
+   * 
+   * Also acts as a heartbeat - call every 30-60 seconds to stay discoverable
    */
   async registerCurrentNetwork(): Promise<{ success: boolean; message: string }> {
     try {
@@ -120,6 +122,15 @@ class WiFiService {
       console.error('[WiFi] Error auto-registering network:', error);
       throw error;
     }
+  }
+
+  /**
+   * Send heartbeat to keep WiFi presence active
+   * This is an alias for registerCurrentNetwork since it updates lastSeenWiFi
+   * Call this every 30-60 seconds while scanning is active
+   */
+  async sendHeartbeat(): Promise<{ success: boolean; message: string }> {
+    return this.registerCurrentNetwork();
   }
 
   /**

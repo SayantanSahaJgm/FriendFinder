@@ -58,11 +58,14 @@ export async function POST(req: NextRequest) {
     if (bluetoothEnabled && bluetoothDeviceId) {
       const encryptedDeviceId = encryptBluetoothDeviceId(bluetoothDeviceId);
       updateData.bluetoothDeviceId = encryptedDeviceId;
-      updateData.bluetoothIdUpdatedAt = new Date();
+      updateData.bluetoothIdUpdatedAt = new Date(); // Heartbeat timestamp
       
       if (bluetoothName) {
         updateData.bluetoothName = sanitizeBluetoothName(bluetoothName);
       }
+    } else if (bluetoothEnabled && !bluetoothDeviceId) {
+      // If already enabled, just update the heartbeat timestamp
+      updateData.bluetoothIdUpdatedAt = new Date();
     } else if (!bluetoothEnabled) {
       // If disabling Bluetooth, clear nearby users
       updateData.nearbyUsers = [];

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update user's WiFi presence
+    // Update user's WiFi presence (acts as heartbeat - call every 30-60 seconds to stay discoverable)
     user.hashedBSSID = hashedBSSID;
     user.wifiName = networkSSID;
     user.lastSeenWiFi = new Date();
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     await user.save();
 
-    console.log(`[WiFi] User ${user.username} registered on network: ${networkSSID}`);
+    console.log(`[WiFi] User ${user.username} registered on network: ${networkSSID} (heartbeat at ${new Date().toISOString()})`);
 
     return NextResponse.json({
       success: true,

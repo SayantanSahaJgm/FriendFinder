@@ -22,6 +22,7 @@ import {
   MapPin,
   Wifi,
   Bluetooth,
+  Key,
   Radar,
   Users,
   ToggleLeft,
@@ -74,7 +75,7 @@ export default function DiscoverPage() {
 
   // Sync activeMethod with URL parameter
   const [activeMethod, setActiveMethod] = useState<DiscoveryMethod>(
-    methodParam && ['gps', 'wifi', 'bluetooth'].includes(methodParam) ? methodParam : "gps"
+    methodParam && ['gps', 'wifi', 'bluetooth', 'code'].includes(methodParam) ? methodParam : "gps"
   );
   
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +88,7 @@ export default function DiscoverPage() {
 
   // Sync state with URL parameter changes
   useEffect(() => {
-    const newMethod = methodParam && ['gps', 'wifi', 'bluetooth'].includes(methodParam) ? methodParam : "gps";
+    const newMethod = methodParam && ['gps', 'wifi', 'bluetooth', 'code'].includes(methodParam) ? methodParam : "gps";
     if (newMethod !== activeMethod) {
       setActiveMethod(newMethod);
     }
@@ -427,7 +428,7 @@ export default function DiscoverPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* GPS Toggle */}
             <div
               onClick={() => handleMethodToggle("gps")}
@@ -454,6 +455,42 @@ export default function DiscoverPage() {
                 </div>
                 {activeMethod === "gps" ? (
                   <ToggleRight className="w-6 h-6 text-blue-600" />
+                ) : (
+                  <ToggleLeft className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
+            </div>
+
+            {/* Bluetooth Toggle */}
+            <div
+              onClick={() => handleMethodToggle("bluetooth")}
+              className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
+                activeMethod === "bluetooth"
+                  ? "border-purple-500 bg-purple-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Bluetooth
+                    className={`w-5 h-5 ${
+                      activeMethod === "bluetooth"
+                        ? "text-purple-600"
+                        : "text-gray-600"
+                    }`}
+                  />
+                  <span
+                    className={`font-medium ${
+                      activeMethod === "bluetooth"
+                        ? "text-purple-800"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    Bluetooth
+                  </span>
+                </div>
+                {activeMethod === "bluetooth" ? (
+                  <ToggleRight className="w-6 h-6 text-purple-600" />
                 ) : (
                   <ToggleLeft className="w-6 h-6 text-gray-400" />
                 )}
@@ -496,15 +533,6 @@ export default function DiscoverPage() {
               </div>
             </div>
 
-            {/* Bluetooth Toggle */}
-            <div
-              onClick={() => handleMethodToggle("bluetooth")}
-              className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
-                activeMethod === "bluetooth"
-                  ? "border-purple-500 bg-purple-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
             {/* Code Connection Toggle */}
             <div
               onClick={() => handleMethodToggle("code")}
@@ -516,7 +544,7 @@ export default function DiscoverPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Wifi
+                  <Key
                     className={`w-5 h-5 ${
                       activeMethod === "code" ? "text-indigo-600" : "text-gray-600"
                     }`}
@@ -531,32 +559,6 @@ export default function DiscoverPage() {
                 </div>
                 {activeMethod === "code" ? (
                   <ToggleRight className="w-6 h-6 text-indigo-600" />
-                ) : (
-                  <ToggleLeft className="w-6 h-6 text-gray-400" />
-                )}
-              </div>
-            </div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Bluetooth
-                    className={`w-5 h-5 ${
-                      activeMethod === "bluetooth"
-                        ? "text-purple-600"
-                        : "text-gray-600"
-                    }`}
-                  />
-                  <span
-                    className={`font-medium ${
-                      activeMethod === "bluetooth"
-                        ? "text-purple-800"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    Bluetooth
-                  </span>
-                </div>
-                {activeMethod === "bluetooth" ? (
-                  <ToggleRight className="w-6 h-6 text-purple-600" />
                 ) : (
                   <ToggleLeft className="w-6 h-6 text-gray-400" />
                 )}

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import wifiService, { NearbyWiFiUser } from '@/services/wifi/wifiService';
+import UserProfileModal from '@/components/UserProfileModal';
 
 interface NearbyUser extends NearbyWiFiUser {
   signal?: number;
@@ -23,6 +24,7 @@ export default function WiFiPage() {
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [currentNetwork, setCurrentNetwork] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<NearbyUser | null>(null);
 
   // Start WiFi scanning
   const handleStartScan = async () => {
@@ -73,10 +75,14 @@ export default function WiFiPage() {
   };
 
   // Send friend request
-  const handleConnect = async (userId: string, username: string) => {
+  const handleConnect = async (userId: string, username?: string) => {
     try {
+      // If username not provided, try to lookup from nearbyUsers
+      const user = nearbyUsers.find((u) => u.id === userId);
+      const displayName = username || user?.username || user?.name || 'user';
+
       await wifiService.sendFriendRequest(userId);
-      toast.success(`Friend request sent to ${username}!`);
+      toast.success(`Friend request sent to ${displayName}!`);
       
       // Refresh the list to update status
       const users = await wifiService.getNearbyUsers();
@@ -96,6 +102,24 @@ export default function WiFiPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        {/* User Profile Modal (opened when orbit/list avatar clicked) */}
+        {selectedUser && (
+          <UserProfileModal
+            user={{
+              id: selectedUser.id,
+              username: selectedUser.name || selectedUser.username,
+              profilePicture: selectedUser.profilePicture,
+              bio: selectedUser.bio,
+              lastSeen: selectedUser.lastSeenWiFi,
+              rssi: (selectedUser as any).signal,
+              isFriend: selectedUser.isFriend,
+              hasPendingRequestTo: selectedUser.hasPendingRequestTo,
+              hasPendingRequestFrom: selectedUser.hasPendingRequestFrom,
+            }}
+            onClose={() => setSelectedUser(null)}
+            onConnect={(id) => handleConnect(id)}
+          />
+        )}
       </div>
     );
   }
@@ -157,9 +181,7 @@ export default function WiFiPage() {
                         transform: 'translate(-50%, -50%)',
                         animationDelay: `${index * 0.2}s`,
                       }}
-                      onClick={() => {
-                        // TODO: Open profile modal or navigate to profile
-                      }}
+                      onClick={() => setSelectedUser(user)}
                     >
                       <Avatar className="w-14 h-14 border-2 border-white shadow-lg ring-2 ring-purple-200">
                         <AvatarImage src={user.profilePicture} alt={user.name} />
@@ -230,7 +252,7 @@ export default function WiFiPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="relative">
-                      <Avatar className="w-14 h-14 cursor-pointer" onClick={() => handleViewProfile(user.id)}>
+                      <Avatar className="w-14 h-14 cursor-pointer" onClick={() => setSelectedUser(user)}>
                         <AvatarImage src={user.profilePicture} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold">
                           {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
@@ -244,7 +266,7 @@ export default function WiFiPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleViewProfile(user.id)}
+                          onClick={() => setSelectedUser(user)}
                           className="h-6 w-6 p-0"
                           title="View profile"
                         >

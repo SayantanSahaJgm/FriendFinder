@@ -643,7 +643,7 @@ UserSchema.statics.findNearbyByWiFi = function(
     hashedBSSID: hashedBSSID,
     isDiscoveryEnabled: true,
     lastSeenWiFi: {
-      $gte: new Date(Date.now() - 60 * 60 * 1000), // Active in last hour
+      $gte: new Date(Date.now() - 5 * 60 * 1000), // Active in last 5 minutes (real proximity)
     },
   };
 
@@ -669,15 +669,15 @@ UserSchema.statics.findNearbyByBluetooth = function(
     _id: { $ne: excludeUserId },
     // Only show users who want to be discovered
     isDiscoveryEnabled: true,
-    // Only show users active in the last 30 minutes
+    // Only show users active in the last 5 minutes (real Bluetooth proximity)
     bluetoothIdUpdatedAt: {
-      $gte: new Date(Date.now() - 30 * 60 * 1000), // Active in last 30 minutes
+      $gte: new Date(Date.now() - 5 * 60 * 1000), // Active in last 5 minutes
     },
   };
 
   console.log('🔍 Finding nearby Bluetooth users:', {
     excludeUserId: excludeUserId?.toString(),
-    timeThreshold: new Date(Date.now() - 30 * 60 * 1000),
+    timeThreshold: new Date(Date.now() - 5 * 60 * 1000),
   });
 
   return this.find(query).select('-password').sort({ bluetoothIdUpdatedAt: -1 }).limit(50);

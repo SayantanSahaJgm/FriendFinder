@@ -64,6 +64,24 @@ export const bluetoothService = {
   },
 
   /**
+   * Send heartbeat to keep Bluetooth presence active
+   * Call this every 30-60 seconds while scanning is active
+   */
+  async sendHeartbeat(): Promise<{ success: boolean; message: string; updatedAt?: Date }> {
+    const response = await fetch("/api/bluetooth/heartbeat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to send heartbeat");
+    }
+
+    return response.json();
+  },
+
+  /**
    * Get nearby users with Bluetooth enabled
    * 
    * WEB VERSION (current): Uses database-based discovery - finds users who recently updated their Bluetooth presence

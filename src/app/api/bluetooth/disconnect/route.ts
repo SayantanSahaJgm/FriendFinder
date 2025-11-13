@@ -25,11 +25,13 @@ export async function POST(req: NextRequest) {
     // Connect to database
     await dbConnect();
 
-    // Update user: disable Bluetooth and clear nearby users
+    // Update user: disable Bluetooth, clear bluetoothId and nearby users
     const user = await User.findByIdAndUpdate(
       userId,
       {
         bluetoothEnabled: false,
+        bluetoothId: undefined,
+        bluetoothIdUpdatedAt: undefined,
         nearbyUsers: [],
         lastSeen: new Date(),
       },
