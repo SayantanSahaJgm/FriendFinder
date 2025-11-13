@@ -72,11 +72,13 @@ export function ThemeProvider({
     <ThemeContext.Provider value={contextValue}>
       {/* Enable theme switching with system detection */}
       <NextThemesProvider 
-        defaultTheme="system" 
+        defaultTheme="light"
         enableSystem={true} 
         attribute="class"
-        themes={["light", "dark"]}
+        themes={["light", "dark", "system"]}
         storageKey="friendfinder-theme"
+        disableTransitionOnChange={false}
+        enableColorScheme={true}
         {...props}
       >
         {children}
