@@ -9,6 +9,7 @@ import LocationPermissionCard from "@/components/location/LocationPermissionCard
 import NearbyUsersCard from "@/components/location/NearbyUsersCard";
 import WifiManager from "@/components/WifiManager";
 import BluetoothManager from "@/components/BluetoothManager";
+import CodeConnectionManager from "@/components/CodeConnectionManager";
 import FriendRequestButton from "@/components/friends/FriendRequestButton";
 import UserProfileModal, { ProfileUser } from "@/components/UserProfileModal";
 import { sendFriendRequest } from "@/server/actions/friend-actions";
@@ -37,7 +38,7 @@ import {
 import { toast } from "sonner";
 import { useSocket } from '@/hooks/useSocket'
 
-type DiscoveryMethod = "gps" | "wifi" | "bluetooth";
+type DiscoveryMethod = "gps" | "wifi" | "bluetooth" | "code";
 
 export default function DiscoverPage() {
   const router = useRouter();
@@ -504,6 +505,37 @@ export default function DiscoverPage() {
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
+            {/* Code Connection Toggle */}
+            <div
+              onClick={() => handleMethodToggle("code")}
+              className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
+                activeMethod === "code"
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Wifi
+                    className={`w-5 h-5 ${
+                      activeMethod === "code" ? "text-indigo-600" : "text-gray-600"
+                    }`}
+                  />
+                  <span
+                    className={`font-medium ${
+                      activeMethod === "code" ? "text-indigo-800" : "text-gray-700"
+                    }`}
+                  >
+                    Code Connection
+                  </span>
+                </div>
+                {activeMethod === "code" ? (
+                  <ToggleRight className="w-6 h-6 text-indigo-600" />
+                ) : (
+                  <ToggleLeft className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
+            </div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Bluetooth
@@ -553,7 +585,7 @@ export default function DiscoverPage() {
         </CardContent>
       </Card>
 
-      {/* Main Content */}
+        {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
@@ -577,6 +609,8 @@ export default function DiscoverPage() {
         <div>
           {activeMethod === "gps" ? (
             <NearbyUsersCard />
+          ) : activeMethod === "code" ? (
+            <CodeConnectionManager onUpdated={loadWifiStatus} />
           ) : activeMethod === "wifi" ? (
             <Card>
               <CardHeader>
