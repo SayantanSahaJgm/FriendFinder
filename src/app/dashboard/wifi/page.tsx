@@ -237,13 +237,15 @@ export default function WiFiPage() {
             {nearbyUsers.map((user) => (
               <Card 
                 key={user.id}
-                onClick={() => setSelectedUser(user)}
-                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all cursor-pointer"
+                className="p-4 bg-white/80 backdrop-blur-xl border-0 shadow-lg rounded-2xl hover:shadow-xl transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
+                  <div 
+                    className="flex items-center space-x-4 flex-1 cursor-pointer"
+                    onClick={() => setSelectedUser(user)}
+                  >
                     <div className="relative">
-                      <Avatar className="w-14 h-14 cursor-pointer" onClick={() => setSelectedUser(user)}>
+                      <Avatar className="w-14 h-14">
                         <AvatarImage src={user.profilePicture} alt={user.name} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold">
                           {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
@@ -254,15 +256,7 @@ export default function WiFiPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-900">{user.name || user.username}</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedUser(user)}
-                          className="h-6 w-6 p-0"
-                          title="View profile"
-                        >
-                          <ExternalLink className="w-3 h-3 text-gray-500" />
-                        </Button>
+                        <ExternalLink className="w-3 h-3 text-gray-500" />
                       </div>
                       <p className="text-sm text-gray-600 flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
@@ -286,7 +280,7 @@ export default function WiFiPage() {
                       )}
                     </div>
                   </div>
-                  <div className="ml-4">
+                  <div className="ml-4" onClick={(e) => e.stopPropagation()}>
                     {user.isFriend ? (
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
                         Friends
@@ -299,7 +293,10 @@ export default function WiFiPage() {
                       <Button 
                         size="sm"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-lg"
-                        onClick={() => router.push('/dashboard/friends?tab=requests')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/dashboard/friends?tab=requests');
+                        }}
                       >
                         Accept
                       </Button>
@@ -307,7 +304,10 @@ export default function WiFiPage() {
                       <Button 
                         size="sm"
                         className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg"
-                        onClick={() => handleConnect(user.id, user.username)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleConnect(user.id, user.username);
+                        }}
                       >
                         Connect
                       </Button>
