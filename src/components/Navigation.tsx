@@ -112,6 +112,31 @@ export default function Navigation() {
               </div>
             </Link>
 
+            {/* Center Navigation Pills (desktop) */}
+            <div className="hidden lg:flex items-center justify-center flex-1">
+              <div className="flex items-center gap-2 bg-transparent">
+                {navigationItems.slice(0, 8).map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "px-3.5 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all duration-200",
+                        active
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+                          : "bg-black/10 text-gray-900 dark:bg-white/5 dark:text-white hover:bg-black/20"
+                      )}
+                    >
+                      <Icon className={cn("h-4 w-4", active ? "text-white" : "text-gray-700 dark:text-gray-200")} />
+                      <span className="hidden xl:inline-block">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
               {/* Messages Icon */}
