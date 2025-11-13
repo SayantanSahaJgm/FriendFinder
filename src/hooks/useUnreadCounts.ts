@@ -33,8 +33,8 @@ export function useUnreadCounts() {
 
     fetchCounts();
 
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchCounts, 30000);
+    // Poll for updates every 60 seconds (reduced from 30 to save API calls)
+    const interval = setInterval(fetchCounts, 60000);
 
     return () => clearInterval(interval);
   }, [session?.user?.email]);

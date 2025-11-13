@@ -37,8 +37,11 @@ export function useSocket() {
   
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const connectionAttemptRef = useRef<number>(0)
+  const lastConnectionAttemptRef = useRef<number>(0)
   const maxRetries = 5
-  const baseDelay = 1000
+  const baseDelay = 2000 // Increased from 1000ms to 2000ms
+  const maxDelay = 60000 // Maximum 60 seconds between retries
 
   const isConnected = connectionState.status === 'connected'
 
@@ -53,6 +56,14 @@ export function useSocket() {
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {
+    // Prevent rapid reconnection attempts
+    const now = Date.now()
+    const timeSinceLastAttempt = now - lastConnectionAttemptRef.current
+    if (timeSinceLastAttempt < 5000) { // Minimum 5 seconds between attempts
+      console.log('Skipping connection attempt - too soon since last attempt')
+      return
+    }
+    
     // Allow connection for both authenticated users and guests
     // Guest users can still use random chat features
     if (status === 'loading') {
@@ -63,6 +74,9 @@ export function useSocket() {
     if (connectionState.status === 'connecting' || connectionState.status === 'connected') {
       return
     }
+
+    lastConnectionAttemptRef.current = now
+    connectionAttemptRef.current++
 
     console.log('Connecting to Socket.IO server:', socketUrl)
     setConnectionState(prev => ({ ...prev, status: 'connecting' }))
@@ -215,11 +229,16 @@ export function useSocket() {
       console.log('Max reconnection attempts reached')
       // Surface a user-friendly connection error only after we've exhausted retries
       setConnectionError('Max reconnection attempts reached. Please refresh the page.')
+      connectionAttemptRef.current = 0 // Reset for manual retry
       return
     }
 
-    const delay = Math.min(baseDelay * Math.pow(2, connectionState.retryCount), 30000)
-    console.log(`Scheduling reconnect in ${delay}ms (attempt ${connectionState.retryCount + 1}/${maxRetries})`)
+    // Exponential backoff with jitter
+    const exponentialDelay = Math.min(baseDelay * Math.pow(2, connectionState.retryCount), maxDelay)
+    const jitter = Math.random() * 1000 // Add up to 1 second of random jitter
+    const delay = exponentialDelay + jitter
+    
+    console.log(`Scheduling reconnect in ${Math.round(delay)}ms (attempt ${connectionState.retryCount + 1}/${maxRetries})`)
     
     clearReconnectTimeout()
     reconnectTimeoutRef.current = setTimeout(() => {
@@ -235,7 +254,11 @@ export function useSocket() {
 
   // Manual reconnect
   const reconnect = useCallback(() => {
-    setConnectionState(prev => ({ ...prev, retryCount: 0 }))
+    console.log('Manual reconnect requested')
+    setConnectionState(prev => ({ ...prev, retryCount: 0, errorCount: 0 }))
+    setConnectionError(null)
+    connectionAttemptRef.current = 0
+    lastConnectionAttemptRef.current = 0
     disconnect()
     connect()
   }, [connect, disconnect])
@@ -281,7 +304,7 @@ export function useSocket() {
       } catch (error) {
         // Silently handle health check errors to avoid console spam
       }
-    }, 30000) // Check every 30 seconds
+    }, 60000) // Check every 60 seconds (increased from 30)
   }, [socketUrl])
 
   const stopHealthCheck = useCallback(() => {
