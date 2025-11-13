@@ -36,9 +36,15 @@ export default function RandomPeopleClient() {
   }, [isConnected, socket]);
 
   const startSearch = useCallback(() => {
-    if (!socket || !isConnected) {
-      toast.error('Not connected to real-time server');
-      return;
+    if (!socket) {
+      toast.error('Socket not initialized. Please refresh the page.')
+      return
+    }
+    
+    if (!isConnected) {
+      toast.warning('Connection pending... Starting search anyway', {
+        description: 'Matches may take longer while connecting'
+      })
     }
 
     if (isSearchingRef.current) return;
@@ -250,7 +256,15 @@ export default function RandomPeopleClient() {
             <Button onClick={() => setSelectedMode('text')} variant={selectedMode === 'text' ? 'default' : 'outline'}>Text</Button>
           </div>
 
-          <Button onClick={startSearch} className="w-full" size="lg" disabled={!isConnected}>Start {selectedMode === 'video' ? 'Video' : 'Text'} Chat</Button>
+          <Button onClick={startSearch} className="w-full" size="lg" disabled={false}>
+            {!isConnected && <span className="mr-2">⚠️</span>}
+            Start {selectedMode === 'video' ? 'Video' : 'Text'} Chat
+          </Button>
+          {!isConnected && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+              Connecting to server... You can still start but matching may be delayed.
+            </p>
+          )}
 
           <div className="flex items-center justify-between">
             <Button size="sm" variant="ghost" onClick={requestDebug}>Request Debug Info</Button>

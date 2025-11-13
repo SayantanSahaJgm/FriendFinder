@@ -52,8 +52,10 @@ export function useSocket() {
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {
-    if (!session?.user?.email || status !== 'authenticated') {
-      console.log('No authenticated session, skipping socket connection')
+    // Allow connection for both authenticated users and guests
+    // Guest users can still use random chat features
+    if (status === 'loading') {
+      console.log('Session still loading, waiting...')
       return
     }
 
@@ -104,12 +106,21 @@ export function useSocket() {
         }))
         setConnectionError(null)
         
-        // Register user with the socket
+        // Register user with the socket (authenticated or guest)
         if (session?.user) {
           newSocket.emit('user-register', {
             userId: session.user.id || session.user.email,
             username: session.user.name || session.user.email?.split('@')[0],
             email: session.user.email
+          })
+        } else {
+          // Register as guest for random chat
+          const guestId = localStorage.getItem('guestUserId') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          localStorage.setItem('guestUserId', guestId)
+          newSocket.emit('user-register', {
+            userId: guestId,
+            username: localStorage.getItem('guestUsername') || 'Guest',
+            isGuest: true
           })
         }
 
@@ -314,10 +325,9 @@ export function useSocket() {
 
   // Effect to handle connection/disconnection based on session
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
+    // Allow connection for both authenticated and guest users
+    if (status === 'authenticated' || status === 'unauthenticated') {
       connect()
-    } else if (status === 'unauthenticated') {
-      disconnect()
     }
 
     // Only cleanup on unmount, not on dependency changes
