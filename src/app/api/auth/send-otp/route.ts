@@ -57,15 +57,33 @@ export async function POST(request: NextRequest) {
     user.verificationOTPExpires = otpExpires;
     await user.save();
 
+    // Log a non-secret summary of email env so we can diagnose deploy issues
+    try {
+      const envSummary = {
+        EMAIL_HOST: process.env.EMAIL_HOST || null,
+        EMAIL_PORT: process.env.EMAIL_PORT || null,
+        // mask local-part of the user for safety in logs
+        EMAIL_USER_MASKED: process.env.EMAIL_USER
+          ? process.env.EMAIL_USER.replace(/(^.).+(@.*$)/, '$1***$2')
+          : null,
+        EMAIL_FROM: process.env.EMAIL_FROM || null,
+      }
+      console.log('Email env summary (masked):', envSummary)
+    } catch (e) {
+      console.warn('Failed to summarize email env for debug:', e)
+    }
+
     // Send OTP email
     const emailResult = await sendOTPEmail(email, user.username, otp);
 
     if (!emailResult.success) {
+      console.error('send-otp: sendOTPEmail returned error:', emailResult.error)
       return NextResponse.json(
         {
           success: false,
           error: 'Failed to send OTP email',
-          details: emailResult.error,
+          // return the error message string (non-secret) to help debugging
+          details: typeof emailResult.error === 'string' ? emailResult.error : String(emailResult.error),
         },
         { status: 500 }
       );
