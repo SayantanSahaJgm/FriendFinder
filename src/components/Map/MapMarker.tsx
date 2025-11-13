@@ -70,11 +70,11 @@ export function UserMarker({ map, position }: { map: google.maps.Map; position: 
       title="Your Location"
       icon={{
         path: google.maps.SymbolPath.CIRCLE,
-        fillColor: '#4285F4',
+        fillColor: '#00C2FF',
         fillOpacity: 1,
         strokeColor: '#ffffff',
-        strokeWeight: 3,
-        scale: 10,
+        strokeWeight: 4,
+        scale: 14,
       }}
     />
   )

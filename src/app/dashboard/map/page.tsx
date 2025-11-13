@@ -50,6 +50,7 @@ export default function MapPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [showLocationPanel, setShowLocationPanel] = useState(true)
   const [showNearbyPanel, setShowNearbyPanel] = useState(true)
+  const [showFriendsOpen, setShowFriendsOpen] = useState(true)
   const lastUpdateRef = useRef<number>(0)
   const [selectedFriend, setSelectedFriend] = useState<FriendLocation | null>(null)
   const [showInfoWindow, setShowInfoWindow] = useState(false)
@@ -452,23 +453,32 @@ export default function MapPage() {
           </div>
         )}
 
-    {/* Friends List Panel */}
-    <div className="absolute top-6 right-6 bg-card rounded-lg shadow-lg p-4 max-w-xs max-h-96 overflow-y-auto">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
-            <span>Friends Nearby</span>
-            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
-              {friends.length}
-            </span>
-          </h3>
+    {/* Friends Nearby circular toggle + panel (styled like Map Filters) */}
+    <div className="absolute top-6 right-6 z-50 flex flex-col items-end">
+      <button
+        onClick={() => setShowFriendsOpen((s) => !s)}
+        className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg flex items-center justify-center ring-2 ring-white"
+        title="Friends Nearby"
+      >
+        <div className="flex flex-col items-center leading-none">
+          <span className="text-sm font-bold">F</span>
+          <span className="text-[10px]">{friends.length}</span>
+        </div>
+      </button>
+
+      {showFriendsOpen && (
+        <div className="mt-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-4 w-80 max-h-96 overflow-y-auto">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Friends Nearby</h3>
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{friends.length}</span>
+          </div>
 
           {isLoadingFriends ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
           ) : friends.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-8">
-              No friends sharing location yet
-            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-8">No friends sharing location yet</p>
           ) : (
             <div className="space-y-2">
               {friends.map((friend) => {
@@ -492,12 +502,8 @@ export default function MapPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
-                          {friend.username}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {distance ? formatDistance(distance) : 'Unknown distance'}
-                        </p>
+                        <p className="font-medium text-gray-900 dark:text-white truncate">{friend.username}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{distance ? formatDistance(distance) : 'Unknown distance'}</p>
                       </div>
                     </div>
                   </div>
@@ -568,6 +574,8 @@ export default function MapPage() {
             </>
           )}
         </div>
+      )}
+    </div>
 
     {/* Info Panel - Improved visibility */}
     <div className="absolute bottom-6 right-6 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 max-w-sm">
