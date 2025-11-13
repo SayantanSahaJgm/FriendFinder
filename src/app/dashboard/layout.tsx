@@ -130,13 +130,17 @@ export default function DashboardLayout({
                     className={`${baseClasses} ${activeClasses}`}
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon
-                      className={`mr-3 h-5 w-5 ${
-                        isActive
-                          ? "text-blue-700 dark:text-blue-400"
-                          : "text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-300"
-                      }`}
-                    />
+                    {item.name === "Random Chat" ? (
+                      <img src="/random-logo.png" alt="Random Chat" className={`mr-3 h-5 w-5`} />
+                    ) : (
+                      <item.icon
+                        className={`mr-3 h-5 w-5 ${
+                          isActive
+                            ? "text-blue-700 dark:text-blue-400"
+                            : "text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                        }`}
+                      />
+                    )}
                     {item.name}
                   </Link>
                 );
@@ -187,7 +191,11 @@ export default function DashboardLayout({
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    {item.name === "Random Chat" ? (
+                      <img src="/random-logo.png" alt="Random Chat" className="w-5 h-5 object-contain rounded" />
+                    ) : (
+                      <item.icon className="w-5 h-5" />
+                    )}
                     <span>{item.name}</span>
                   </Link>
                 );
