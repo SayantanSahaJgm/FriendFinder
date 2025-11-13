@@ -17,6 +17,9 @@ import RandomChatSession from '@/models/RandomChatSession'
 import RandomChatQueue from '@/models/RandomChatQueue'
 import { moderateContent } from '@/lib/content-moderation'
 
+// Module-level variable to store the Socket.IO instance
+let ioInstance: ServerIO | null = null
+
 export interface SocketUser {
   id: string
   username: string
@@ -1234,6 +1237,9 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
     console.error('Failed to start random chat debug server:', err)
   }
 
+  // Store the io instance for access from API routes
+  ioInstance = io
+
   return io
 }
 
@@ -1345,3 +1351,14 @@ async function notifyFriendsOnlineStatus(userId: string, isOnline: boolean) {
 }
 
 export { onlineUsers, startRandomChatMatching, stopRandomChatMatching }
+
+/**
+ * Get the Socket.IO server instance
+ * This allows API routes to emit socket events
+ */
+export function getIO(): ServerIO {
+  if (!ioInstance) {
+    throw new Error('Socket.IO server not initialized')
+  }
+  return ioInstance
+}
