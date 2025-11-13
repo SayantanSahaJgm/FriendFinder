@@ -57,10 +57,10 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Your account is scheduled for deletion. Please restore your account first.');
           }
 
-          // Check if email is verified
-          if (!user.isEmailVerified) {
-            throw new Error('Please verify your email before logging in');
-          }
+          // TEMPORARILY DISABLED: Email verification check
+          // if (!user.isEmailVerified) {
+          //   throw new Error('Please verify your email before logging in');
+          // }
 
           // Check password
           const isPasswordValid = await user.comparePassword(validatedData.password);

@@ -75,21 +75,21 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        // Check if it's an email verification error
-        if (result.error.includes("verify your email")) {
-          setError("Please verify your email before logging in");
-          toast.error("Email not verified", {
-            description: "Check your email for the verification code",
-            action: {
-              label: "Resend",
-              onClick: () => {
-                router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
-              },
-            },
-          });
-        } else {
+        // TEMPORARILY DISABLED: Email verification check
+        // if (result.error.includes("verify your email")) {
+        //   setError("Please verify your email before logging in");
+        //   toast.error("Email not verified", {
+        //     description: "Check your email for the verification code",
+        //     action: {
+        //       label: "Resend",
+        //       onClick: () => {
+        //         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+        //       },
+        //     },
+        //   });
+        // } else {
           setError("Invalid email or password");
-        }
+        // }
       } else {
         // Refresh session and redirect
         await getSession();

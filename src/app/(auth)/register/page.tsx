@@ -93,11 +93,11 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess("Account created successfully! Redirecting to verification...");
+      setSuccess("Account created successfully! Redirecting to login...");
 
-      // Redirect to email verification page
+      // TEMPORARILY DISABLED: Email verification - redirect to login
       setTimeout(() => {
-        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+        router.push(`/login?registered=true&email=${encodeURIComponent(data.email)}`);
       }, 1500);
     } catch (error) {
       setError("Something went wrong. Please try again.");

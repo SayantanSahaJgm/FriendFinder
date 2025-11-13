@@ -64,30 +64,26 @@ export async function POST(request: NextRequest) {
       friends: [],
       friendRequests: [],
       lastSeen: new Date(),
-      isEmailVerified: false, // Email not verified yet
+      isEmailVerified: true, // TEMPORARILY AUTO-VERIFIED - bypassing email verification
     });
 
-    // Generate and send OTP for email verification
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    newUser.verificationOTP = otp;
-    newUser.verificationOTPExpires = otpExpires;
-    await newUser.save();
-
-    // Send OTP email (don't fail registration if email fails)
-    const emailResult = await sendOTPEmail(newUser.email, newUser.username, otp);
+    // TEMPORARILY DISABLED: Email verification
+    // Users are auto-verified on registration
+    // const otp = generateOTP();
+    // const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    // newUser.verificationOTP = otp;
+    // newUser.verificationOTPExpires = otpExpires;
+    // await newUser.save();
+    // const emailResult = await sendOTPEmail(newUser.email, newUser.username, otp);
     
-    if (!emailResult.success) {
-      console.error('Failed to send verification email:', emailResult.error);
-    }
+    console.log('Email verification temporarily disabled - user auto-verified');
 
     // Return success response (password automatically excluded by schema)
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully. Please check your email for verification code.',
-        requiresVerification: true,
+        message: 'User registered successfully. You can now sign in.',
+        requiresVerification: false, // TEMPORARILY DISABLED
         data: {
           user: {
             id: newUser._id,
@@ -99,7 +95,7 @@ export async function POST(request: NextRequest) {
             createdAt: newUser.createdAt,
           },
         },
-        emailSent: emailResult.success,
+        emailSent: false, // Email verification disabled
       },
       { status: 201 }
     );
