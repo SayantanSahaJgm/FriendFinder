@@ -132,6 +132,21 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Rewrites for Socket.IO proxy (development only - production uses same server)
+  async rewrites() {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+      const socketPort = process.env.SOCKET_PORT || '3004';
+      return [
+        {
+          source: '/socket.io/:path*',
+          destination: `http://localhost:${socketPort}/socket.io/:path*`,
+        },
+      ];
+    }
+    return [];
+  },
+
   // Compression and optimization
   compress: true,
   poweredByHeader: false,

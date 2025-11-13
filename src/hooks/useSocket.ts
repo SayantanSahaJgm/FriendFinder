@@ -43,12 +43,13 @@ export function useSocket() {
   const isConnected = connectionState.status === 'connected'
 
   // Socket URL configuration
-  // Default to port 3000 where the Socket.IO server runs in this repo
-  // The standalone Socket.IO server in this repo listens on 3004 by default
-  // (see server.js). Prefer an explicit NEXT_PUBLIC_SOCKET_PORT, otherwise
-  // fall back to 3004 instead of 3000 to match the dev server.
-  const socketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || '3004'
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://localhost:${socketPort}`
+  // In production, use the same domain as the app (no separate socket server needed)
+  // In development, use localhost:3004
+  const socketUrl = typeof window !== 'undefined' 
+    ? (process.env.NODE_ENV === 'production' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3004')
+    : 'http://localhost:3004'
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {
@@ -79,10 +80,9 @@ export function useSocket() {
 
     try {
       const newSocket = io(socketUrl, {
-          // Server.js exposes the Socket.IO endpoint at /socket.io/
-          path: '/socket.io/',
+        // Server.js exposes the Socket.IO endpoint at /socket.io/
+        path: '/socket.io/',
         // Allow both transports; Socket.IO will upgrade from polling to WebSocket
-        // Render and Railway now support WebSocket natively.
         transports: ['polling', 'websocket'],
         upgrade: true,
         timeout: 20000,
