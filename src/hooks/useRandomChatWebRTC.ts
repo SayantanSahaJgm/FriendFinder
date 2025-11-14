@@ -56,6 +56,18 @@ export function useRandomChatWebRTC() {
     if (!activeSession || chatType === 'text') return;
 
     try {
+      // Clean up any existing connection first
+      if (peerConnectionRef.current) {
+        console.log('Cleaning up existing peer connection before creating new one');
+        peerConnectionRef.current.close();
+        peerConnectionRef.current = null;
+      }
+
+      // Stop any existing local stream
+      if (webrtcState.localStream) {
+        webrtcState.localStream.getTracks().forEach(track => track.stop());
+      }
+
       setWebrtcState(prev => ({ ...prev, isConnecting: true, callError: null }));
 
       // Check if getUserMedia is supported
@@ -77,10 +89,15 @@ export function useRandomChatWebRTC() {
       } catch (error) {
         // Fallback to basic constraints if high-quality fails
         console.warn('High-quality media failed, trying basic constraints:', error);
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: chatType === 'video' ? true : false
-        });
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: chatType === 'video' ? true : false
+          });
+        } catch (fallbackError) {
+          const errorMsg = fallbackError instanceof Error ? fallbackError.message : 'Unknown error';
+          throw new Error(`Camera/microphone access denied or not available. Please check browser permissions. Details: ${errorMsg}`);
+        }
       }
 
       setWebrtcState(prev => ({ 
@@ -343,13 +360,20 @@ export function useRandomChatWebRTC() {
 
   // Cleanup WebRTC resources
   const cleanup = useCallback(() => {
-    // Stop local stream
-    if (webrtcState.localStream) {
-      webrtcState.localStream.getTracks().forEach(track => track.stop());
-    }
+    // Stop local stream - use functional update to get current state
+    setWebrtcState(prev => {
+      if (prev.localStream) {
+        prev.localStream.getTracks().forEach(track => {
+          track.stop();
+          console.log('Stopped track:', track.kind);
+        });
+      }
+      return prev;
+    });
 
     // Close peer connection
     if (peerConnectionRef.current) {
+      console.log('Closing peer connection, state:', peerConnectionRef.current.connectionState);
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
@@ -375,7 +399,7 @@ export function useRandomChatWebRTC() {
       isConnecting: false,
       callError: null,
     });
-  }, [webrtcState.localStream]);
+  }, []);
 
   // Socket event listeners
   useEffect(() => {
@@ -474,6 +498,22 @@ export function useRandomChatWebRTC() {
       }
     };
   }, [webrtcState.connectionState, activeSession, socket, runAndEmitVerification]);
+
+  // Cleanup on unmount or when session ends
+  useEffect(() => {
+    return () => {
+      console.log('useRandomChatWebRTC unmounting, cleaning up resources');
+      cleanup();
+    };
+  }, [cleanup]);
+
+  // Cleanup when active session changes
+  useEffect(() => {
+    if (!activeSession) {
+      console.log('No active session, cleaning up WebRTC');
+      cleanup();
+    }
+  }, [activeSession, cleanup]);
 
   // Start WebRTC connection (for initiator)
   const startWebRTCConnection = useCallback(async () => {

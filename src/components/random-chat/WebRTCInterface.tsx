@@ -111,7 +111,10 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
           
           <div className="text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <span>{session.partner.anonymousId}</span>
+              <span>{(session.partner as any).displayName || session.partner.username || session.partner.anonymousId}</span>
+              {(session.partner as any).isAI && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">AI</span>
+              )}
               {/* partner verification small badge near name */}
               <span className="inline-flex items-center gap-1 text-xs">
                 {partnerVerified == null ? (
@@ -305,7 +308,7 @@ export default function WebRTCInterface({ session, onEndCall }: WebRTCInterfaceP
               </span>
             )}
             {connectionState === 'connecting' && (
-              <span>Connecting to {session.partner.anonymousId}...</span>
+              <span>Connecting to {(session.partner as any).displayName || session.partner.anonymousId}...</span>
             )}
             {connectionState === 'disconnected' && (
               <span className="text-orange-600">Connection lost</span>

@@ -128,8 +128,14 @@ export function useServiceWorker(
   const activateWaiting = useCallback(async () => {
     try {
       await serviceWorkerUtils.activateWaitingServiceWorker();
-      // Hard reload to get new version
-      window.location.reload();
+      // Don't force reload - let user refresh manually to avoid interrupting active sessions
+      setState((prev) => ({ 
+        ...prev, 
+        updateAvailable: false,
+        error: null
+      }));
+      // Show non-blocking notification instead
+      console.log('✅ Service worker updated. Changes will apply on next page load.');
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to activate waiting service worker';
