@@ -38,8 +38,11 @@ export interface RandomChatSession {
   sessionId: string;
   partner: {
     anonymousId: string;
-    username: string;
+    username?: string;
+    displayName?: string;
     isActive: boolean;
+    isAI?: boolean;
+    commonInterests?: string[];
   };
   userAnonymousId: string;
   status: "waiting" | "active" | "ended" | "reported";
@@ -97,6 +100,8 @@ export interface RandomChatContextType {
     messageIds?: string[]
   ) => Promise<{ success: boolean; error?: string }>;
   nextChat: () => Promise<void>;
+  // Create an AI partner session when no human partner is found
+  createAISession: (preferences?: ChatPreferences) => Promise<void>;
 
   // Session management
   refreshSession: () => Promise<void>;
@@ -685,6 +690,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
 
         if (data.success) {
+            try {
+              // Persist last used preferences for quick re-queue / AI fallback
+              localStorage.setItem('randomChatLastPreferences', JSON.stringify(preferences));
+            } catch (e) {}
           if (data.data.type === "match_found") {
             // Immediate match
             const newSession: RandomChatSession = {
@@ -744,6 +753,10 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
         preferences,
       })
 
+      try {
+        localStorage.setItem('randomChatLastPreferences', JSON.stringify(preferences));
+      } catch (e) {}
+
       // Update UI queue state optimistically; server will emit precise queue-position
       setQueueStatus(prev => ({
         ...prev,
@@ -763,6 +776,46 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
       setIsJoiningQueue(false);
     }
   };
+
+  // Create an AI session fallback when no human partner is found
+  const createAISession = async (preferences?: ChatPreferences) => {
+    try {
+      const prefs = preferences || JSON.parse(localStorage.getItem('randomChatLastPreferences') || 'null') || { chatType: 'text' };
+      const anon = anonId || ensureAnonId();
+      const guest = anonName || ensureAnonName() || localStorage.getItem('guestUsername') || `Guest_${Math.random().toString(36).substr(2,4)}`;
+
+      const aiPartner = {
+        anonymousId: `ai_${Math.random().toString(36).substr(2,6)}`,
+        displayName: `AI_${guest.split('_')[0] || 'Bot'}`,
+        username: undefined,
+        isActive: true,
+        isAI: true,
+        commonInterests: prefs?.interests || [],
+      };
+
+      const newSession: RandomChatSession = {
+        sessionId: `ai_session_${Date.now()}`,
+        partner: aiPartner,
+        userAnonymousId: anon || 'you',
+        status: 'active',
+        chatType: prefs.chatType || 'text',
+        startTime: new Date(),
+        messagesCount: 0,
+        messages: [],
+      };
+
+      setActiveSession(newSession);
+      setMessages([]);
+
+      try {
+        localStorage.setItem('randomChatSession', JSON.stringify(newSession));
+      } catch (e) {}
+
+      toast.info('No human partner found — you are now connected to an AI assistant (labeled AI)');
+    } catch (e) {
+      console.error('Failed to create AI session', e);
+    }
+  }
 
   // Leave queue
   const leaveQueue = async (): Promise<{
@@ -1098,6 +1151,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     reportUser,
     refreshSession,
     joinActiveSession,
+    createAISession,
     nextChat: async () => {
       // End current session
       await endSession();

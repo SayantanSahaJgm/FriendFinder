@@ -93,15 +93,20 @@ export async function POST(request: Request) {
     }
 
     if (matchFound && matchedUser) {
+      // Do NOT expose real user ids or DB identifiers. Return anonymized partner info only.
+      const partner = {
+        anonymousId: matchedUser.id ? `guest_${matchedUser.id.substr(-6)}` : `guest_${Math.random().toString(36).substr(2,6)}`,
+        displayName: matchedUser.username || matchedUser.name || `Guest_${Math.random().toString(36).substr(2,6)}`,
+        profilePicture: matchedUser.profilePicture || null,
+        commonInterests: matchedUser.commonInterests || [],
+      };
+
       return NextResponse.json({
         ok: true,
         matched: true,
-        matchedUser,
-        currentUser: {
-          id: currentUser._id.toString(),
-          username: currentUser.username,
-          name: currentUser.name,
-          profilePicture: currentUser.profilePicture
+        data: {
+          sessionId: `${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
+          partner,
         }
       });
     } else {

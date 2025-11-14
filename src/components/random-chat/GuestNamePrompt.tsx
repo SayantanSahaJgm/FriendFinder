@@ -35,6 +35,8 @@ export default function GuestNamePrompt({ onSaved }: { onSaved?: (name: string) 
 
     try {
       localStorage.setItem('guestUsername', trimmed)
+      // Keep random-chat anon name in sync for RandomChatContext
+      try { localStorage.setItem('randomChatAnonName', trimmed) } catch (e) {}
       setVisible(false)
       toast.success(`Welcome, ${trimmed}!`)
       onSaved?.(trimmed)

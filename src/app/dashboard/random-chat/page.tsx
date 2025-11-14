@@ -51,9 +51,12 @@ export default function RandomChatPage() {
     leaveQueue,
     endSession,
     nextChat,
+    createAISession,
+    setAnonName,
   } = useRandomChat();
 
   const [showPreferences, setShowPreferences] = useState(true);
+  const [userInterests, setUserInterests] = useState<string[] | null>(null);
   const queueTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [optimisticQueued, setOptimisticQueued] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -86,6 +89,16 @@ export default function RandomChatPage() {
       clearTimeout(queueTimeoutRef.current);
       queueTimeoutRef.current = null;
     }
+    // load user's last selected interests for display
+    try {
+      const last = localStorage.getItem('randomChatLastPreferences');
+      if (last) {
+        const parsed = JSON.parse(last);
+        setUserInterests(parsed?.interests || null);
+      } else {
+        setUserInterests(null);
+      }
+    } catch (e) { setUserInterests(null) }
   }, [activeSession]);
 
   const handleJoinQueue = async (preferences: ChatPreferences) => {
@@ -111,9 +124,9 @@ export default function RandomChatPage() {
       
       // After 1 minute, if still no match, leave queue and return to random chat page
       queueTimeoutRef.current = setTimeout(async () => {
-        toast.info("No match found. Returning to chat selection...");
-        await leaveQueue();
-        setShowPreferences(true);
+        toast.info("No match found. Connecting you to an AI assistant...");
+        // create an AI session fallback
+        await createAISession();
         queueTimeoutRef.current = null;
       }, 60000); // 60 seconds
     }
@@ -157,9 +170,8 @@ export default function RandomChatPage() {
       
       // Set up new timeout after joining queue
       queueTimeoutRef.current = setTimeout(async () => {
-        toast.info("No match found. Returning to chat selection...");
-        await leaveQueue();
-        setShowPreferences(true);
+        toast.info("No match found. Connecting you to an AI assistant...");
+        await createAISession();
         queueTimeoutRef.current = null;
       }, 60000); // 60 seconds
     } catch (error) {
@@ -245,7 +257,7 @@ export default function RandomChatPage() {
   return (
     <div className="space-y-4 sm:space-y-6 pb-24">
       {/* Show guest name prompt for unauthenticated users without a saved guest name */}
-      <GuestNamePrompt />
+      <GuestNamePrompt onSaved={(name) => setAnonName?.(name)} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -309,6 +321,15 @@ export default function RandomChatPage() {
                       <div className="flex flex-wrap gap-1 mt-1">
                         {(activeSession.partner as any).commonInterests.slice(0, 3).map((interest: string) => (
                           <span key={interest} className="text-xs bg-muted px-1.5 py-0.5 rounded">{interest}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {userInterests && userInterests.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        <div className="text-xs text-muted-foreground w-full">Your interests:</div>
+                        {userInterests.slice(0, 4).map((i) => (
+                          <span key={i} className="text-xs bg-muted/80 px-1.5 py-0.5 rounded">{i}</span>
                         ))}
                       </div>
                     )}
