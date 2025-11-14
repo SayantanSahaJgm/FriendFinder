@@ -54,6 +54,7 @@ export default function RandomChatPage() {
   } = useRandomChat();
 
   const [showPreferences, setShowPreferences] = useState(true);
+  const queueTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [optimisticQueued, setOptimisticQueued] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentChatType, setCurrentChatType] = useState<
@@ -68,6 +69,24 @@ export default function RandomChatPage() {
       setShowPreferences(true);
     }
   }, [queueStatus.inQueue, activeSession]);
+
+  // Clear timeout when component unmounts
+  useEffect(() => {
+    return () => {
+      if (queueTimeoutRef.current) {
+        clearTimeout(queueTimeoutRef.current);
+        queueTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Clear timeout when activeSession starts (match found)
+  useEffect(() => {
+    if (activeSession && queueTimeoutRef.current) {
+      clearTimeout(queueTimeoutRef.current);
+      queueTimeoutRef.current = null;
+    }
+  }, [activeSession]);
 
   const handleJoinQueue = async (preferences: ChatPreferences) => {
     setCurrentChatType(preferences.chatType);
@@ -85,22 +104,18 @@ export default function RandomChatPage() {
         setOptimisticQueued(false);
       }, 10000);
       
-      // After 1 minute, if still no match, leave queue and return to random chat page
-      const timeoutId = setTimeout(async () => {
-        if (queueStatus.inQueue && !activeSession) {
-          toast.info("No match found. Returning to random chat page...");
-          await leaveQueue();
-          setShowPreferences(true);
-        }
-      }, 60000); // 60 seconds
+      // Clear any existing timeout
+      if (queueTimeoutRef.current) {
+        clearTimeout(queueTimeoutRef.current);
+      }
       
-      // Clear timeout if user gets matched or leaves queue manually
-      const checkMatch = setInterval(() => {
-        if (activeSession || !queueStatus.inQueue) {
-          clearTimeout(timeoutId);
-          clearInterval(checkMatch);
-        }
-      }, 1000);
+      // After 1 minute, if still no match, leave queue and return to random chat page
+      queueTimeoutRef.current = setTimeout(async () => {
+        toast.info("No match found. Returning to chat selection...");
+        await leaveQueue();
+        setShowPreferences(true);
+        queueTimeoutRef.current = null;
+      }, 60000); // 60 seconds
     }
   };
 
@@ -131,8 +146,22 @@ export default function RandomChatPage() {
 
   const handleNextChat = async () => {
     try {
+      // Clear existing timeout
+      if (queueTimeoutRef.current) {
+        clearTimeout(queueTimeoutRef.current);
+        queueTimeoutRef.current = null;
+      }
+      
       toast.info("Finding next chat partner...");
       await nextChat();
+      
+      // Set up new timeout after joining queue
+      queueTimeoutRef.current = setTimeout(async () => {
+        toast.info("No match found. Returning to chat selection...");
+        await leaveQueue();
+        setShowPreferences(true);
+        queueTimeoutRef.current = null;
+      }, 60000); // 60 seconds
     } catch (error) {
       toast.error("Failed to find next chat");
       console.error("Next chat error:", error);

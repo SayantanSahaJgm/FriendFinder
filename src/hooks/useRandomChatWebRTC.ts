@@ -469,7 +469,22 @@ export function useRandomChatWebRTC() {
   // Initialize WebRTC when session starts with voice/video
   useEffect(() => {
     if (activeSession && (activeSession.chatType === 'voice' || activeSession.chatType === 'video')) {
-      initializeWebRTC(activeSession.chatType);
+      console.log('[WebRTC] Auto-initializing WebRTC for session:', activeSession.sessionId);
+      
+      const setupWebRTC = async () => {
+        await initializeWebRTC(activeSession.chatType);
+        
+        // Auto-create offer after initialization
+        console.log('[WebRTC] Creating offer automatically after initialization');
+        setTimeout(() => {
+          createOffer().catch((error) => {
+            console.error('[WebRTC] Failed to auto-create offer:', error);
+            toast.error('Failed to initialize video call. Please try again.');
+          });
+        }, 500); // Small delay to ensure peer connection is ready
+      };
+      
+      setupWebRTC();
     }
 
     // Cleanup when session ends
@@ -478,7 +493,7 @@ export function useRandomChatWebRTC() {
         cleanup();
       }
     };
-  }, [activeSession, initializeWebRTC, cleanup]);
+  }, [activeSession, initializeWebRTC, cleanup, createOffer]);
 
   // Periodic verification emitter: when connected and video enabled, periodically capture and emit verification
   useEffect(() => {
