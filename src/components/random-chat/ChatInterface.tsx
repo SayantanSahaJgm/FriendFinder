@@ -17,6 +17,8 @@ import {
   MicOff, 
   VideoOff,
   Loader2,
+  SkipForward,
+  Bot,
 } from "lucide-react";
 import type { RandomChatSession, RandomChatMessage } from "@/context/RandomChatContext";
 
@@ -32,9 +34,8 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
     sendMessage,
     startTyping,
     stopTyping,
+    nextChat,
   } = useRandomChat();
-
-  const { lastPreferences } = useRandomChat();
 
   const [messageInput, setMessageInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -195,11 +196,16 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
           <div className="flex items-center gap-3">
             <Avatar>
               <AvatarFallback>
-                {session.partner.anonymousId.charAt(0)}
+                {(session.partner as any).isAI ? <Bot className="h-4 w-4" /> : session.partner.anonymousId.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
-                <CardTitle className="text-lg">{session.partner.username || session.partner.anonymousId}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">{(session.partner as any).displayName || session.partner.username || session.partner.anonymousId}</CardTitle>
+                {(session.partner as any).isAI && (
+                  <Badge variant="secondary" className="text-xs">AI Assistant</Badge>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <Badge variant={session.partner.isActive ? "default" : "secondary"} className="text-xs">
                   {session.partner.isActive ? "Online" : "Offline"}
@@ -208,14 +214,14 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
                   {session.chatType}
                 </Badge>
               </div>
-                {/* Common interests */}
-                {Array.isArray(lastPreferences?.interests) && Array.isArray((session.partner as any).interests) && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {lastPreferences!.interests!.filter(i => (session.partner as any).interests.includes(i)).slice(0,5).map(i => (
-                      <span key={i} className="text-xs bg-muted px-2 py-1 rounded">{i}</span>
-                    ))}
-                  </div>
-                )}
+              {/* Common interests */}
+              {(session.partner as any).commonInterests && (session.partner as any).commonInterests.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {(session.partner as any).commonInterests.slice(0, 5).map((interest: string) => (
+                    <span key={interest} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">✨ {interest}</span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           
@@ -241,9 +247,22 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
           <div className="py-4">
             {/* Welcome Message */}
             <div className="text-center mb-6">
-              <div className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground">
-                <p>🎉 You're now chatting with <strong>{session.partner.anonymousId}</strong></p>
-                <p className="text-xs mt-1">Be respectful and have fun! You can report inappropriate behavior anytime.</p>
+              <div className={`rounded-lg p-3 text-sm ${
+                (session.partner as any).isAI 
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100' 
+                  : 'bg-muted/50 text-muted-foreground'
+              }`}>
+                {(session.partner as any).isAI ? (
+                  <>
+                    <p>🤖 You're chatting with an <strong>AI Assistant</strong></p>
+                    <p className="text-xs mt-1">No human partners were available right now. The AI will chat with you until a real person joins!</p>
+                  </>
+                ) : (
+                  <>
+                    <p>🎉 You're now chatting with <strong>{(session.partner as any).displayName || session.partner.anonymousId}</strong></p>
+                    <p className="text-xs mt-1">Be respectful and have fun! You can report inappropriate behavior anytime.</p>
+                  </>
+                )}
               </div>
             </div>
 

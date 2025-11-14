@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Flag,
   Loader2,
+  SkipForward,
 } from "lucide-react";
 import { toast } from "sonner";
 import PreferencesSelector from "@/components/random-chat/PreferencesSelector";
@@ -49,6 +50,7 @@ export default function RandomChatPage() {
     joinQueue,
     leaveQueue,
     endSession,
+    nextChat,
   } = useRandomChat();
 
   const [showPreferences, setShowPreferences] = useState(true);
@@ -108,6 +110,15 @@ export default function RandomChatPage() {
 
   const handleReportUser = () => {
     setShowReportModal(true);
+  };
+
+  const handleNextChat = async () => {
+    if (nextChat) {
+      const result = await nextChat();
+      if (!result.success) {
+        toast.error(result.error || "Failed to start next chat");
+      }
+    }
   };
 
   // Show loading state
@@ -236,12 +247,24 @@ export default function RandomChatPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {activeSession.partner.username || activeSession.partner.anonymousId}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">
+                        {(activeSession.partner as any).displayName || activeSession.partner.username || activeSession.partner.anonymousId}
+                      </p>
+                      {(activeSession.partner as any).isAI && (
+                        <Badge variant="secondary" className="text-xs">AI</Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {activeSession.partner.isActive ? "Online" : "Offline"}
                     </p>
+                    {(activeSession.partner as any).commonInterests && (activeSession.partner as any).commonInterests.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(activeSession.partner as any).commonInterests.slice(0, 3).map((interest: string) => (
+                          <span key={interest} className="text-xs bg-muted px-1.5 py-0.5 rounded">{interest}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -266,6 +289,15 @@ export default function RandomChatPage() {
                   >
                     <Flag className="h-4 w-4" />
                     Report
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleNextChat}
+                    className="flex items-center gap-1 h-9"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                    Next Chat
                   </Button>
                   <Button
                     variant="destructive"

@@ -304,21 +304,19 @@ const performRandomChatMatching = async (io: SocketIOServer) => {
         })
         
         // Notify both users
-        // Build full partner objects for both participants
+        // Build anonymized partner objects for both participants (no DB userId exposed)
         const partnerForEntry = {
-          userId: match.userId ? (match.userId.toString ? match.userId.toString() : match.userId) : undefined,
           anonymousId: match.anonymousId,
-          username: match.username || match.anonymousId,
-          joinedAt: new Date().toISOString(),
+          displayName: match.username || `Guest${match.anonymousId.slice(-4)}`,
           isActive: true,
+          commonInterests: match.preferences?.interests || [],
         }
 
         const partnerForMatch = {
-          userId: entry.userId ? (entry.userId.toString ? entry.userId.toString() : entry.userId) : undefined,
           anonymousId: entry.anonymousId,
-          username: entry.username || entry.anonymousId,
-          joinedAt: new Date().toISOString(),
+          displayName: entry.username || `Guest${entry.anonymousId.slice(-4)}`,
           isActive: true,
+          commonInterests: entry.preferences?.interests || [],
         }
 
         const matchData1 = {
@@ -336,8 +334,8 @@ const performRandomChatMatching = async (io: SocketIOServer) => {
         }
 
         // Log emitted payloads for debugging
-        console.log('Emit random-chat:match-found ->', `user:${entry.userId}`, matchData1)
-        console.log('Emit random-chat:match-found ->', `user:${match.userId}`, matchData2)
+        console.log('Emit random-chat:match-found (anonymized) ->', `user:${entry.userId}`, matchData1)
+        console.log('Emit random-chat:match-found (anonymized) ->', `user:${match.userId}`, matchData2)
 
         io.to(`user:${entry.userId}`).emit('random-chat:match-found', matchData1)
         io.to(`user:${match.userId}`).emit('random-chat:match-found', matchData2)
