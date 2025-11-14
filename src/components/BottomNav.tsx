@@ -14,7 +14,7 @@ export default function BottomNav() {
     { path: '/dashboard/bluetooth', icon: Bluetooth, label: 'Bluetooth', color: 'from-indigo-500 to-indigo-600' },
     { path: '/dashboard/wifi', icon: Wifi, label: 'WiFi', color: 'from-purple-500 to-purple-600' },
     { path: '/dashboard/search', icon: Search, label: 'Search', color: 'from-pink-500 to-pink-600' },
-    { path: '/dashboard/random-people', icon: Users, label: 'Random', color: 'from-violet-500 to-violet-600' },
+    { path: '/dashboard/random-chat', icon: Users, label: 'Random', color: 'from-violet-500 to-violet-600' },
   ];
 
   return (

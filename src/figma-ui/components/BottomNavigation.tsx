@@ -10,7 +10,7 @@ export default function BottomNavigation() {
   const wifiHref = session?.user ? "/dashboard/wifi" : "/register";
   const createHref = session?.user ? "/dashboard/create" : "/register";
   const searchHref = session?.user ? "/dashboard/search" : "/register";
-  const randomHref = session?.user ? "/dashboard/random-people" : "/register";
+  const randomHref = session?.user ? "/dashboard/random-chat" : "/register";
 
   return (
     <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-full shadow-2xl px-3 py-3 sm:px-6 sm:py-4 flex items-center justify-center gap-6 max-w-[95vw] sm:max-w-none z-50 border border-gray-200">
