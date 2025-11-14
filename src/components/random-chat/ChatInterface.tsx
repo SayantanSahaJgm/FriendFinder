@@ -34,6 +34,8 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
     stopTyping,
   } = useRandomChat();
 
+  const { lastPreferences } = useRandomChat();
+
   const [messageInput, setMessageInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -197,7 +199,7 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{session.partner.anonymousId}</CardTitle>
+                <CardTitle className="text-lg">{session.partner.username || session.partner.anonymousId}</CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant={session.partner.isActive ? "default" : "secondary"} className="text-xs">
                   {session.partner.isActive ? "Online" : "Offline"}
@@ -206,6 +208,14 @@ export default function ChatInterface({ session }: ChatInterfaceProps) {
                   {session.chatType}
                 </Badge>
               </div>
+                {/* Common interests */}
+                {Array.isArray(lastPreferences?.interests) && Array.isArray((session.partner as any).interests) && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {lastPreferences!.interests!.filter(i => (session.partner as any).interests.includes(i)).slice(0,5).map(i => (
+                      <span key={i} className="text-xs bg-muted px-2 py-1 rounded">{i}</span>
+                    ))}
+                  </div>
+                )}
             </div>
           </div>
           
