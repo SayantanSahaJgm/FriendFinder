@@ -1098,6 +1098,21 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     reportUser,
     refreshSession,
     joinActiveSession,
+    nextChat: async () => {
+      // End current session
+      await endSession();
+      
+      // Get last used preferences from localStorage
+      const lastPrefs = localStorage.getItem('randomChatLastPreferences');
+      if (lastPrefs) {
+        const preferences = JSON.parse(lastPrefs);
+        // Rejoin queue with same preferences
+        await joinQueue(preferences);
+      } else {
+        // Use default preferences
+        await joinQueue({ chatType: 'text' });
+      }
+    },
     // expose anon name setter for UI components
     setAnonName: (name: string) => {
       try {

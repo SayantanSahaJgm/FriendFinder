@@ -60,12 +60,12 @@
    ```
  # FriendFinder — Render deployment guide
 
-This file explains a working, minimal Render setup for deploying FriendFinder publicly (Next.js + Socket.IO). It focuses on the single-service approach (recommended) using `server-integration.js`, which runs Next and Socket.IO together on the same origin so clients can connect without CORS headaches.
+This file explains a working, minimal Render setup for deploying FriendFinder publicly (Next.js + Socket.IO). It focuses on the single-service approach (recommended) using `server.js`, which runs Next and Socket.IO together on the same origin so clients can connect without CORS headaches.
 
 If you prefer a split deployment (Next on Vercel or Render + separate Socket service), see the "Split services" section below.
 
 ## Summary (recommended)
-- Deploy one Render Web Service running `node server-integration.js` (package.json `start` script already uses this file).
+- Deploy one Render Web Service running `node server.js` (package.json `start` script now uses this file).
 - Set production environment variables in Render (see list below).
 - Render will provide HTTPS and a stable public URL — use that URL for `NEXTAUTH_URL` and `NEXT_PUBLIC_SOCKET_URL`.
 
@@ -89,7 +89,7 @@ Optional (if you use these integrations):
 - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 
 Notes:
-- Do NOT hardcode `PORT` in Render. Render sets `PORT` for you; `server-integration.js` reads the env and will listen correctly.
+- Do NOT hardcode `PORT` in Render. Render sets `PORT` for you; `server.js` reads the env and will listen correctly.
 - Only set `SOCKET_PORT` if you intentionally want the socket server bound to a different port than the web process (not typically needed with the single-service approach).
 
 ---
@@ -112,7 +112,7 @@ After deployment, Render will provide a public URL (example: `https://friendfind
 - Deploy Next.js as a web service (or Vercel). Build/start as normal for Next.
 - Deploy `server.js` (Socket.IO) as a separate Render service (Web Service or Background Worker). Start with: `node server.js`
 - Set the socket service's public URL (e.g. `https://friendfinder-sockets.onrender.com`) into `NEXT_PUBLIC_SOCKET_URL` in the Next app.
-- Ensure `allowedOrigins` in `server.js` / `server-integration.js` include your Next app domain and the socket domain (the code already checks `NEXTAUTH_URL`).
+-- Ensure `allowedOrigins` in `server.js` include your Next app domain and the socket domain (the code already checks `NEXTAUTH_URL`).
 
 ## Verification checklist (post-deploy)
 1. Build completed without error in Render logs.
@@ -134,7 +134,7 @@ npm run build
 ```powershell
 npm run start
 # or directly:
-# node server-integration.js
+# node server.js
 ```
 3. Open http://localhost:3000 by default (server-integration listens on the `PORT` env or 3000).
 

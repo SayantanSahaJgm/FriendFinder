@@ -410,7 +410,14 @@ export function useRandomChatWebRTC() {
       offer: RTCSessionDescriptionInit 
     }) => {
       if (activeSession?.sessionId === data.sessionId) {
-        handleOffer(data.offer);
+        // Initialize WebRTC if not already done
+        if (!peerConnectionRef.current && activeSession.chatType !== 'text') {
+          initializeWebRTC(activeSession.chatType).then(() => {
+            handleOffer(data.offer);
+          });
+        } else {
+          handleOffer(data.offer);
+        }
       }
     };
 

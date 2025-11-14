@@ -396,7 +396,7 @@ const sendFriendRequest = useCallback(async (userID: string) => {
 **Server:** Emit friend request notifications
 
 ```javascript
-// server-integration.js
+// server.js (send from socket server)
 io.to(receiverSocketId).emit('friend-request-received', {
   requestId: 'req_abc123',
   senderID: 'user456',

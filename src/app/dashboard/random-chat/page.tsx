@@ -84,6 +84,23 @@ export default function RandomChatPage() {
       setTimeout(() => {
         setOptimisticQueued(false);
       }, 10000);
+      
+      // After 1 minute, if still no match, leave queue and return to random chat page
+      const timeoutId = setTimeout(async () => {
+        if (queueStatus.inQueue && !activeSession) {
+          toast.info("No match found. Returning to random chat page...");
+          await leaveQueue();
+          setShowPreferences(true);
+        }
+      }, 60000); // 60 seconds
+      
+      // Clear timeout if user gets matched or leaves queue manually
+      const checkMatch = setInterval(() => {
+        if (activeSession || !queueStatus.inQueue) {
+          clearTimeout(timeoutId);
+          clearInterval(checkMatch);
+        }
+      }, 1000);
     }
   };
 
@@ -113,11 +130,12 @@ export default function RandomChatPage() {
   };
 
   const handleNextChat = async () => {
-    if (nextChat) {
-      const result = await nextChat();
-      if (!result.success) {
-        toast.error(result.error || "Failed to start next chat");
-      }
+    try {
+      toast.info("Finding next chat partner...");
+      await nextChat();
+    } catch (error) {
+      toast.error("Failed to find next chat");
+      console.error("Next chat error:", error);
     }
   };
 
