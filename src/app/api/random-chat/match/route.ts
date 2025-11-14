@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       }
 
       // Calculate match score based on interests
-      const commonInterests = queueEntry.interests.filter(interest =>
+      const commonInterests = queueEntry.interests.filter((interest: string) =>
         queueData.interests.includes(interest)
       );
 

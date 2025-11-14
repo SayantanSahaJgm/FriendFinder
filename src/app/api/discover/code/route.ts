@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     // Find user with this code that hasn't expired
     const user = await User.findOne({
@@ -109,18 +109,19 @@ export async function GET(req: NextRequest) {
 
     // Check if already friends
     const currentUser = await User.findOne({ email: session.user.email });
+    const userId = (user as any)._id;
     const isFriend = currentUser?.friends?.some((friendId: any) => 
-      friendId.toString() === user._id.toString()
+      friendId.toString() === userId.toString()
     );
     
     const hasPendingRequest = currentUser?.sentRequests?.some((req: any) =>
-      req.to?.toString() === user._id.toString() && req.status === 'pending'
+      req.to?.toString() === userId.toString() && req.status === 'pending'
     );
 
     return NextResponse.json({
       success: true,
       user: {
-        id: user._id.toString(),
+        id: userId.toString(),
         name: user.name,
         username: user.username,
         email: user.email,

@@ -202,7 +202,7 @@ export default function DiscoveryDiagnosticPage() {
           </div>
 
           {status.wifi.isExpired && (
-            <Alert variant="warning">
+            <Alert variant="default">
               <AlertDescription>
                 Your WiFi connection has expired. Please reconnect from Settings → Discovery → WiFi
               </AlertDescription>
@@ -239,7 +239,7 @@ export default function DiscoveryDiagnosticPage() {
           </div>
 
           {status.bluetooth.isExpired && (
-            <Alert variant="warning">
+            <Alert variant="default">
               <AlertDescription>
                 Your Bluetooth connection has expired. Please reconnect from Settings → Discovery → Bluetooth
               </AlertDescription>

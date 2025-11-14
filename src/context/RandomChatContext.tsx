@@ -96,6 +96,7 @@ export interface RandomChatContextType {
     description?: string,
     messageIds?: string[]
   ) => Promise<{ success: boolean; error?: string }>;
+  nextChat: () => Promise<void>;
 
   // Session management
   refreshSession: () => Promise<void>;

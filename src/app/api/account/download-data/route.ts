@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
 import Message from "@/models/Message";
-import Conversation from "@/models/Conversation";
+import { Conversation } from "@/models/Conversation";
 import Post from "@/models/Post";
 
 export async function GET(req: NextRequest) {

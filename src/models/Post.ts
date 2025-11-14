@@ -32,7 +32,7 @@ const PostSchema = new Schema<IPost>({
   text: { type: String },
   media: { type: [MediaSchema], default: [] },
   isStory: { type: Boolean, default: false, index: true },
-  expiresAt: { type: Date, default: null, index: true },
+  expiresAt: { type: Date, default: null },
 }, {
   timestamps: true,
 });

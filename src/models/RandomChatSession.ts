@@ -267,11 +267,9 @@ const RandomChatSessionSchema = new Schema<IRandomChatSession>({
 /**
  * Indexes for performance optimization
  */
-RandomChatSessionSchema.index({ sessionId: 1 });
 RandomChatSessionSchema.index({ status: 1, chatType: 1 });
 RandomChatSessionSchema.index({ 'participants.userId': 1 });
 RandomChatSessionSchema.index({ createdAt: 1 });
-RandomChatSessionSchema.index({ 'metadata.endTime': 1 });
 
 /**
  * TTL index to auto-delete ended sessions after 7 days

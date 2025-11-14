@@ -139,13 +139,7 @@ const RandomChatReportSchema = new Schema<IRandomChatReport>({
 RandomChatReportSchema.index({ reporterId: 1, createdAt: -1 });
 RandomChatReportSchema.index({ reportedUserId: 1, createdAt: -1 });
 RandomChatReportSchema.index({ status: 1, severity: -1, createdAt: -1 });
-RandomChatReportSchema.index({ sessionId: 1 });
 RandomChatReportSchema.index({ reason: 1, status: 1 });
-
-/**
- * Compound index for admin dashboard queries
- */
-RandomChatReportSchema.index({ status: 1, severity: -1, createdAt: -1 });
 
 /**
  * Instance method: Mark report as reviewed

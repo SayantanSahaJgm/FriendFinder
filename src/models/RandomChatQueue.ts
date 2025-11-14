@@ -123,7 +123,6 @@ const RandomChatQueueSchema = new Schema<IRandomChatQueue>({
 /**
  * Indexes for performance optimization
  */
-RandomChatQueueSchema.index({ userId: 1 });
 RandomChatQueueSchema.index({ isActive: 1, 'preferences.chatType': 1 });
 RandomChatQueueSchema.index({ joinedAt: 1, priority: -1 });
 RandomChatQueueSchema.index({ 'preferences.language': 1, isActive: 1 });
