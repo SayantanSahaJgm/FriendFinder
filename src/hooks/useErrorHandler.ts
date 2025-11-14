@@ -3,6 +3,7 @@
  */
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 export interface AppError {
@@ -17,6 +18,7 @@ export interface AppError {
  * Hook for handling and displaying errors consistently
  */
 export function useErrorHandler() {
+  const router = useRouter();
   const handleError = (error: unknown, context?: string): AppError => {
     let appError: AppError
 
@@ -60,7 +62,14 @@ export function useErrorHandler() {
         description: appError.message,
         action: {
           label: 'Retry',
-          onClick: () => window.location.reload()
+          onClick: () => {
+            try {
+              router.refresh();
+            } catch (e) {
+              // fallback to a non-disruptive message if router.refresh isn't available
+              toast.info('Please refresh the page to retry');
+            }
+          }
         }
       })
     } else if (appError.type === 'auth') {
@@ -68,7 +77,7 @@ export function useErrorHandler() {
         description: appError.message,
         action: {
           label: 'Login',
-          onClick: () => window.location.href = '/login'
+          onClick: () => (window.location.href = '/login')
         }
       })
     } else {

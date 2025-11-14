@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCw } from "lucide-react";
@@ -58,13 +59,13 @@ export class ErrorBoundary extends React.Component<
                   </pre>
                 </details>
               )}
-              <Button
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Page
-              </Button>
+                  <Button
+                    onClick={() => toast.info('Please refresh the page manually or use the browser Refresh button.')}
+                    className="w-full"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Page
+                  </Button>
             </CardContent>
           </Card>
         </div>

@@ -57,7 +57,7 @@ export default function RandomChatPage() {
 
   const [showPreferences, setShowPreferences] = useState(true);
   const [userInterests, setUserInterests] = useState<string[] | null>(null);
-  const queueTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [optimisticQueued, setOptimisticQueued] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentChatType, setCurrentChatType] = useState<
@@ -166,9 +166,15 @@ export default function RandomChatPage() {
       }
       
       toast.info("Finding next chat partner...");
+      // Optimistic UI so user sees immediate feedback
+      setOptimisticQueued(true);
+      // call nextChat (ends current session and rejoins queue)
       await nextChat();
-      
-      // Set up new timeout after joining queue
+
+      // keep optimistic state for a short window in case context updates slowly
+      setTimeout(() => setOptimisticQueued(false), 10000);
+
+      // Set up new timeout after joining queue to fallback to AI session
       queueTimeoutRef.current = setTimeout(async () => {
         toast.info("No match found. Connecting you to an AI assistant...");
         await createAISession();

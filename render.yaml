@@ -5,16 +5,17 @@ services:
     plan: free # Change to 'starter' or higher for production
     buildCommand: npm install && npm run build
     startCommand: npm run start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NEXTAUTH_URL
-        value: https://friendfinder-0i02.onrender.com
-      - key: NEXT_PUBLIC_SOCKET_URL
-        value: https://friendfinder-0i02.onrender.com
-      - key: PORT
-        value: 10000
-      - key: SKIP_ENV_VALIDATION
-        value: "1"
+      envVars:
+        - key: NODE_ENV
+          value: production
+        - key: NEXTAUTH_URL
+          value: https://friendfinder-0i02.onrender.com
+        - key: NEXT_PUBLIC_SOCKET_URL
+          value: https://friendfinder-0i02.onrender.com
+        - key: SOCKET_PORT
+          value: "3004"
+        - key: SKIP_ENV_VALIDATION
+          value: "1"
+      startCommand: npm run start:all
     autoDeploy: true
     branch: main
