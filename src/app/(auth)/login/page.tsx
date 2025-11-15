@@ -94,7 +94,14 @@ export default function LoginPage() {
         // Refresh session and redirect
         await getSession();
         router.push("/dashboard");
-        router.refresh();
+        try {
+          const suppressed = typeof window !== 'undefined' && localStorage.getItem('suppressRefreshWhenInRandomChat') === '1';
+          if (!suppressed) {
+            router.refresh();
+          }
+        } catch (e) {
+          // ignore
+        }
       }
     } catch (error) {
       setError("Something went wrong. Please try again.");

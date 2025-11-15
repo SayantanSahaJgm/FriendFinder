@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import OfflineIndicator from '@/components/offline/OfflineIndicator';
 import SyncProgress from '@/components/offline/SyncProgress';
@@ -13,23 +12,16 @@ export default function OfflinePage() {
   const { isOnline, queueLength, syncNow } = useOfflineSync();
   const [showSyncProgress, setShowSyncProgress] = useState(false);
 
-  const router = useRouter();
-
   useEffect(() => {
     // Auto-redirect when online
     if (isOnline) {
       const timer = setTimeout(() => {
-        // Use client-side navigation instead of full reload
-        try {
-          router.push('/dashboard');
-        } catch (e) {
-          window.location.href = '/dashboard';
-        }
+        window.location.href = '/dashboard';
       }, 2000);
 
       return () => clearTimeout(timer);
     }
-  }, [isOnline, router]);
+  }, [isOnline]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -128,12 +120,12 @@ export default function OfflinePage() {
             {/* Retry Button */}
             <button
               onClick={() => {
-                try {
-                  router.refresh();
-                } catch (e) {
-                  // no-op fallback: suggest manual refresh
-                  alert('Please refresh the page to retry');
+                const suppressed = typeof window !== 'undefined' && localStorage.getItem('suppressRefreshWhenInRandomChat') === '1';
+                if (suppressed) {
+                  alert('Automatic refresh suppressed while in Random Chat to avoid interrupting active sessions.');
+                  return;
                 }
+                router.refresh();
               }}
               className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
             >

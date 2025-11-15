@@ -37,7 +37,16 @@ export default function StoryComposer({ onClose }: { onClose?: () => void }) {
         return;
       }
       onClose?.();
-      router.refresh();
+      try {
+        const suppressed = typeof window !== 'undefined' && localStorage.getItem('suppressRefreshWhenInRandomChat') === '1';
+        if (suppressed) {
+          alert('Story uploaded. Refresh suppressed while in Random Chat to avoid interrupting active sessions.');
+        } else {
+          router.refresh();
+        }
+      } catch (e) {
+        try { router.refresh(); } catch (e) {}
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to upload story.");

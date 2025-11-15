@@ -83,6 +83,23 @@ export default function RandomChatPage() {
     };
   }, []);
 
+  // Suppress automatic router.refresh while user is on Random Chat page
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('suppressRefreshWhenInRandomChat', '1');
+      }
+    } catch (e) {}
+
+    return () => {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('suppressRefreshWhenInRandomChat');
+        }
+      } catch (e) {}
+    };
+  }, []);
+
   // Clear timeout when activeSession starts (match found)
   useEffect(() => {
     if (activeSession && queueTimeoutRef.current) {
