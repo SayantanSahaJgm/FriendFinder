@@ -153,6 +153,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const partnerTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const aiFallbackRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update connection error when socket connection changes
   useEffect(() => {
@@ -730,6 +731,25 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
             });
 
             toast.info(`Added to queue. Position: ${data.data.position}`);
+            // In development, schedule a short AI fallback so local testing doesn't
+            // block indefinitely waiting for other users.
+            if (process.env.NODE_ENV === 'development') {
+              if (aiFallbackRef.current) clearTimeout(aiFallbackRef.current);
+              aiFallbackRef.current = setTimeout(async () => {
+                try {
+                  // If still in queue after short timeout, create AI session
+                  const qs = await fetch('/api/random-chat/queue');
+                  if (qs.ok) {
+                    const qd = await qs.json();
+                    if (qd.success && qd.data && qd.data.inQueue) {
+                      await createAISession(preferences);
+                    }
+                  }
+                } catch (e) {
+                  console.warn('AI fallback check failed', e);
+                }
+              }, 5000);
+            }
           }
 
           return { success: true };
