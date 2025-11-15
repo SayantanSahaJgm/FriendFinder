@@ -105,8 +105,20 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
       const result = await response.json();
 
       if (result.success && result.user) {
-        setDiscoveredUser(result.user);
-        toast.success(`Found ${result.user.name}!`);
+        // Normalize user object to ensure required display fields exist
+        const user = {
+          id: result.user.id,
+          name: result.user.name || result.user.username || 'Unknown',
+          username: result.user.username || '',
+          email: result.user.email || '',
+          profilePicture: result.user.profilePicture,
+          bio: result.user.bio,
+          isFriend: Boolean(result.user.isFriend),
+          hasPendingRequest: Boolean(result.user.hasPendingRequest),
+        } as DiscoveredUser;
+
+        setDiscoveredUser(user);
+        toast.success(`Found ${user.name}!`);
       } else {
         toast.error(result.error || "Invalid or expired code");
         setDiscoveredUser(null);
@@ -277,12 +289,16 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={discoveredUser.profilePicture} alt={discoveredUser.name} />
                   <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
-                    {discoveredUser.name.charAt(0).toUpperCase()}
+                    {(discoveredUser.name && discoveredUser.name.charAt(0))
+                      ? discoveredUser.name.charAt(0).toUpperCase()
+                      : (discoveredUser.username && discoveredUser.username.charAt(0))
+                        ? discoveredUser.username.charAt(0).toUpperCase()
+                        : '?'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-gray-900 dark:text-white truncate">
-                    {discoveredUser.name}
+                    {discoveredUser.name || discoveredUser.username || 'Unknown'}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                     @{discoveredUser.username}
