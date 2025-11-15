@@ -122,13 +122,25 @@ export default function RandomChatPage() {
         clearTimeout(queueTimeoutRef.current);
       }
       
-      // After 1 minute, if still no match, leave queue and return to random chat page
+      // After a fallback timeout (shorter in development for testing), if still no match, leave queue and start AI session
+      const FALLBACK_TIMEOUT = process.env.NODE_ENV === 'development' ? 5000 : 60000;
       queueTimeoutRef.current = setTimeout(async () => {
-        toast.info("No match found. Connecting you to an AI assistant...");
-        // create an AI session fallback
-        await createAISession();
-        queueTimeoutRef.current = null;
-      }, 60000); // 60 seconds
+        try {
+          toast.info("No match found. Connecting you to an AI assistant...");
+          // Ensure we remove the user from the real-time queue first
+          if (queueStatus?.inQueue) {
+            await leaveQueue();
+          }
+          // create an AI session fallback
+          await createAISession();
+        } catch (err) {
+          console.error('Fallback to AI failed:', err);
+          toast.error('Could not connect to AI assistant. Please try again.');
+        } finally {
+          queueTimeoutRef.current = null;
+          setOptimisticQueued(false);
+        }
+      }, FALLBACK_TIMEOUT);
     }
   };
 
@@ -175,11 +187,22 @@ export default function RandomChatPage() {
       setTimeout(() => setOptimisticQueued(false), 10000);
 
       // Set up new timeout after joining queue to fallback to AI session
+      const FALLBACK_TIMEOUT = process.env.NODE_ENV === 'development' ? 5000 : 60000;
       queueTimeoutRef.current = setTimeout(async () => {
-        toast.info("No match found. Connecting you to an AI assistant...");
-        await createAISession();
-        queueTimeoutRef.current = null;
-      }, 60000); // 60 seconds
+        try {
+          toast.info("No match found. Connecting you to an AI assistant...");
+          if (queueStatus?.inQueue) {
+            await leaveQueue();
+          }
+          await createAISession();
+        } catch (err) {
+          console.error('Fallback to AI failed:', err);
+          toast.error('Could not connect to AI assistant. Please try again.');
+        } finally {
+          queueTimeoutRef.current = null;
+          setOptimisticQueued(false);
+        }
+      }, FALLBACK_TIMEOUT);
     } catch (error) {
       toast.error("Failed to find next chat");
       console.error("Next chat error:", error);
