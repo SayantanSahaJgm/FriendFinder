@@ -94,14 +94,41 @@ export const bluetoothService = {
    * from database query to actual Bluetooth device scanning results.
    */
   async getNearbyUsers(): Promise<NearbyBluetoothResponse> {
-    const response = await fetch("/api/users/nearby-bluetooth");
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to get nearby users");
-    }
+    // Try the Bluetooth-specific endpoint first. Some server implementations
+    // require the current user to have a bluetoothId registered and may
+    // respond with 400 when it's missing. In that case, fall back to the
+    // generic nearby users endpoint so the client can still show results.
+    try {
+      const response = await fetch("/api/users/nearby-bluetooth");
 
-    return response.json();
+      if (response.ok) {
+        return response.json();
+      }
+
+      // If server explicitly says no device is set, try the generic nearby
+      // users API as a fallback so the client can still surface nearby users.
+      const error = await response.json().catch(() => ({ error: 'Unknown' }));
+      if (response.status === 400 && typeof error.error === 'string' && error.error.includes('No Bluetooth device')) {
+        console.warn('[WiFi/Bluetooth] Bluetooth endpoint returned 400 - falling back to generic nearby endpoint');
+        const fallback = await fetch('/api/users/nearby');
+        if (!fallback.ok) {
+          const fErr = await fallback.json().catch(() => ({}));
+          throw new Error(fErr.error || 'Failed to get nearby users (fallback)');
+        }
+        // Normalize to NearbyBluetoothResponse shape when possible
+        const data = await fallback.json();
+        return {
+          users: data.users || data.nearby || [],
+          count: data.count || (data.users || []).length,
+          deviceId: data.deviceId || ''
+        } as NearbyBluetoothResponse;
+      }
+
+      throw new Error(error.error || 'Failed to get nearby users');
+    } catch (err) {
+      // If fetch itself failed, surface a helpful message
+      throw err instanceof Error ? err : new Error(String(err));
+    }
   },
 
   async generatePairingCode(deviceName: string): Promise<{ success: boolean; bluetoothId?: string; pairingCode?: string; pairingCodeExpires?: string; message?: string }> {
