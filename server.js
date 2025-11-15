@@ -1,7 +1,20 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-const SOCKET_PORT = process.env.PORT || process.env.SOCKET_PORT || 3004;
+// Determine socket port robustly:
+// - If SOCKET_PORT is explicitly set, use it.
+// - Else if a generic PORT is provided by the host (e.g. Render assigns PORT),
+//   choose PORT+1 so Next.js can bind to PORT and the socket server uses a different port.
+// - Otherwise fall back to 3004 for local development.
+let SOCKET_PORT;
+if (process.env.SOCKET_PORT) {
+  SOCKET_PORT = Number(process.env.SOCKET_PORT);
+} else if (process.env.PORT) {
+  const parsed = Number(process.env.PORT);
+  SOCKET_PORT = Number.isFinite(parsed) ? parsed + 1 : 3004;
+} else {
+  SOCKET_PORT = 3004;
+}
 
 // Connection health tracking
 let connectionHealth = {
