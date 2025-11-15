@@ -46,13 +46,24 @@ export function useSocket() {
   const isConnected = connectionState.status === 'connected'
 
   // Socket URL configuration
-  // In production, use the same domain as the app (no separate socket server needed)
-  // In development, use localhost:3004
-  const socketUrl = typeof window !== 'undefined' 
-    ? (process.env.NODE_ENV === 'production' 
-        ? window.location.origin 
-        : process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3004')
-    : 'http://localhost:3004'
+  // Priority:
+  // 1. `NEXT_PUBLIC_SOCKET_URL` (explicit full URL)
+  // 2. `NEXT_PUBLIC_SOCKET_PORT` (use same host with that port)
+  // 3. If in production and none of the above, use same-origin (window.location.origin)
+  // 4. Fallback to localhost:3004 for dev
+  let socketUrl = 'http://localhost:3004'
+  if (typeof window !== 'undefined') {
+    if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+      socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL
+    } else if (process.env.NEXT_PUBLIC_SOCKET_PORT) {
+      const port = process.env.NEXT_PUBLIC_SOCKET_PORT
+      socketUrl = `${window.location.protocol}//${window.location.hostname}:${port}`
+    } else if (process.env.NODE_ENV === 'production') {
+      socketUrl = window.location.origin
+    } else {
+      socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3004'
+    }
+  }
 
   // Initialize Socket.IO connection
   const connect = useCallback(async () => {

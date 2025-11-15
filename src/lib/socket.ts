@@ -1,7 +1,21 @@
 import io from 'socket.io-client'
 
 // Socket.IO client configuration
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3004'
+// Build the client socket URL from env vars when provided.
+// Priority: NEXT_PUBLIC_SOCKET_URL > NEXT_PUBLIC_SOCKET_PORT (same host with port) > localhost:3004
+let SOCKET_URL = 'http://localhost:3004'
+if (typeof window !== 'undefined') {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+    SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL
+  } else if (process.env.NEXT_PUBLIC_SOCKET_PORT) {
+    SOCKET_URL = `${window.location.protocol}//${window.location.hostname}:${process.env.NEXT_PUBLIC_SOCKET_PORT}`
+  } else if (process.env.NODE_ENV === 'production') {
+    SOCKET_URL = window.location.origin
+  }
+} else {
+  // Server-side build fallback
+  SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || `http://localhost:${process.env.NEXT_PUBLIC_SOCKET_PORT || '3004'}`
+}
 
 class SocketService {
   private socket: any = null
