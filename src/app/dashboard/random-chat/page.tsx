@@ -58,6 +58,8 @@ export default function RandomChatPage() {
   const [showPreferences, setShowPreferences] = useState(true);
   const [userInterests, setUserInterests] = useState<string[] | null>(null);
   const queueTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownKey = 'randomChatCooldownUntil';
+  const COOLDOWN_MS = 60_000; // 1 minute cooldown after fallback
   const [optimisticQueued, setOptimisticQueued] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [currentChatType, setCurrentChatType] = useState<
@@ -119,6 +121,14 @@ export default function RandomChatPage() {
   }, [activeSession]);
 
   const handleJoinQueue = async (preferences: ChatPreferences) => {
+    try {
+      const until = localStorage.getItem(cooldownKey);
+      if (until && Number(until) > Date.now()) {
+        const wait = Math.ceil((Number(until) - Date.now()) / 1000);
+        toast.info(`Please wait ${wait}s before searching again.`);
+        return;
+      }
+    } catch (e) {}
     setCurrentChatType(preferences.chatType);
     // Optimistic UI: show queue immediately so users see feedback
     setOptimisticQueued(true);
@@ -150,6 +160,10 @@ export default function RandomChatPage() {
           }
           // create an AI session fallback
           await createAISession();
+          // set cooldown so we don't immediately re-search
+          try {
+            localStorage.setItem(cooldownKey, String(Date.now() + COOLDOWN_MS));
+          } catch (e) {}
         } catch (err) {
           console.error('Fallback to AI failed:', err);
           toast.error('Could not connect to AI assistant. Please try again.');
@@ -188,6 +202,14 @@ export default function RandomChatPage() {
 
   const handleNextChat = async () => {
     try {
+      try {
+        const until = localStorage.getItem(cooldownKey);
+        if (until && Number(until) > Date.now()) {
+          const wait = Math.ceil((Number(until) - Date.now()) / 1000);
+          toast.info(`Please wait ${wait}s before searching again.`);
+          return;
+        }
+      } catch (e) {}
       // Clear existing timeout
       if (queueTimeoutRef.current) {
         clearTimeout(queueTimeoutRef.current);
@@ -212,6 +234,10 @@ export default function RandomChatPage() {
             await leaveQueue();
           }
           await createAISession();
+          // set cooldown so we don't immediately re-search
+          try {
+            localStorage.setItem(cooldownKey, String(Date.now() + COOLDOWN_MS));
+          } catch (e) {}
         } catch (err) {
           console.error('Fallback to AI failed:', err);
           toast.error('Could not connect to AI assistant. Please try again.');
