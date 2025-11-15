@@ -339,6 +339,15 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   // Load initial state on mount
   useEffect(() => {
     if (session?.user) {
+      // If the user is currently on the Random Chat page we may be suppressing
+      // automatic refresh/reloads to avoid interrupting an active chat session.
+      // Respect that suppression flag here to avoid re-searching when the user
+      // switches tabs or the page regains focus.
+      try {
+        const suppressed = typeof window !== 'undefined' && localStorage.getItem('suppressRefreshWhenInRandomChat') === '1';
+        if (suppressed) return;
+      } catch (e) {}
+
       loadInitialState();
       // Load persisted session and messages
       loadPersistedState();
@@ -348,6 +357,14 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   // Also load persisted state when socket connects
   useEffect(() => {
     if (commSocket && commConnected && session?.user && !activeSession) {
+      // If we're suppressing refreshes while the user is on the Random Chat page,
+      // do not auto-load/restore state on socket reconnect (this prevents an
+      // automatic re-search or session interference when switching tabs).
+      try {
+        const suppressed = typeof window !== 'undefined' && localStorage.getItem('suppressRefreshWhenInRandomChat') === '1';
+        if (suppressed) return;
+      } catch (e) {}
+
       loadPersistedState();
     }
   }, [commSocket, commConnected, session]);
