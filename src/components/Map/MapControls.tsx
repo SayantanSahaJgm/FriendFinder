@@ -24,25 +24,30 @@ export default function MapControls({
   darkStyle,
   onToggleStyle,
 }: MapControlsProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  // Start collapsed by default and allow user to expand
+  const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <div className="absolute top-6 left-6 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300">
+    <div
+      className={`absolute top-6 left-6 z-50 transition-all duration-300 ${isExpanded ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden' : ''}`}
+      role="region"
+      aria-label="Map filters"
+    >
       {/* Header */}
-      <div 
-        className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-500 cursor-pointer hover:from-blue-600 hover:to-purple-600 transition-all"
+      <div
+        className={`flex items-center justify-between cursor-pointer transition-all ${isExpanded ? 'px-5 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' : 'px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-md'}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <h4 className="font-bold text-base text-white flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
-          Map Filters
+          <span className={`${isExpanded ? '' : 'text-sm'}`}>Map Filters</span>
         </h4>
         {isExpanded ? (
           <ChevronUp className="w-5 h-5 text-white" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-white" />
+          <ChevronDown className="w-4 h-4 text-white" />
         )}
       </div>
 
