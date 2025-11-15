@@ -1,5 +1,41 @@
 services:
   - type: web
+    name: friendfinder-web
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npx next start -p $PORT
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXTAUTH_URL
+        value: https://friendfinder-0i02.onrender.com
+      - key: NEXT_PUBLIC_SOCKET_URL
+        value: https://friendfinder-vscode.onrender.com
+      - key: SKIP_ENV_VALIDATION
+        value: "1"
+
+  - type: web
+    name: friendfinder-socket
+    env: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SOCKET_PORT
+        value: "3004"
+      - key: NEXTAUTH_URL
+        value: https://friendfinder-0i02.onrender.com
+      - key: SKIP_ENV_VALIDATION
+        value: "1"
+services:
+  - type: web
     name: friendfinder
     env: node
     plan: free # Change to 'starter' or higher for production
