@@ -181,7 +181,8 @@ export default function BluetoothPage() {
       }
       
       setBluetoothEnabled(false);
-      setNearbyUsers([]);
+      // keep last-known nearby users visible so user can still see results
+      // do not clear nearbyUsers here to avoid forcing re-enable to view list
       toast.success("Bluetooth discovery disabled");
     } catch (error) {
       console.error("Failed to disable Bluetooth:", error);
@@ -192,20 +193,19 @@ export default function BluetoothPage() {
   };
 
   const handleScanNearby = async () => {
-    // Check if Bluetooth is enabled first
+    // Attempt to scan for nearby users. If discovery isn't enabled on server
+    // we'll still try to fetch database-based results and show a helpful note.
     try {
       const status = await bluetoothService.getBluetoothStatus();
       if (!status.hasBluetooth) {
-        toast.error("Please enable Bluetooth discovery first", {
-          description: "Click 'Enable Bluetooth Discovery' button above"
+        toast.info("Bluetooth discovery is not enabled on your account", {
+          description: "We'll still check the database for recently-visible users"
         });
-        return;
+        // continue — allow server-side lookup even if local discovery is disabled
       }
-    } catch (error) {
-      toast.error("Failed to check Bluetooth status", {
-        description: "Please try enabling Bluetooth first"
-      });
-      return;
+    } catch (err) {
+      // non-fatal — continue to attempt fetching nearby users
+      console.warn('Failed to check bluetooth status before scan:', err);
     }
 
     try {
@@ -358,46 +358,19 @@ export default function BluetoothPage() {
               </div>
             </div>
           </div>
-          {/* Status Indicators */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className={`p-2.5 sm:p-3 rounded-xl ${isAvailable ? 'bg-green-500' : 'bg-red-500'} shadow-lg`}>
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Device</p>
-                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
-                  {isAvailable ? "Compatible" : "Not Available"}
-                </p>
+          {/* Compact visual + Control Buttons (WiFi-like) */}
+          <div className="flex flex-col items-center">
+            <div className="relative mb-4 w-full max-w-md h-40 flex items-center justify-center mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full blur-2xl opacity-10"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg mb-3">
+                  <Bluetooth className="w-10 h-10 text-white" />
+                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-200">{nearbyUsers.length > 0 ? `Found ${nearbyUsers.length} nearby` : (isLoadingUsers ? 'Scanning for nearby users...' : 'Start scan to discover nearby users')}</p>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className={`p-2.5 sm:p-3 rounded-xl ${hasPermission ? 'bg-green-500' : 'bg-yellow-500'} shadow-lg`}>
-                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Permission</p>
-                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
-                  {hasPermission ? "Granted" : "Required"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-2 sm:gap-3 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className={`p-2.5 sm:p-3 rounded-xl ${bluetoothEnabled ? 'bg-blue-500' : 'bg-gray-400'} shadow-lg`}>
-                <Waves className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium">Discovery</p>
-                <p className="text-sm sm:text-base font-bold mt-1 text-gray-900 dark:text-white">
-                  {bluetoothEnabled ? "Active" : "Inactive"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Control Buttons */}
+            {/* Control Buttons */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             {!bluetoothEnabled ? (
               <Button 
@@ -461,26 +434,14 @@ export default function BluetoothPage() {
             )}
           </div>
 
-          {/* Info Banner */}
-          <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
-            <div className="p-1.5 sm:p-2 bg-blue-600 rounded-xl flex-shrink-0">
-              <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+          {/* close visual container */}
             </div>
-            <div className="text-xs sm:text-sm text-gray-700 min-w-0">
-              <p className="font-semibold mb-1 sm:mb-1.5">How it works</p>
-              <ul className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
-                <li>• Enable discovery to be visible to nearby users</li>
-                <li>• Scan to find other FriendFinder users around you</li>
-                <li>• Send friend requests to connect instantly</li>
-                <li>• Your location is never shared - only proximity</li>
-              </ul>
-            </div>
-          </div>
+          {/* (Removed detailed status cards and info banner to match WiFi layout) */}
         </CardContent>
       </Card>
 
-      {/* Nearby Users */}
-      {bluetoothEnabled && (
+      {/* Nearby Users (show if discovery enabled OR if we have recent scan results) */}
+      {(bluetoothEnabled || nearbyUsers.length > 0) && (
         <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
