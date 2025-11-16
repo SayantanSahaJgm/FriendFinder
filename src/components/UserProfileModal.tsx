@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,31 @@ interface Props {
 }
 
 export default function UserProfileModal({ user, onClose, onConnect }: Props) {
+  const [userData, setUserData] = useState<ProfileUser>(user);
+
+  useEffect(() => {
+    // If incoming user has no profilePicture (nearby payloads may be minimal),
+    // fetch the full profile so we can show the photo for everyone when available.
+    const loadFullProfile = async () => {
+      try {
+        if (!user || !user.id) return;
+        // only fetch if we don't already have a profilePicture
+        if (user.profilePicture) return;
+
+        const res = await fetch(`/api/users/${user.id}`);
+        if (!res.ok) return;
+        const full = await res.json();
+        // merge and set
+        setUserData((prev) => ({ ...prev, ...full }));
+      } catch (err) {
+        // ignore — keep showing fallback
+        console.error('Failed to load full profile for user', user.id, err);
+      }
+    };
+
+    loadFullProfile();
+  }, [user]);
+
   const formatTimeAgo = (date?: string | Date) => {
     if (!date) return "";
     const now = new Date();
@@ -81,11 +106,12 @@ export default function UserProfileModal({ user, onClose, onConnect }: Props) {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 rounded-full blur-2xl scale-110"></div>
                 <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-2xl ring-4 ring-white/50 backdrop-blur-sm">
-                  {user.profilePicture ? (
-                    <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                  {userData?.profilePicture ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={userData.profilePicture} alt={userData.username} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/90 to-white/70 text-indigo-600 text-4xl font-bold">
-                      {user.username.substring(0, 2).toUpperCase()}
+                      {userData?.username?.substring(0, 2).toUpperCase()}
                     </div>
                   )}
                 </div>
@@ -95,11 +121,11 @@ export default function UserProfileModal({ user, onClose, onConnect }: Props) {
 
           <div className="px-6 -mt-12 relative z-10">
             <div className="bg-white dark:bg-gray-800 shadow-xl border-0 mb-6 p-5 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{user.username}</h2>
-              {user.lastSeen && <div className="flex items-center justify-center gap-1.5 text-sm text-gray-600 dark:text-gray-400"><Clock className="w-4 h-4" /> <span>Active {formatTimeAgo(user.lastSeen)}</span></div>}
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{userData.username}</h2>
+              {userData.lastSeen && <div className="flex items-center justify-center gap-1.5 text-sm text-gray-600 dark:text-gray-400"><Clock className="w-4 h-4" /> <span>Active {formatTimeAgo(userData.lastSeen)}</span></div>}
             </div>
 
-            {user.bio && (
+            {userData.bio && (
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
@@ -107,7 +133,7 @@ export default function UserProfileModal({ user, onClose, onConnect }: Props) {
                   </div>
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">About</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{user.bio}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{userData.bio}</p>
                   </div>
                 </div>
               </div>
@@ -117,20 +143,20 @@ export default function UserProfileModal({ user, onClose, onConnect }: Props) {
               <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800">
                 <div className="flex items-center gap-2 mb-2"><div className="p-1.5 bg-indigo-500 rounded-lg"><Bluetooth className="w-3.5 h-3.5 text-white" /></div><span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Connection</span></div>
                 <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Bluetooth</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{user.rssi ? `${user.rssi} dBm` : 'Active'}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{userData.rssi ? `${userData.rssi} dBm` : 'Active'}</p>
               </div>
 
               <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-100 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2"><div className="p-1.5 bg-green-500 rounded-lg"><MapPin className="w-3.5 h-3.5 text-white" /></div><span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Distance</span></div>
-                <p className="text-lg font-bold text-green-600 dark:text-green-400">{getRssiDistance(user.rssi)}</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">{getRssiDistance(userData.rssi)}</p>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Approximate</p>
               </div>
             </div>
 
             <div className="mb-6 flex flex-wrap gap-2">
-              {user.isFriend && (<Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 px-3 py-1.5">✓ Friend</Badge>)}
-              {user.hasPendingRequestTo && (<Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 px-3 py-1.5">Request Sent</Badge>)}
-              {user.hasPendingRequestFrom && (<Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 px-3 py-1.5">Wants to Connect</Badge>)}
+              {userData.isFriend && (<Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 px-3 py-1.5">✓ Friend</Badge>)}
+              {userData.hasPendingRequestTo && (<Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 px-3 py-1.5">Request Sent</Badge>)}
+              {userData.hasPendingRequestFrom && (<Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 px-3 py-1.5">Wants to Connect</Badge>)}
             </div>
 
             <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-200 dark:border-purple-800">
@@ -144,14 +170,14 @@ export default function UserProfileModal({ user, onClose, onConnect }: Props) {
             </div>
 
             <div className="mb-6 flex flex-col sm:flex-row gap-3">
-              {!user.isFriend && !user.hasPendingRequestTo && (
-                <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 h-12 text-base font-semibold shadow-lg" onClick={() => { onConnect(user.id); onClose(); }}>
+              {!userData.isFriend && !userData.hasPendingRequestTo && (
+                <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 h-12 text-base font-semibold shadow-lg" onClick={() => { onConnect(userData.id); onClose(); }}>
                   <User className="w-5 h-5 mr-2" />
                   Send Friend Request
                 </Button>
               )}
 
-              <Button variant="outline" className="flex-1 h-12 text-base font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => window.open(`/dashboard/profile/${user.id}`, "_blank")}>
+              <Button variant="outline" className="flex-1 h-12 text-base font-semibold border-2 hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => window.open(`/dashboard/profile/${userData.id}`, "_blank") }>
                 <ExternalLink className="w-5 h-5 mr-2" />
                 View Full Profile
               </Button>
