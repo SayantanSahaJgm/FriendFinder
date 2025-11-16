@@ -377,7 +377,7 @@ export default function Feed() {
           </button>
           <button 
             onClick={() => router.push('/dashboard/create')}
-            className="flex items-center justify-center w-10 h-10 bg-card border border-border text-foreground rounded-full shadow-sm transition transform hover:scale-105 -mt-4"
+            className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white ff-white rounded-full shadow-md transition transform hover:scale-105 -mt-4"
             aria-label="Create Post"
           >
             <PlusSquare className="w-4 h-4" />
