@@ -11,11 +11,12 @@
  * - Error handling and permission prompts
  */
 
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import { useBluetoothDiscovery } from '../hooks/useBluetoothDiscovery';
 import { NearbyUser } from '../services/bluetooth/BluetoothService';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 const NearbyUsersScreen: React.FC = () => {
   const {
@@ -79,10 +80,13 @@ const NearbyUsersScreen: React.FC = () => {
       className="bg-white rounded-lg shadow p-4 mb-3 flex items-center justify-between"
     >
       <div className="flex items-center space-x-3">
-        {/* Profile Picture Placeholder */}
-        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-          {user.username.charAt(0).toUpperCase()}
-        </div>
+        {/* Profile Picture (use Avatar when available) */}
+        <Avatar className="w-12 h-12">
+          <AvatarImage src={(user as any).profilePicture} alt={user.username} />
+          <AvatarFallback className="bg-blue-500 text-white font-bold">
+            {user.username.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
 
         {/* User Info */}
         <div>

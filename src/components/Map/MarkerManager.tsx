@@ -1,39 +1,4 @@
-// Use profile picture as an icon when available; otherwise fallback to a circle symbol
-const icon = friend.profilePicture
-  ? {
-      url: friend.profilePicture,
-      scaledSize: new google.maps.Size(48, 48),
-      anchor: new google.maps.Point(24, 24),
-    }
-  : {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: friend.isOnline ? '#34A853' : '#9CA3AF',
-      fillOpacity: 1,
-      strokeColor: '#fff',
-      strokeWeight: 2,
-      scale: friend.isOnline ? 8 : 6,
-    }
-
-const marker = new google.maps.Marker({
-  position: { lat: friend.location.lat, lng: friend.location.lng },
-  map,
-  title: friend.username,
-  icon: icon as any,
-})
-
-marker.addListener('click', () => {
-  onMarkerClick?.(friend.userId)
-})
-
-return markerimport { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';{/* Profile Picture */}
-<div>
-  <Avatar className="w-12 h-12">
-    <AvatarImage src={(user as any).profilePicture || undefined} alt={user.username} />
-    <AvatarFallback className="bg-blue-500 text-white font-bold">
-      {user.username.charAt(0).toUpperCase()}
-    </AvatarFallback>
-  </Avatar>
-</div>"use client"
+"use client"
 
 import { useEffect, useRef } from 'react'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
@@ -96,18 +61,26 @@ export default function MarkerManager({
     })
 
     const newMarkers: google.maps.Marker[] = filtered.map((friend) => {
+      const icon = friend.profilePicture
+        ? {
+            url: friend.profilePicture,
+            scaledSize: new google.maps.Size(48, 48),
+            anchor: new google.maps.Point(24, 24),
+          }
+        : {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: friend.isOnline ? '#34A853' : '#9CA3AF',
+            fillOpacity: 1,
+            strokeColor: '#fff',
+            strokeWeight: 2,
+            scale: friend.isOnline ? 8 : 6,
+          }
+
       const marker = new google.maps.Marker({
         position: { lat: friend.location.lat, lng: friend.location.lng },
         map,
         title: friend.username,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: friend.isOnline ? '#34A853' : '#9CA3AF',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-          scale: friend.isOnline ? 8 : 6,
-        },
+        icon: icon as any,
       })
 
       marker.addListener('click', () => {
