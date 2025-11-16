@@ -1,0 +1,114 @@
+﻿
+> friendfinder@0.1.0 type-check
+> tsc --noEmit
+
+.next/types/validator.ts(407,11): error TS1360: Type 'typeof import("E:/Download/Friendfinder/FriendFinder2/FriendFinder-main/src/app/api/conversations/[id]/messages/route")' does not satisfy the expected type 'RouteHandlerConfig<"/api/conversations/[id]/messages">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { id: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ messages: (FlattenMaps<IMessage> & Required<...> & { ...; })[]; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void> | Promise<Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(431,11): error TS1360: Type 'typeof import("E:/Download/Friendfinder/FriendFinder2/FriendFinder-main/src/app/api/friends/relationship/[userId]/route")' does not satisfy the expected type 'RouteHandlerConfig<"/api/friends/relationship/[userId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: { userId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ status: string; message: string; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ userId: string; }>; }) => void | Response | Promise<void> | Promise<Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ userId: string; }>; }' is not assignable to type '{ params: { userId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'userId' is missing in type 'Promise<{ userId: string; }>' but required in type '{ userId: string; }'.
+.next/types/validator.ts(491,11): error TS1360: Type 'typeof import("E:/Download/Friendfinder/FriendFinder2/FriendFinder-main/src/app/api/messages/[userId]/route")' does not satisfy the expected type 'RouteHandlerConfig<"/api/messages/[userId]">'.
+  Types of property 'GET' are incompatible.
+    Type '(req: NextRequest, { params }: { params: { userId: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; data: { messages: (FlattenMaps<IMessage> & Required<...> & { ...; })[]; conversationId: string; pagination: { ...; }; unreadCount: number; chatPartner: { ...; }; }; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ userId: string; }>; }) => void | Response | Promise<void> | Promise<Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ userId: string; }>; }' is not assignable to type '{ params: { userId: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'userId' is missing in type 'Promise<{ userId: string; }>' but required in type '{ userId: string; }'.
+src/app/(auth)/login/page.tsx(50,9): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(auth)/login/page.tsx(53,9): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(auth)/reset-password/page.tsx(22,17): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(auth)/verify-email/page.tsx(23,17): error TS18047: 'searchParams' is possibly 'null'.
+src/app/(auth)/verify-email/page.tsx(24,19): error TS18047: 'searchParams' is possibly 'null'.
+src/app/api/account/cleanup/route.ts(47,58): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number | Uint8Array<ArrayBufferLike> | ObjectId | ObjectIdLike | undefined'.
+src/app/api/account/cleanup/route.ts(81,68): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/account/cleanup/route.ts(82,68): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/account/cleanup/route.ts(91,29): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/account/download-data/route.ts(65,28): error TS2339: Property 'coverPicture' does not exist on type 'FlattenMaps<IUser> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }'.
+src/app/api/account/download-data/route.ts(67,27): error TS2339: Property 'dateOfBirth' does not exist on type 'FlattenMaps<IUser> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }'.
+src/app/api/account/download-data/route.ts(68,22): error TS2339: Property 'gender' does not exist on type 'FlattenMaps<IUser> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }'.
+src/app/api/account/download-data/route.ts(82,28): error TS2339: Property 'hasBluetooth' does not exist on type 'FlattenMaps<IUser> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }'.
+src/app/api/account/download-data/route.ts(83,23): error TS2339: Property 'hasWifi' does not exist on type 'FlattenMaps<IUser> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }'.
+src/app/api/bluetooth/sync/route.ts(89,28): error TS18046: 'receiver._id' is of type 'unknown'.
+src/app/api/bluetooth/sync/route.ts(154,19): error TS18046: 'receiver._id' is of type 'unknown'.
+src/app/api/location/friends/route.ts(3,10): error TS2459: Module '"@/app/api/auth/[...nextauth]/route"' declares 'authOptions' locally, but it is not exported.
+src/app/api/location/friends/route.ts(48,27): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/location/update/route.ts(3,10): error TS2459: Module '"@/app/api/auth/[...nextauth]/route"' declares 'authOptions' locally, but it is not exported.
+src/app/api/location/update/route.ts(72,23): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/location/update/route.ts(73,19): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/random-chat/queue/route.ts(146,23): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/random-chat/queue/route.ts(162,21): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/random-chat/queue/route.ts(171,63): error TS18046: 'user._id' is of type 'unknown'.
+src/app/api/settings/location/route.ts(3,10): error TS2459: Module '"@/app/api/auth/[...nextauth]/route"' declares 'authOptions' locally, but it is not exported.
+src/app/api/unread-counts/route.ts(24,57): error TS18046: 'user._id' is of type 'unknown'.
+src/app/dashboard/settings/page.tsx(1007,30): error TS2339: Property 'phone' does not exist on type 'AuthUser'.
+src/app/dashboard/settings/page.tsx(1014,69): error TS2339: Property 'phone' does not exist on type 'AuthUser'.
+src/app/dashboard/settings/page.tsx(1064,30): error TS2339: Property 'recoveryEmail' does not exist on type 'AuthUser'.
+src/app/offline.tsx(128,17): error TS2304: Cannot find name 'router'.
+src/components/NotificationCenter.tsx(24,5): error TS2322: Type '(requestId: string, action: "accept" | "reject") => Promise<{ success: boolean; error?: string | undefined; }>' is not assignable to type '(id: string, action: string) => Promise<any>'.
+  Types of parameters 'action' and 'action' are incompatible.
+    Type 'string' is not assignable to type '"accept" | "reject"'.
+src/components/notifications/RealTimeNotifications.tsx(195,32): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/components/offline/QueueManager.tsx(43,27): error TS2304: Cannot find name 'offlineSyncService'.
+src/components/offline/QueueManager.tsx(55,86): error TS2339: Property 'maxRetries' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(56,57): error TS2339: Property 'maxRetries' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(63,16): error TS2339: Property 'endpoint' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(64,11): error TS18048: 'item.id' is possibly 'undefined'.
+src/components/offline/QueueManager.tsx(64,19): error TS2339: Property 'toLowerCase' does not exist on type 'number'.
+src/components/offline/QueueManager.tsx(71,44): error TS2339: Property 'timestamp' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(71,58): error TS2339: Property 'timestamp' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(74,16): error TS7053: Element implicitly has an 'any' type because expression of type '2 | 1 | 3' can't be used to index type '{ high: number; normal: number; low: number; }'.
+  Property '2' does not exist on type '{ high: number; normal: number; low: number; }'.
+src/components/offline/QueueManager.tsx(74,44): error TS7053: Element implicitly has an 'any' type because expression of type '2 | 1 | 3' can't be used to index type '{ high: number; normal: number; low: number; }'.
+  Property '2' does not exist on type '{ high: number; normal: number; low: number; }'.
+src/components/offline/QueueManager.tsx(96,24): error TS2345: Argument of type 'Set<number | undefined>' is not assignable to parameter of type 'SetStateAction<Set<string>>'.
+  Type 'Set<number | undefined>' is not assignable to type 'Set<string>'.
+    Type 'number | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/components/offline/QueueManager.tsx(104,13): error TS2304: Cannot find name 'offlineSyncService'.
+src/components/offline/QueueManager.tsx(114,11): error TS2304: Cannot find name 'offlineSyncService'.
+src/components/offline/QueueManager.tsx(141,20): error TS2304: Cannot find name 'SyncQueueItem'.
+src/components/offline/QueueManager.tsx(149,15): error TS2304: Cannot find name 'offlineSyncService'.
+src/components/offline/QueueManager.tsx(165,33): error TS2304: Cannot find name 'SyncQueueItem'.
+src/components/offline/QueueManager.tsx(317,37): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/offline/QueueManager.tsx(326,48): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/offline/QueueManager.tsx(327,54): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/offline/QueueManager.tsx(334,23): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+src/components/offline/QueueManager.tsx(336,27): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+src/components/offline/QueueManager.tsx(347,24): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+src/components/offline/QueueManager.tsx(354,72): error TS2339: Property 'endpoint' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(358,93): error TS2339: Property 'timestamp' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(360,29): error TS2339: Property 'lastRetryAt' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(363,49): error TS2339: Property 'lastRetryAt' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(367,97): error TS2339: Property 'maxRetries' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(370,69): error TS18048: 'item.id' is possibly 'undefined'.
+src/components/offline/QueueManager.tsx(370,77): error TS2339: Property 'substring' does not exist on type 'number'.
+src/components/offline/QueueManager.tsx(380,46): error TS2339: Property 'data' does not exist on type '{ id?: number | undefined; operation: "message" | "friendRequest" | "profileUpdate" | "locationUpdate"; payload: any; priority: 2 | 1 | 3; createdAt: number; status: "pending" | "failed" | "processing" | "completed"; retryCount: number; }'.
+src/components/offline/QueueManager.tsx(389,31): error TS2304: Cannot find name 'offlineSyncService'.
+src/lib/socketServer.ts(603,46): error TS2345: Argument of type '{ messageId: any; deliveredAt: string; chatId: string; }' is not assignable to parameter of type 'string'.
+src/lib/socketServer.ts(641,70): error TS2345: Argument of type '{ messageId: string; readAt: string; chatId: string; }' is not assignable to parameter of type 'string'.
+src/lib/socketServer.ts(924,11): error TS2353: Object literal may only specify known properties, and 'username' does not exist in type '{ socketId: string; anonymousId: string; preferences: any; joinedAt: number; }'.
+src/lib/socketServer.ts(955,100): error TS2339: Property 'username' does not exist on type '{ socketId: string; anonymousId: string; preferences: any; joinedAt: number; }'.
+src/lib/socketServer.ts(956,94): error TS2339: Property 'username' does not exist on type '{ socketId: string; anonymousId: string; preferences: any; joinedAt: number; }'.
+src/services/bluetooth/BluetoothService.ts(11,43): error TS2307: Cannot find module 'react-native-ble-plx' or its corresponding type declarations.
+src/services/bluetooth/BluetoothService.ts(12,46): error TS2307: Cannot find module 'react-native' or its corresponding type declarations.
+src/services/bluetooth/BluetoothService.ts(129,36): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/services/bluetooth/BluetoothService.ts(218,10): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/services/bluetooth/BluetoothService.ts(218,17): error TS7006: Parameter 'device' implicitly has an 'any' type.
+src/utils/performance.tsx(234,50): error TS2345: Argument of type 'RefObject<HTMLDivElement | null>' is not assignable to parameter of type 'RefObject<Element>'.
+  Type 'HTMLDivElement | null' is not assignable to type 'Element'.
+    Type 'null' is not assignable to type 'Element'.

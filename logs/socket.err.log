@@ -1,0 +1,128 @@
+Error handling message:send: Error: Cannot find module './src/lib/mongoose'
+Require stack:
+- E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Socket.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:329:25)
+    at Socket.emit (node:events:519:28) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'E:\\Download\\Friendfinder\\FriendFinder2\\FriendFinder-main\\server.js'
+  ]
+}
+Socket.IO server error: Error: listen EADDRINUSE: address already in use :::3004
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Object.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:1329:14)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3004
+}
+node:events:497
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3005
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Object.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:1429:14)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v22.20.0
+Error handling message:send: ReferenceError: sender is not defined
+    at Socket.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:420:37)
+    at Socket.emit (node:events:519:28)
+    at Socket.emitUntyped (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\node_modules\socket.io\dist\typed-events.js:69:22)
+    at E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\node_modules\socket.io\dist\socket.js:697:39
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+Error handling message:read: Error: Cannot find module './src/lib/mongoose'
+Require stack:
+- E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Socket.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:433:25)
+    at Socket.emit (node:events:519:28) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'E:\\Download\\Friendfinder\\FriendFinder2\\FriendFinder-main\\server.js'
+  ]
+}
+Socket.IO server error: Error: listen EADDRINUSE: address already in use :::3004
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Object.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:1343:14)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3004
+}
+node:events:497
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3005
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Object.<anonymous> (E:\Download\Friendfinder\FriendFinder2\FriendFinder-main\server.js:1443:14)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3005
+}
+
+Node.js v22.20.0

@@ -1,0 +1,552 @@
+Starting Socket.IO server...
+Socket.IO upgrade logger: disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)
+Socket.IO allowed origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Socket.IO CORS origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+✅ Socket.IO server running on port 3004
+📊 Socket.IO ready for connections
+🏥 Health endpoint: http://localhost:3005/health
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: Q9w06cgY4NzROu2nAAAB
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket Q9w06cgY4NzROu2nAAAB] connection-confirmed [
+  {
+    socketId: 'Q9w06cgY4NzROu2nAAAB',
+    timestamp: '2025-11-15T18:08:17.833Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: Yi_hoFm-Sm2ZeXr3AAAD
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket Yi_hoFm-Sm2ZeXr3AAAD] connection-confirmed [
+  {
+    socketId: 'Yi_hoFm-Sm2ZeXr3AAAD',
+    timestamp: '2025-11-15T18:08:17.845Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: _pYQh0GReXEoS9CoAAAF
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket _pYQh0GReXEoS9CoAAAF] connection-confirmed [
+  {
+    socketId: '_pYQh0GReXEoS9CoAAAF',
+    timestamp: '2025-11-15T18:08:18.051Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: 5SA7xNsytTMf3cfyAAAH
+User registered: sayantan7 (6914203222add32589848940)
+[EMIT -> socket 5SA7xNsytTMf3cfyAAAH] connection-confirmed [
+  {
+    socketId: '5SA7xNsytTMf3cfyAAAH',
+    timestamp: '2025-11-15T18:08:18.791Z',
+    userId: '6914203222add32589848940',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: 7qLXj4gbrWbn3sjsAAAJ
+User registered: Guest702 (guest_1763230120634_fnxs1b3nr)
+[EMIT -> socket 7qLXj4gbrWbn3sjsAAAJ] connection-confirmed [
+  {
+    socketId: '7qLXj4gbrWbn3sjsAAAJ',
+    timestamp: '2025-11-15T18:08:40.636Z',
+    userId: 'guest_1763230120634_fnxs1b3nr',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: mZ-j7by5TWgfZdkGAAAL
+User registered: sender (69141f7822add32589848916)
+[EMIT -> socket mZ-j7by5TWgfZdkGAAAL] connection-confirmed [
+  {
+    socketId: 'mZ-j7by5TWgfZdkGAAAL',
+    timestamp: '2025-11-15T18:08:41.697Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: xrCxFjufPQGtt3uaAAAN
+User registered: receiver (6905adf16a22b7843b006183)
+[EMIT -> socket xrCxFjufPQGtt3uaAAAN] connection-confirmed [
+  {
+    socketId: 'xrCxFjufPQGtt3uaAAAN',
+    timestamp: '2025-11-15T18:08:41.724Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: 3WT9WHJYTB0aGbAFAAAP
+User registered: Guest702 (guest_1763230120634_fnxs1b3nr)
+[EMIT -> socket 3WT9WHJYTB0aGbAFAAAP] connection-confirmed [
+  {
+    socketId: '3WT9WHJYTB0aGbAFAAAP',
+    timestamp: '2025-11-15T18:08:41.777Z',
+    userId: 'guest_1763230120634_fnxs1b3nr',
+    isAnonymous: false
+  }
+]
+[EMIT -> socket mZ-j7by5TWgfZdkGAAAL] error [ 'Failed to send message' ]
+User disconnected: xrCxFjufPQGtt3uaAAAN, reason: transport close
+User disconnected: mZ-j7by5TWgfZdkGAAAL, reason: transport close
+User disconnected: 7qLXj4gbrWbn3sjsAAAJ, reason: transport close
+User disconnected: 3WT9WHJYTB0aGbAFAAAP, reason: transport close
+Starting Socket.IO server...
+Socket.IO upgrade logger: disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)
+Socket.IO allowed origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Socket.IO CORS origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Starting Socket.IO server...
+Socket.IO upgrade logger: disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)
+Socket.IO allowed origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Socket.IO CORS origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+✅ Socket.IO server running on port 3004
+📊 Socket.IO ready for connections
+🏥 Health endpoint: http://localhost:3005/health
+Socket.IO connection request from http://localhost:3000: ALLOWED
+Socket.IO connection request from http://localhost:3000: ALLOWED
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: -8UwwidBKTaPApGCAAAD
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket -8UwwidBKTaPApGCAAAD] connection-confirmed [
+  {
+    socketId: '-8UwwidBKTaPApGCAAAD',
+    timestamp: '2025-11-15T18:11:29.801Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+User connected: AlYau0UO9eSKuDVmAAAE
+User connected: vQrWYy-jXbkFDR8YAAAF
+User registered: sayantan7 (6914203222add32589848940)
+[EMIT -> socket AlYau0UO9eSKuDVmAAAE] connection-confirmed [
+  {
+    socketId: 'AlYau0UO9eSKuDVmAAAE',
+    timestamp: '2025-11-15T18:11:29.804Z',
+    userId: '6914203222add32589848940',
+    isAnonymous: false
+  }
+]
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket vQrWYy-jXbkFDR8YAAAF] connection-confirmed [
+  {
+    socketId: 'vQrWYy-jXbkFDR8YAAAF',
+    timestamp: '2025-11-15T18:11:29.806Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: Y2sJ-CIA4Hzxn6ccAAAH
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket Y2sJ-CIA4Hzxn6ccAAAH] connection-confirmed [
+  {
+    socketId: 'Y2sJ-CIA4Hzxn6ccAAAH',
+    timestamp: '2025-11-15T18:11:30.752Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: LDIu7vDEKnoYmAQUAAAJ
+User registered: Guest5076 (guest_1763230381916_0038mvren)
+[EMIT -> socket LDIu7vDEKnoYmAQUAAAJ] connection-confirmed [
+  {
+    socketId: 'LDIu7vDEKnoYmAQUAAAJ',
+    timestamp: '2025-11-15T18:13:01.920Z',
+    userId: 'guest_1763230381916_0038mvren',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: OaUgIPE5faZwaTXiAAAL
+User registered: Guest5076 (guest_1763230381916_0038mvren)
+[EMIT -> socket OaUgIPE5faZwaTXiAAAL] connection-confirmed [
+  {
+    socketId: 'OaUgIPE5faZwaTXiAAAL',
+    timestamp: '2025-11-15T18:13:02.803Z',
+    userId: 'guest_1763230381916_0038mvren',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: AtUGWgJIM1_WC74aAAAN
+User registered: sender (69141f7822add32589848916)
+[EMIT -> socket AtUGWgJIM1_WC74aAAAN] connection-confirmed [
+  {
+    socketId: 'AtUGWgJIM1_WC74aAAAN',
+    timestamp: '2025-11-15T18:13:03.025Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: bGuEkKn3L_AreL9iAAAP
+User registered: receiver (6905adf16a22b7843b006183)
+[EMIT -> socket bGuEkKn3L_AreL9iAAAP] connection-confirmed [
+  {
+    socketId: 'bGuEkKn3L_AreL9iAAAP',
+    timestamp: '2025-11-15T18:13:03.057Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+DB persistence not available, falling back to in-memory message for demo: MODULE_NOT_FOUND
+[EMIT -> socket AtUGWgJIM1_WC74aAAAN] message:delivered [
+  {
+    messageId: 'msg_1763230383879_35bsi9',
+    deliveredAt: '2025-11-15T18:13:04.316Z',
+    chatId: '69141f7822add32589848916_6905adf16a22b7843b006183'
+  }
+]
+[EMIT -> socket AtUGWgJIM1_WC74aAAAN] message:received [
+  {
+    _id: 'msg_1763230383879_35bsi9',
+    chatId: '69141f7822add32589848916_6905adf16a22b7843b006183',
+    senderId: { _id: '69141f7822add32589848916', username: 'sender' },
+    receiverId: '6905adf16a22b7843b006183',
+    content: 'Playwright E2E message 2025-11-15T18:12:59.793Z',
+    type: 'text',
+    status: 'sent',
+    createdAt: '2025-11-15T18:13:04.315Z',
+    updatedAt: '2025-11-15T18:13:04.315Z'
+  }
+]
+[EMIT -> socket AtUGWgJIM1_WC74aAAAN] error [ 'Failed to send message' ]
+User disconnected: bGuEkKn3L_AreL9iAAAP, reason: transport close
+User disconnected: LDIu7vDEKnoYmAQUAAAJ, reason: transport close
+User disconnected: OaUgIPE5faZwaTXiAAAL, reason: transport close
+User disconnected: AtUGWgJIM1_WC74aAAAN, reason: transport close
+Starting Socket.IO server...
+Socket.IO upgrade logger: disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)
+Socket.IO allowed origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Socket.IO CORS origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+✅ Socket.IO server running on port 3004
+📊 Socket.IO ready for connections
+🏥 Health endpoint: http://localhost:3005/health
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: mcJpvgkNkebhkEahAAAB
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket mcJpvgkNkebhkEahAAAB] connection-confirmed [
+  {
+    socketId: 'mcJpvgkNkebhkEahAAAB',
+    timestamp: '2025-11-15T18:14:55.800Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: H-c3JlsoYHEqoWN4AAAE
+User connected: yvhzECGW-9dDisqzAAAF
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket H-c3JlsoYHEqoWN4AAAE] connection-confirmed [
+  {
+    socketId: 'H-c3JlsoYHEqoWN4AAAE',
+    timestamp: '2025-11-15T18:14:55.817Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket yvhzECGW-9dDisqzAAAF] connection-confirmed [
+  {
+    socketId: 'yvhzECGW-9dDisqzAAAF',
+    timestamp: '2025-11-15T18:14:55.820Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: fTLetFGEmurB6ltpAAAH
+User registered: sayantan7 (6914203222add32589848940)
+[EMIT -> socket fTLetFGEmurB6ltpAAAH] connection-confirmed [
+  {
+    socketId: 'fTLetFGEmurB6ltpAAAH',
+    timestamp: '2025-11-15T18:14:56.765Z',
+    userId: '6914203222add32589848940',
+    isAnonymous: false
+  }
+]
+Starting Socket.IO server...
+Socket.IO upgrade logger: disabled (set SOCKET_DEBUG_UPGRADE=1 to enable)
+Socket.IO allowed origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+Socket.IO CORS origins: [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003'
+]
+User disconnected: mcJpvgkNkebhkEahAAAB, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: StZs-3fnfgDOjdPSAAAJ
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket StZs-3fnfgDOjdPSAAAJ] connection-confirmed [
+  {
+    socketId: 'StZs-3fnfgDOjdPSAAAJ',
+    timestamp: '2025-11-15T18:20:18.687Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: Z0fkUdVt4ZuNmnblAAAL
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket Z0fkUdVt4ZuNmnblAAAL] connection-confirmed [
+  {
+    socketId: 'Z0fkUdVt4ZuNmnblAAAL',
+    timestamp: '2025-11-15T18:20:20.887Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+User disconnected: yvhzECGW-9dDisqzAAAF, reason: transport close
+User disconnected: StZs-3fnfgDOjdPSAAAJ, reason: transport close
+User disconnected: Z0fkUdVt4ZuNmnblAAAL, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: zpd-4ZK2QpKx4OlxAAAN
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket zpd-4ZK2QpKx4OlxAAAN] connection-confirmed [
+  {
+    socketId: 'zpd-4ZK2QpKx4OlxAAAN',
+    timestamp: '2025-11-15T18:21:44.254Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: EYIR2wUp_O7GzQ3KAAAP
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket EYIR2wUp_O7GzQ3KAAAP] connection-confirmed [
+  {
+    socketId: 'EYIR2wUp_O7GzQ3KAAAP',
+    timestamp: '2025-11-15T18:21:44.491Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: wW4EDzk8LpRinn8YAAAR
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket wW4EDzk8LpRinn8YAAAR] connection-confirmed [
+  {
+    socketId: 'wW4EDzk8LpRinn8YAAAR',
+    timestamp: '2025-11-15T18:21:59.006Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: vkHgal5doP8oRHKjAAAT
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket vkHgal5doP8oRHKjAAAT] connection-confirmed [
+  {
+    socketId: 'vkHgal5doP8oRHKjAAAT',
+    timestamp: '2025-11-15T18:21:59.267Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+User disconnected: zpd-4ZK2QpKx4OlxAAAN, reason: transport close
+User disconnected: EYIR2wUp_O7GzQ3KAAAP, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: ot3Kqgq2tBw4GnE1AAAV
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket ot3Kqgq2tBw4GnE1AAAV] connection-confirmed [
+  {
+    socketId: 'ot3Kqgq2tBw4GnE1AAAV',
+    timestamp: '2025-11-15T18:22:32.452Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: d7olZZ2KWD62-9zpAAAX
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket d7olZZ2KWD62-9zpAAAX] connection-confirmed [
+  {
+    socketId: 'd7olZZ2KWD62-9zpAAAX',
+    timestamp: '2025-11-15T18:22:32.991Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: tE0RYzSyFXChieFAAAAZ
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket tE0RYzSyFXChieFAAAAZ] connection-confirmed [
+  {
+    socketId: 'tE0RYzSyFXChieFAAAAZ',
+    timestamp: '2025-11-15T18:25:38.538Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+User disconnected: wW4EDzk8LpRinn8YAAAR, reason: transport close
+User disconnected: tE0RYzSyFXChieFAAAAZ, reason: transport close
+User disconnected: vkHgal5doP8oRHKjAAAT, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: JgUdFadJfO1mZZ9LAAAb
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket JgUdFadJfO1mZZ9LAAAb] connection-confirmed [
+  {
+    socketId: 'JgUdFadJfO1mZZ9LAAAb',
+    timestamp: '2025-11-15T18:25:52.148Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: Cu3zPgaSdUrHN0gyAAAd
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket Cu3zPgaSdUrHN0gyAAAd] connection-confirmed [
+  {
+    socketId: 'Cu3zPgaSdUrHN0gyAAAd',
+    timestamp: '2025-11-15T18:25:55.848Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: TlNRs1UuJ0fNeMcbAAAf
+User registered: sayantan3 (6905adf16a22b7843b006183)
+[EMIT -> socket TlNRs1UuJ0fNeMcbAAAf] connection-confirmed [
+  {
+    socketId: 'TlNRs1UuJ0fNeMcbAAAf',
+    timestamp: '2025-11-15T18:25:56.799Z',
+    userId: '6905adf16a22b7843b006183',
+    isAnonymous: false
+  }
+]
+User disconnected: H-c3JlsoYHEqoWN4AAAE, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: jAkT-4uf0YZtoyinAAAh
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket jAkT-4uf0YZtoyinAAAh] connection-confirmed [
+  {
+    socketId: 'jAkT-4uf0YZtoyinAAAh',
+    timestamp: '2025-11-15T18:26:10.774Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: 1DKBa2m5B_jkcuFrAAAj
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket 1DKBa2m5B_jkcuFrAAAj] connection-confirmed [
+  {
+    socketId: '1DKBa2m5B_jkcuFrAAAj',
+    timestamp: '2025-11-15T18:26:10.966Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: rAo8S464_nS5N-cnAAAl
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket rAo8S464_nS5N-cnAAAl] connection-confirmed [
+  {
+    socketId: 'rAo8S464_nS5N-cnAAAl',
+    timestamp: '2025-11-15T18:26:19.480Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+User disconnected: jAkT-4uf0YZtoyinAAAh, reason: transport close
+User disconnected: rAo8S464_nS5N-cnAAAl, reason: transport close
+User disconnected: 1DKBa2m5B_jkcuFrAAAj, reason: transport close
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: fSxRILwm_oYgxvYKAAAn
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket fSxRILwm_oYgxvYKAAAn] connection-confirmed [
+  {
+    socketId: 'fSxRILwm_oYgxvYKAAAn',
+    timestamp: '2025-11-15T18:26:24.124Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: msgZFM3lYuACTo6JAAAp
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket msgZFM3lYuACTo6JAAAp] connection-confirmed [
+  {
+    socketId: 'msgZFM3lYuACTo6JAAAp',
+    timestamp: '2025-11-15T18:26:24.351Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: DXGzpCqJqEF6B1PqAAAr
+User registered: sayantan6 (69141f7822add32589848916)
+[EMIT -> socket DXGzpCqJqEF6B1PqAAAr] connection-confirmed [
+  {
+    socketId: 'DXGzpCqJqEF6B1PqAAAr',
+    timestamp: '2025-11-15T18:26:24.761Z',
+    userId: '69141f7822add32589848916',
+    isAnonymous: false
+  }
+]
+Socket.IO connection request from http://localhost:3000: ALLOWED
+User connected: jf2_pW0N85_AndIcAAAt
+User registered: sayantan2 (6901f85f42c5d010fa811206)
+[EMIT -> socket jf2_pW0N85_AndIcAAAt] connection-confirmed [
+  {
+    socketId: 'jf2_pW0N85_AndIcAAAt',
+    timestamp: '2025-11-15T18:42:18.823Z',
+    userId: '6901f85f42c5d010fa811206',
+    isAnonymous: false
+  }
+]
