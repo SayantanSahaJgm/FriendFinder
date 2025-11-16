@@ -81,12 +81,14 @@ const NearbyUsersScreen: React.FC = () => {
     >
       <div className="flex items-center space-x-3">
         {/* Profile Picture (use Avatar when available) */}
-        <Avatar className="w-12 h-12">
-          <AvatarImage src={(user as any).profilePicture} alt={user.username} />
-          <AvatarFallback className="bg-blue-500 text-white font-bold">
-            {user.username.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg ring-2 ring-white">
+          <Avatar className="w-full h-full">
+            <AvatarImage src={(user as any).profilePicture} alt={user.username} />
+            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold">
+              {user.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
 
         {/* User Info */}
         <div>

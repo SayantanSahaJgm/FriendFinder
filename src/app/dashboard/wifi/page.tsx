@@ -173,12 +173,14 @@ export default function WiFiPage() {
                       }}
                       onClick={() => setSelectedUser(user)}
                     >
-                      <Avatar className="w-14 h-14 border-2 border-white shadow-lg ring-2 ring-purple-200">
-                        <AvatarImage src={user.profilePicture} alt={user.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-400 text-white text-sm font-bold">
-                          {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-2xl ring-4 ring-white">
+                          <Avatar className="w-full h-full">
+                            <AvatarImage src={user.profilePicture} alt={user.name} />
+                            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-bold">
+                              {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                   );
@@ -245,12 +247,14 @@ export default function WiFiPage() {
                     onClick={() => setSelectedUser(user)}
                   >
                     <div className="relative">
-                      <Avatar className="w-14 h-14">
-                        <AvatarImage src={user.profilePicture} alt={user.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold">
-                          {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="w-14 h-14 rounded-full overflow-hidden shadow-2xl ring-2 ring-white">
+                        <Avatar className="w-full h-full">
+                          <AvatarImage src={user.profilePicture} alt={user.name} />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold">
+                            {user.name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div className="flex-1">
