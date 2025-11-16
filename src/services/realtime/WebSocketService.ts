@@ -66,11 +66,16 @@ class WebSocketService {
     this.updateStatus('connecting');
 
     console.log('[WebSocket] Connecting to:', this.config.url);
+    console.log('[WebSocket] Options: polling-first, path=/socket.io/, withCredentials=true');
 
+    // Use polling-first handshake to improve reliability behind proxies/load-balancers
+    // and include explicit path and credentials so cookies/auth are forwarded when needed.
     this.socket = io(this.config.url, {
       reconnection: false, // We'll handle reconnection manually
-      timeout: this.config.timeout,
-      transports: ['websocket', 'polling'], // Prefer WebSocket, fallback to polling
+      timeout: Math.max(this.config.timeout, 15000),
+      transports: ['polling', 'websocket'], // Prefer polling first, then upgrade to websocket
+      path: '/socket.io/',
+      withCredentials: true,
     });
 
     this.setupEventListeners();
