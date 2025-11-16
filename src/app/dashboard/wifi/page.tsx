@@ -43,6 +43,9 @@ export default function WiFiPage() {
       const users = await wifiService.getNearbyUsers();
       setNearbyUsers(users);
 
+      // If some users are missing profilePicture, batch-fetch their full profiles
+      fetchMissingProfiles(users).catch((err) => console.error('Failed to fetch missing profiles', err));
+
       // Get status to show current network
       const status = await wifiService.getStatus();
       setCurrentNetwork(status.networkName || 'Unknown Network');
@@ -96,6 +99,40 @@ export default function WiFiPage() {
   // View profile in new tab
   const handleViewProfile = (userId: string) => {
     window.open(`/dashboard/profile/${userId}`, '_blank');
+  };
+
+  // Batch-fetch full profiles for users missing profilePicture
+  const fetchMissingProfiles = async (users: NearbyUser[]) => {
+    const missing = users.filter((u) => !u.profilePicture && u.id).map((u) => u.id);
+    if (missing.length === 0) return;
+
+    const concurrency = 3;
+    let idx = 0;
+
+    const results: Record<string, any> = {};
+
+    const worker = async () => {
+      while (idx < missing.length) {
+        const id = missing[idx++];
+        try {
+          const res = await fetch(`/api/users/${id}`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data?.user?.profilePicture) {
+            results[id] = data.user.profilePicture;
+          }
+        } catch (err) {
+          console.warn('Profile fetch failed for', id, err);
+        }
+      }
+    };
+
+    await Promise.all(new Array(concurrency).fill(0).map(() => worker()));
+
+    if (Object.keys(results).length === 0) return;
+
+    // Merge results into nearbyUsers state
+    setNearbyUsers((prev) => prev.map((u) => ({ ...(u as any), profilePicture: results[u.id] || u.profilePicture })));
   };
 
   if (status === 'loading') {

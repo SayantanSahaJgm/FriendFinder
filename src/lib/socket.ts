@@ -33,9 +33,16 @@ class SocketService {
         this.socket.disconnect()
       }
 
+      // Prefer a polling-first handshake so many proxies/load-balancers
+      // that don't support direct websocket upgrades can establish a connection
+      // and then upgrade to websocket. Also include explicit path and
+      // withCredentials so cookies/auth can be sent when needed.
+      console.log('SocketService connecting to', SOCKET_URL)
       this.socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
-        timeout: 5000
+        transports: ['polling', 'websocket'],
+        path: '/socket.io/',
+        withCredentials: true,
+        timeout: 15000,
       })
 
       this.socket.on('connect', () => {
