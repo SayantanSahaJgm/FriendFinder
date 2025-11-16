@@ -324,7 +324,15 @@ io.on("connection", (socket) => {
   // Handle direct user-to-user message sends (persistent messaging)
   socket.on('message:send', async (data) => {
     try {
-      const { chatId, receiverId, content, type = 'text' } = data || {};
+      // Normalize multiple client payload shapes for backward compatibility.
+      // Accept: { chatId, receiverId, content }
+      // Accept legacy: { conversationId, message: { content, senderId, receiverId } }
+      // Accept alternate keys: recipientId, text
+      const raw = data || {};
+      const chatId = raw.chatId || raw.conversationId || raw.message?.chatId;
+      const receiverId = raw.receiverId || raw.recipientId || raw.message?.receiverId || raw.message?.recipientId;
+      const content = raw.content || raw.text || raw.message?.content || raw.message?.text;
+      const type = raw.type || raw.message?.type || 'text';
 
       if (!socket.userId) {
         socket.emit('error', 'Not registered');
@@ -346,17 +354,23 @@ io.on("connection", (socket) => {
         const User = require('./src/models/User').default;
         const Message = require('./src/models/Message').default;
 
+        // Prepare outer-scope variables so we don't accidentally reference
+        // block-scoped consts outside the DB try/catch (avoids ReferenceError)
+        let sender = null;
+        let receiver = null;
+        let normalizedReceiverId = receiverId;
+
         await dbConnect();
 
         // Verify users exist: try by id first, then fallback to email lookup if receiverId looks like an email
         const senderId = socket.userId;
-        const sender = await User.findById(senderId).select('username');
-        let receiver = await User.findById(receiverId).select('username');
+        sender = await User.findById(senderId).select('username');
+        receiver = await User.findById(normalizedReceiverId).select('username');
         if (!receiver) {
           // try as email
-          receiver = await User.findOne({ email: receiverId }).select('username _id');
+          receiver = await User.findOne({ email: normalizedReceiverId }).select('username _id');
           if (receiver) {
-            receiverId = receiver._id.toString(); // normalize to id for room emits
+            normalizedReceiverId = receiver._id.toString(); // normalize to id for room emits
           }
         }
 
@@ -365,7 +379,7 @@ io.on("connection", (socket) => {
           return;
         }
 
-        if (typeof sender.isFriendWith === 'function' && !sender.isFriendWith(receiverId)) {
+        if (typeof sender.isFriendWith === 'function' && !sender.isFriendWith(normalizedReceiverId)) {
           socket.emit('error', 'Can only send messages to friends');
           return;
         }
@@ -374,7 +388,7 @@ io.on("connection", (socket) => {
         const messageDoc = new Message({
           chatId,
           senderId: senderId,
-          receiverId: receiverId,
+          receiverId: normalizedReceiverId,
           content: content.trim(),
           type,
           status: 'sent',
@@ -401,6 +415,8 @@ io.on("connection", (socket) => {
           createdAt: messageDoc.createdAt,
           updatedAt: messageDoc.updatedAt,
         };
+        // Make outer-scope sender/receiver available for logging below
+        // (we already set sender/receiver variables above)
       } catch (dbErr) {
         // If DB modules are not available (dev environment without build), fall back to a lightweight payload
         console.log('DB persistence not available, falling back to in-memory message for demo:', dbErr && dbErr.code ? dbErr.code : dbErr);
@@ -443,8 +459,9 @@ io.on("connection", (socket) => {
       socket.emit('message:received', messagePayload);
       // Safe logging: do not reference messageDoc when DB persistence failed
       try {
+        // Logging: prefer DB-resolved sender/receiver when available
         const senderName = (typeof sender !== 'undefined' && sender && sender.username) ? sender.username : socket.username || socket.userId || 'unknown';
-        const receiverName = (typeof receiver !== 'undefined' && receiver && receiver.username) ? receiver.username : receiverId || 'unknown';
+        const receiverName = (typeof receiver !== 'undefined' && receiver && receiver.username) ? receiver.username : (typeof normalizedReceiverId !== 'undefined' ? normalizedReceiverId : receiverId) || 'unknown';
         console.log(`Message saved: ${senderName} -> ${receiverName} (id: ${messagePayload._id})`);
       } catch (logErr) {
         console.log('Message saved, unable to log friendly names:', logErr);
