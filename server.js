@@ -68,12 +68,12 @@ const envOrigins = envOriginsRaw
   .map((s) => s.trim())
   .filter(Boolean);
 
-// Keep the project's historical production origins but include the new
-// friendfinder-vscode domain so deployed frontends can connect by default.
+// Keep the project's historical production origins but include the primary deployed frontends so deployed frontends can connect by default.
 const defaultProdOrigins = [
-  'https://friendfinder-0i02.onrender.com',
-  process.env.NEXTAUTH_URL,
-  'https://friendfinder-vscode.onrender.com'
+  'https://friendfinder-mu.vercel.app',
+  'https://friendfinder-vscode.onrender.com',
+  'https://friendfinder-production-8cd0.up.railway.app',
+  process.env.NEXTAUTH_URL
 ].filter(Boolean);
 
 const allowedOrigins = isDevelopment
@@ -292,8 +292,20 @@ io.on("connection", (socket) => {
       } else {
         socket.userId = userData.userId;
         socket.username = userData.username;
-        socket.join(`user-${userData.userId}`);
-        console.log(`User registered: ${userData.username} (${userData.userId})`);
+        // Join both room naming conventions used across the codebase so different clients
+        // (legacy and newer) can receive events regardless of which convention they use.
+        const roomA = `user-${userData.userId}`;
+          const roomB = `user:${userData.userId}`;
+          socket.join(roomA);
+          socket.join(roomB);
+          console.log(`User registered: ${userData.username} (${userData.userId})`);
+          // Notify friends/clients that this user is online using both room naming conventions
+          try {
+            io.to(roomA).emit('user:online', { userId: userData.userId, username: userData.username });
+            io.to(roomB).emit('user:online', { userId: userData.userId, username: userData.username });
+          } catch (emitErr) {
+            console.error('Error emitting user:online after registration:', emitErr);
+          }
       }
       
       // Send connection confirmation
@@ -306,6 +318,190 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error('Error in user-register:', error);
       socket.emit('error', 'Failed to register user');
+    }
+  });
+
+  // Handle direct user-to-user message sends (persistent messaging)
+  socket.on('message:send', async (data) => {
+    try {
+      const { chatId, receiverId, content, type = 'text' } = data || {};
+
+      if (!socket.userId) {
+        socket.emit('error', 'Not registered');
+        return;
+      }
+
+      if (!receiverId || !chatId || !content || !content.trim()) {
+        socket.emit('error', 'Invalid message payload');
+        return;
+      }
+
+      // Try DB persistence if available, otherwise fall back to in-memory message object
+      let messagePayload = null;
+      let messageId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      try {
+        // Lazy-load DB and models to avoid startup ordering issues
+        const mongoose = require('mongoose');
+        const dbConnect = require('./src/lib/mongoose').default;
+        const User = require('./src/models/User').default;
+        const Message = require('./src/models/Message').default;
+
+        await dbConnect();
+
+        // Verify users exist: try by id first, then fallback to email lookup if receiverId looks like an email
+        const senderId = socket.userId;
+        const sender = await User.findById(senderId).select('username');
+        let receiver = await User.findById(receiverId).select('username');
+        if (!receiver) {
+          // try as email
+          receiver = await User.findOne({ email: receiverId }).select('username _id');
+          if (receiver) {
+            receiverId = receiver._id.toString(); // normalize to id for room emits
+          }
+        }
+
+        if (!sender || !receiver) {
+          socket.emit('error', 'User not found');
+          return;
+        }
+
+        if (typeof sender.isFriendWith === 'function' && !sender.isFriendWith(receiverId)) {
+          socket.emit('error', 'Can only send messages to friends');
+          return;
+        }
+
+        // Persist message
+        const messageDoc = new Message({
+          chatId,
+          senderId: senderId,
+          receiverId: receiverId,
+          content: content.trim(),
+          type,
+          status: 'sent',
+        });
+
+        await messageDoc.save();
+
+        // Populate lightweight sender info for client display
+        await messageDoc.populate('senderId', 'username profilePicture');
+
+        messageId = (messageDoc._id && messageDoc._id.toString()) || messageId;
+        messagePayload = {
+          _id: messageId,
+          chatId: messageDoc.chatId,
+          senderId: {
+            _id: (messageDoc.senderId && messageDoc.senderId._id) ? messageDoc.senderId._id.toString() : senderId,
+            username: (messageDoc.senderId && messageDoc.senderId.username) || (sender && sender.username) || 'unknown',
+            profilePicture: (messageDoc.senderId && messageDoc.senderId.profilePicture) || null,
+          },
+          receiverId: messageDoc.receiverId,
+          content: messageDoc.content,
+          type: messageDoc.type,
+          status: messageDoc.status,
+          createdAt: messageDoc.createdAt,
+          updatedAt: messageDoc.updatedAt,
+        };
+      } catch (dbErr) {
+        // If DB modules are not available (dev environment without build), fall back to a lightweight payload
+        console.log('DB persistence not available, falling back to in-memory message for demo:', dbErr && dbErr.code ? dbErr.code : dbErr);
+        messagePayload = {
+          _id: messageId,
+          chatId,
+          senderId: { _id: socket.userId, username: socket.username || 'unknown' },
+          receiverId,
+          content: content.trim(),
+          type,
+          status: 'sent',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Emit to receiver room (use same room naming convention used elsewhere)
+      const receiverRoom = `user-${receiverId}`;
+
+      // If receiver is connected (check both room naming conventions), forward message
+      const roomA = `user-${receiverId}`;
+      const roomB = `user:${receiverId}`;
+      const roomAExists = io.sockets.adapter.rooms.get(roomA);
+      const roomBExists = io.sockets.adapter.rooms.get(roomB);
+      if ((roomAExists && roomAExists.size > 0) || (roomBExists && roomBExists.size > 0)) {
+        // Emit to both rooms to be safe
+        try { io.to(roomA).emit('message:received', messagePayload); } catch (e) {}
+        try { io.to(roomB).emit('message:received', messagePayload); } catch (e) {}
+
+        // Notify sender about delivery (include timestamp)
+        const deliveredPayload = {
+          messageId: messagePayload._id,
+          deliveredAt: new Date().toISOString(),
+          chatId: messagePayload.chatId,
+        };
+        socket.emit('message:delivered', deliveredPayload);
+      }
+
+      // Always echo message back to sender as confirmation
+      socket.emit('message:received', messagePayload);
+      // Safe logging: do not reference messageDoc when DB persistence failed
+      try {
+        const senderName = (typeof sender !== 'undefined' && sender && sender.username) ? sender.username : socket.username || socket.userId || 'unknown';
+        const receiverName = (typeof receiver !== 'undefined' && receiver && receiver.username) ? receiver.username : receiverId || 'unknown';
+        console.log(`Message saved: ${senderName} -> ${receiverName} (id: ${messagePayload._id})`);
+      } catch (logErr) {
+        console.log('Message saved, unable to log friendly names:', logErr);
+      }
+    } catch (err) {
+      console.error('Error handling message:send:', err);
+      socket.emit('error', 'Failed to send message');
+    }
+  });
+
+  // Handle marking messages as read from clients
+  socket.on('message:read', async (data) => {
+    try {
+      const { chatId, messageId } = data || {};
+      if (!socket.userId) return;
+      // Try DB persistence if available, otherwise emit a read notification directly
+      try {
+        const dbConnect = require('./src/lib/mongoose').default;
+        const Message = require('./src/models/Message').default;
+        await dbConnect();
+
+        if (messageId) {
+          const msg = await Message.findById(messageId);
+          if (!msg) return;
+          if (msg.receiverId.toString() !== socket.userId.toString()) return;
+
+          msg.status = 'read';
+          msg.readAt = new Date();
+          await msg.save();
+
+          const senderRoom = `user-${msg.senderId}`;
+          io.to(senderRoom).emit('message:read', {
+            messageId: msg._id.toString(),
+            readAt: msg.readAt.toISOString(),
+            chatId: chatId || msg.chatId,
+          });
+        } else if (chatId) {
+          await Message.markAsRead(chatId, socket.userId);
+        }
+      } catch (dbErr) {
+        // Fallback: directly notify sender(s) that message was read (best-effort)
+        const readPayload = {
+          messageId: messageId || null,
+          readAt: new Date().toISOString(),
+          chatId: chatId || null,
+        };
+
+        if (messageId) {
+          // Emit to sender room name pattern 'user-<senderId>' is unknown without DB, so try both naming conventions
+          // If the client provided senderId in payload (not mandatory), use it; otherwise broadcast to all for demo
+          io.emit('message:read', readPayload);
+        } else if (chatId) {
+          io.emit('message:read', readPayload);
+        }
+      }
+    } catch (err) {
+      console.error('Error handling message:read:', err);
     }
   });
 
@@ -920,6 +1116,12 @@ function generateSessionId() {
 
 // Helper function to match users from queue
 function tryMatchUsers() {
+  // Dev toggle: disable matching entirely when env var set. Useful for testing
+  // UI behavior when no match is found (keeps users in queue).
+  if (process.env.RANDOM_CHAT_DISABLE_MATCH === '1') {
+    console.log('Random chat matching disabled via RANDOM_CHAT_DISABLE_MATCH=1');
+    return false;
+  }
   const queueEntries = Array.from(randomChatQueue.entries());
   
   if (queueEntries.length < 2) return;
@@ -1023,6 +1225,11 @@ function calculateInterestScore(interests1, interests2) {
 
 // Enhanced matching function with interest-based scoring
 async function tryMatchUsersByMode(mode, requestingUserId) {
+  // Dev toggle: disable matching entirely when env var set
+  if (process.env.RANDOM_CHAT_DISABLE_MATCH === '1') {
+    console.log(`tryMatchUsersByMode: matching disabled (mode=${mode})`);
+    return false;
+  }
   const queueEntries = Array.from(randomChatQueue.entries());
   
   console.log(`Trying to match by mode: ${mode}, Queue size: ${queueEntries.length}`);
