@@ -141,23 +141,47 @@ export default function RandomChatPage() {
       
       // After a fallback timeout (shorter in development for testing), if still no match, leave queue and start AI session
       const FALLBACK_TIMEOUT = process.env.NODE_ENV === 'development' ? 5000 : 60000;
+      // For video chats, prefer to stop searching after 10s rather than falling back to AI.
+      const effectiveTimeout = preferences.chatType === 'video' ? 10000 : FALLBACK_TIMEOUT;
       queueTimeoutRef.current = setTimeout(async () => {
         try {
-          toast.info("No match found. Connecting you to an AI assistant...");
-          // Ensure we remove the user from the real-time queue first
-          if (queueStatus?.inQueue) {
-            await leaveQueue();
+          console.debug('[random-chat] queue timeout fired', {
+            chatType: preferences.chatType,
+            effectiveTimeout,
+            timestamp: Date.now(),
+          });
+          // Visual debug toast so it's visible without DevTools
+          try { toast.info(`[DEBUG] queue timeout fired (${preferences.chatType})`); } catch (e) {}
+          if (preferences.chatType === 'video') {
+            // For video requests: stop searching after the timeout, leave the queue,
+            // show the user the preferences panel again, and inform via toast.
+            toast.info('No match found. Stopping search for a live video partner.');
+            if (queueStatus?.inQueue) {
+              console.debug('[random-chat] calling leaveQueue from timeout (join flow)');
+              await leaveQueue();
+              console.debug('[random-chat] leaveQueue completed (join flow)');
+            }
+            setShowPreferences(true);
+            // Optionally, you could also call endSession() here if a session exists.
+          } else {
+            toast.info("No match found. Connecting you to an AI assistant...");
+            // Ensure we remove the user from the real-time queue first
+            if (queueStatus?.inQueue) {
+              console.debug('[random-chat] calling leaveQueue from timeout (join flow -> AI fallback)');
+              await leaveQueue();
+              console.debug('[random-chat] leaveQueue completed (join flow -> AI fallback)');
+            }
+            // create an AI session fallback
+            await createAISession();
           }
-          // create an AI session fallback
-          await createAISession();
         } catch (err) {
-          console.error('Fallback to AI failed:', err);
-          toast.error('Could not connect to AI assistant. Please try again.');
+          console.error('Fallback handling failed:', err);
+          toast.error('Fallback action failed. Please try again.');
         } finally {
           queueTimeoutRef.current = null;
           setOptimisticQueued(false);
         }
-      }, FALLBACK_TIMEOUT);
+      }, effectiveTimeout);
     }
   };
 
@@ -205,21 +229,41 @@ export default function RandomChatPage() {
 
       // Set up new timeout after joining queue to fallback to AI session
       const FALLBACK_TIMEOUT = process.env.NODE_ENV === 'development' ? 5000 : 60000;
+      const effectiveTimeout = currentChatType === 'video' ? 10000 : FALLBACK_TIMEOUT;
       queueTimeoutRef.current = setTimeout(async () => {
         try {
-          toast.info("No match found. Connecting you to an AI assistant...");
-          if (queueStatus?.inQueue) {
-            await leaveQueue();
+          console.debug('[random-chat] queue timeout fired (nextChat flow)', {
+            currentChatType,
+            effectiveTimeout,
+            timestamp: Date.now(),
+          });
+          // Visual debug toast so it's visible without DevTools
+          try { toast.info(`[DEBUG] queue timeout fired (nextChat: ${currentChatType})`); } catch (e) {}
+          if (currentChatType === 'video') {
+            toast.info('No match found. Stopping search for a live video partner.');
+            if (queueStatus?.inQueue) {
+              console.debug('[random-chat] calling leaveQueue from timeout (nextChat flow)');
+              await leaveQueue();
+              console.debug('[random-chat] leaveQueue completed (nextChat flow)');
+            }
+            setShowPreferences(true);
+          } else {
+            toast.info("No match found. Connecting you to an AI assistant...");
+            if (queueStatus?.inQueue) {
+              console.debug('[random-chat] calling leaveQueue from timeout (nextChat flow -> AI fallback)');
+              await leaveQueue();
+              console.debug('[random-chat] leaveQueue completed (nextChat flow -> AI fallback)');
+            }
+            await createAISession();
           }
-          await createAISession();
         } catch (err) {
-          console.error('Fallback to AI failed:', err);
-          toast.error('Could not connect to AI assistant. Please try again.');
+          console.error('Fallback handling failed:', err);
+          toast.error('Fallback action failed. Please try again.');
         } finally {
           queueTimeoutRef.current = null;
           setOptimisticQueued(false);
         }
-      }, FALLBACK_TIMEOUT);
+      }, effectiveTimeout);
     } catch (error) {
       toast.error("Failed to find next chat");
       console.error("Next chat error:", error);

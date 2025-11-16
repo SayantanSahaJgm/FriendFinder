@@ -8,6 +8,7 @@ import React, {
   ReactNode,
   useRef,
 } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
 import io from 'socket.io-client'
@@ -154,6 +155,7 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
   const partnerTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const aiFallbackRef = useRef<NodeJS.Timeout | null>(null);
+  const matchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update connection error when socket connection changes
   useEffect(() => {
@@ -311,6 +313,9 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Router for redirecting when no match found
+  const router = useRouter();
+
   // Function to check for new messages via HTTP
   const checkSessionMessages = async () => {
     if (!activeSession) return;
@@ -445,6 +450,11 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     const handleMatchFound = (data: any) => {
       console.log("Random chat match found:", data);
 
+      // Clear any pending match-timeout since we found a match
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+        matchTimeoutRef.current = null;
+      }
       // Clear queue status
       setQueueStatus({
         inQueue: false,
@@ -750,6 +760,43 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
                 }
               }, 5000);
             }
+            // Start match timeout: if no match within configured time, leave queue and return home
+            const timeoutMs = Number(process.env.NEXT_PUBLIC_RANDOMCHAT_MATCH_TIMEOUT_MS || 10000);
+            if (matchTimeoutRef.current) clearTimeout(matchTimeoutRef.current);
+              matchTimeoutRef.current = setTimeout(async () => {
+                console.debug('[random-chat-context] match timeout fired', { timeoutMs, timestamp: Date.now() });
+                try { toast.info(`[DEBUG] match timeout fired (${timeoutMs}ms)`); } catch (e) {}
+                try {
+                  // If still in queue, leave and navigate home
+                  const qs = await fetch('/api/random-chat/queue');
+                  if (qs.ok) {
+                    const qd = await qs.json();
+                    if (qd.success && qd.data && qd.data.inQueue) {
+                      console.debug('[random-chat-context] match timeout will call leaveQueue()');
+                      await leaveQueue();
+                      console.debug('[random-chat-context] leaveQueue() resolved from match timeout');
+                      toast.info('No match found — returning to home');
+                      router.push('/');
+                    }
+                  } else {
+                    // if queue endpoint not available, fallback to leaving queue
+                    console.debug('[random-chat-context] queue endpoint not ok; calling leaveQueue()');
+                    await leaveQueue();
+                    toast.info('No match found — returning to home');
+                    router.push('/');
+                  }
+                } catch (e) {
+                  console.warn('Match timeout handler error', e);
+                  try {
+                    console.debug('[random-chat-context] match timeout encountered error; calling leaveQueue() as fallback');
+                    await leaveQueue();
+                    console.debug('[random-chat-context] leaveQueue() resolved after match timeout error');
+                  } catch (e2) {
+                    console.warn('[random-chat-context] leaveQueue() failed during error handling', e2);
+                  }
+                  router.push('/');
+                }
+              }, timeoutMs);
           }
 
           return { success: true };
@@ -843,41 +890,65 @@ export function RandomChatProvider({ children }: { children: ReactNode }) {
     error?: string;
   }> => {
     try {
+      console.debug('[random-chat-context] leaveQueue() called', { inQueue: queueStatus.inQueue, timestamp: Date.now() });
       setIsLeavingQueue(true);
-      if (session?.user) {
-        const response = await fetch("/api/random-chat/queue", {
-          method: "DELETE",
-        });
 
-        const data = await response.json();
-
-        if (data.success) {
-          setQueueStatus({
-            inQueue: false,
-            position: 0,
-            estimatedWaitTime: 0,
-          });
-
-          toast.success("Left the queue");
-          return { success: true };
-        } else {
-          return { success: false, error: data.error };
+      // Optimistically clear local queue state so the UI immediately stops showing "searching"
+      // (This prevents the UI from getting stuck if the server DELETE fails or is slow.)
+      try {
+        if (matchTimeoutRef.current) {
+          clearTimeout(matchTimeoutRef.current);
+          matchTimeoutRef.current = null;
         }
-      }
-
-      // Anonymous path: emit leave-queue on anonSocket
-      if (anonSocket) {
-        anonSocket.emit('random-chat:leave-queue')
-      }
+        if (aiFallbackRef.current) {
+          clearTimeout(aiFallbackRef.current);
+          aiFallbackRef.current = null;
+        }
+      } catch (e) {}
 
       setQueueStatus({
         inQueue: false,
         position: 0,
         estimatedWaitTime: 0,
-      })
+      });
 
-      toast.success('Left the queue')
-      return { success: true }
+      // Attempt to remove user from server-side queue (best-effort). If it fails,
+      // keep the local UI cleared to honor the user's request to stop searching.
+      if (session?.user) {
+        try {
+          const response = await fetch("/api/random-chat/queue", {
+            method: "DELETE",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            console.debug('[random-chat-context] server confirmed queue deletion', { responseData: data });
+            toast.success("Left the queue");
+            return { success: true };
+          } else {
+            console.warn('Server failed to remove from queue:', data.error);
+            toast.info('Stopped searching (server removal pending)');
+            return { success: false, error: data.error };
+          }
+        } catch (err) {
+          console.warn('Leave queue request failed:', err);
+          toast.info('Stopped searching (server removal pending)');
+          return { success: false, error: 'Failed to notify server' };
+        }
+      }
+
+      // Anonymous path: emit leave-queue on anonSocket
+      try {
+        if (anonSocket) {
+          anonSocket.emit('random-chat:leave-queue');
+        }
+      } catch (e) {
+        console.warn('Failed to emit anon leave-queue', e);
+      }
+
+      toast.success('Left the queue');
+      return { success: true };
     } catch (error) {
       console.error("Error leaving queue:", error);
       return { success: false, error: "Failed to leave queue" };

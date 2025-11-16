@@ -40,7 +40,7 @@ export default function Navigation() {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState(pathname);
+  const [activeTab, setActiveTab] = useState<string>(pathname ?? "");
 
   // Handle scroll effect for header
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Navigation() {
 
   // Update active tab when pathname changes
   useEffect(() => {
-    setActiveTab(pathname);
+    setActiveTab(pathname ?? "");
   }, [pathname]);
 
   // Close sidebar when route changes
@@ -66,7 +66,7 @@ export default function Navigation() {
     if (path === '/dashboard') {
       return pathname === '/dashboard';
     }
-    return pathname.startsWith(path);
+    return pathname?.startsWith(path) ?? false;
   };
 
   if (status === "loading") {

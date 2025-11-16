@@ -587,13 +587,25 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         const receiverSocket = onlineUsers.get(receiverId)
         if (receiverSocket) {
           io.to(`user:${receiverId}`).emit('message:received', messageData)
-          
+
           // Mark as delivered
           message.status = 'delivered'
           message.deliveredAt = new Date()
           await message.save()
-          
-          socket.emit('message:delivered', (message._id as any).toString())
+
+          // Emit delivery confirmation with timestamp to the sender
+          try {
+            const deliveredPayload = {
+              messageId: (message._id as any).toString(),
+              deliveredAt: message.deliveredAt.toISOString(),
+              chatId: message.chatId,
+            }
+            socket.emit('message:delivered', deliveredPayload)
+          } catch (emitErr) {
+            console.error('Failed to emit message:delivered payload:', emitErr)
+            // Fallback to legacy string ID for older clients
+            socket.emit('message:delivered', (message._id as any).toString())
+          }
         }
 
         // Send confirmation to sender
@@ -614,14 +626,22 @@ export function initializeSocketIO(server: NetServer): SocketIOServer {
         if (messageId) {
           // Mark specific message as read
           const message = await Message.findById(messageId)
-          if (message && message.receiverId.toString() === user.id) {
+            if (message && message.receiverId.toString() === user.id) {
             message.status = 'read'
             message.readAt = new Date()
             await message.save()
 
-            // Notify sender
-            const senderSocket = onlineUsers.get(message.senderId.toString())
-            if (senderSocket) {
+            // Notify sender with read timestamp
+            try {
+              const readPayload = {
+                messageId: messageId,
+                readAt: message.readAt.toISOString(),
+                chatId: chatId,
+              }
+              io.to(`user:${message.senderId}`).emit('message:read', readPayload)
+            } catch (emitErr) {
+              console.error('Failed to emit message:read payload:', emitErr)
+              // Fallback to legacy string ID
               io.to(`user:${message.senderId}`).emit('message:read', messageId)
             }
           }

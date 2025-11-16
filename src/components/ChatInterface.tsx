@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useMessaging } from "@/context/MessagingContext";
+import { useRealtimePresence } from '@/hooks/useRealtimePresence';
 import { useSession } from "next-auth/react";
 import {
   Send,
@@ -105,6 +106,23 @@ export default function ChatInterface({
     }
   }, [friendId]);
 
+  // Real-time presence hook (prefers socket presence when available)
+  const { presence, isOnline: presenceOnline } = useRealtimePresence(friendId);
+
+  // Sync presence with UI: prefer realtime presence when available, otherwise use API
+  useEffect(() => {
+    if (presence) {
+      setIsOnline(presence.status === 'online');
+      setLastSeen(presence.lastSeen ? new Date(presence.lastSeen) : null);
+    } else if (friendId) {
+      // If no realtime presence available, fall back to the API
+      checkOnlineStatus();
+    }
+  }, [presence, presenceOnline, friendId]);
+
+  // Listen for incoming socket messages for this friend and merge them
+  
+
   // Check friend's online status
   const checkOnlineStatus = async () => {
     try {
@@ -160,7 +178,18 @@ export default function ChatInterface({
       );
       if (response.ok) {
         const data = await response.json();
-        setMessages(data.messages || []);
+        const serverMessages: ChatMessage[] = data.messages || [];
+
+        // Preserve any optimistic local messages (ids starting with 'local-')
+        const localPending = messages.filter((m) => m._id?.toString().startsWith("local-"));
+
+        // Merge server messages and local pending messages that are not present on server
+        const merged = [
+          ...serverMessages,
+          ...localPending.filter((lp) => !serverMessages.some((sm) => sm._id === lp._id)),
+        ];
+
+        setMessages(merged);
       } else {
         console.error("Failed to load messages");
       }
@@ -369,6 +398,60 @@ export default function ChatInterface({
 
   const messaging = useMessaging();
 
+  // Ensure messaging context knows about this open chat so sendMessage works
+  // Note: we avoid depending on the entire `messaging` object here to prevent
+  // re-running when the context value identity changes frequently.
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async () => {
+      if (!messaging) return;
+      let opened = false;
+      try {
+        if (typeof messaging.openChat === 'function') {
+          if (messaging.currentFriendId !== friendId) {
+            await messaging.openChat(friendId);
+            opened = true;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to open chat in messaging context:', err);
+      }
+
+      return () => {
+        if (opened && messaging && typeof messaging.closeChat === 'function') {
+          messaging.closeChat();
+        }
+      };
+    })();
+    // Intentionally only depend on friendId so this runs when the active chat changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friendId]);
+
+  // Listen for incoming socket messages for this friend and merge them
+  useEffect(() => {
+    const socket = messaging?.socket;
+    if (!socket) return;
+
+    const handler = (message: any) => {
+      const isForThisChat =
+        message.receiverId === friendId ||
+        (message.senderId && (message.senderId._id === friendId || message.senderId.username === friendId));
+
+      if (!isForThisChat) return;
+
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+    };
+
+    socket.on("message:received", handler);
+
+    return () => {
+      socket.off("message:received", handler);
+    };
+  }, [messaging?.socket, friendId]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -381,7 +464,17 @@ export default function ChatInterface({
     try {
       // Prefer socket-based send for instant delivery
       if (messaging && typeof messaging.sendMessage === 'function') {
-        await messaging.sendMessage(newMessage.trim(), 'text');
+        // Ensure messaging context is opened for this friend so sendMessage will not return early
+        if (messaging.currentFriendId !== friendId && typeof messaging.openChat === 'function') {
+          await messaging.openChat(friendId);
+        }
+
+        // If after opening we still don't have a chat id, fallback to HTTP
+        if (messaging.currentChatId && messaging.currentFriendId === friendId) {
+          await messaging.sendMessage(newMessage.trim(), 'text');
+        } else {
+          await sendMessageToAPI(newMessage.trim(), 'text', replyingTo?._id);
+        }
       } else {
         // fallback to HTTP
         await sendMessageToAPI(newMessage.trim(), 'text', replyingTo?._id);
@@ -506,50 +599,33 @@ export default function ChatInterface({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "sent":
+        // single check (color inherited from parent/currentColor)
         return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         );
       case "delivered":
+        // double checks (overlapping) - color inherited from parent/currentColor
         return (
           <div className="flex -space-x-1">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         );
       case "read":
+        // double checks - color inherited (parent should set blue)
         return (
-          <div className="flex -space-x-1 text-blue-400">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
+          <div className="flex -space-x-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         );
@@ -574,9 +650,9 @@ export default function ChatInterface({
   const currentUserEmail = session?.user?.email;
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Desktop Header - Hidden on mobile since mobile has header in messages page */}
-      <div className="flex items-center justify-between p-4 border-b bg-white">
+      <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
             {friendAvatar ? (
@@ -640,7 +716,7 @@ export default function ChatInterface({
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="p-3 border-b bg-gray-50">
+        <div className="p-3 border-b bg-gray-50 dark:bg-gray-800">
           <input
             type="text"
             placeholder="Search messages..."
@@ -652,7 +728,7 @@ export default function ChatInterface({
       )}
 
       {/* Messages */}
-      <div className="flex-1 flex flex-col p-4 bg-gray-50 min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col p-4 bg-gray-50 dark:bg-gray-900 min-h-0 overflow-hidden">
         {messagesLoading && messages.length === 0 ? (
           <div className="flex justify-center items-center h-32">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
@@ -667,12 +743,12 @@ export default function ChatInterface({
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="flex-1 overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-500 dark:scrollbar-thumb-gray-700 scrollbar-track-gray-100 dark:scrollbar-track-transparent">
             {Object.entries(groupedMessages).map(([date, dateMessages]) => (
               <div key={date}>
                 {/* Date separator */}
                 <div className="flex justify-center mb-4">
-                  <span className="px-3 py-1 bg-white text-gray-600 text-xs rounded-full shadow-sm border">
+                  <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                     {date}
                   </span>
                 </div>
@@ -763,11 +839,11 @@ export default function ChatInterface({
                             message.replyTo._id &&
                             message.replyTo.content
                 ? isCurrentUser
-                  ? "bg-blue-500 text-white ff-white rounded-b-2xl rounded-tr-2xl"
-                  : "bg-gray-100 text-gray-900 rounded-b-2xl rounded-tl-2xl"
+                  ? "bg-blue-500 text-white rounded-b-2xl rounded-tr-2xl"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-b-2xl rounded-tl-2xl"
                               : isCurrentUser
-                              ? "bg-blue-500 text-white ff-white rounded-2xl rounded-br-md"
-                              : "bg-gray-100 text-gray-900 rounded-2xl rounded-bl-md"
+                              ? "bg-blue-500 text-white rounded-2xl rounded-br-md"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-md"
                           }`}
                         >
                           {/* Show sender name for received messages */}
@@ -828,7 +904,7 @@ export default function ChatInterface({
                           )}
 
                           {message.type === "file" && (
-                            <div className="flex items-center space-x-3 p-2 bg-white bg-opacity-10 rounded-lg">
+                            <div className="flex items-center space-x-3 p-2 bg-white/10 dark:bg-gray-800/40 rounded-lg">
                               <div className="flex-shrink-0">
                                 <FileText
                                   className={`w-8 h-8 ${
@@ -865,7 +941,7 @@ export default function ChatInterface({
                                     link.click();
                                   }
                                 }}
-                                className={`p-1 rounded hover:bg-white hover:bg-opacity-20 ${
+                                className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
                                   isCurrentUser
                                     ? "text-blue-200"
                                     : "text-gray-600"
@@ -873,7 +949,7 @@ export default function ChatInterface({
                                 title="Download"
                               >
                                 <svg
-                                  className="w-4 h-4"
+                                  className="w-5 h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -882,7 +958,7 @@ export default function ChatInterface({
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    d="M12 3v12m0 0l-4-4m4 4l4-4M21 21H3"
                                   />
                                 </svg>
                               </button>
@@ -903,15 +979,17 @@ export default function ChatInterface({
                                 <span
                                   className={`${
                                     message.status === "read"
-                                      ? "text-blue-200"
-                                      : "text-blue-300"
+                                      ? "text-blue-500 dark:text-blue-400"
+                                      : "text-gray-400 dark:text-gray-400"
                                   }`}
                                 >
                                   {getStatusIcon(message.status)}
                                 </span>
                                 {message.status === "read" && (
-                                  <span className="text-xs text-blue-200 opacity-75">
-                                    Read
+                                  <span className="text-xs text-blue-200 opacity-90">
+                                    {message.readAt
+                                      ? `Seen ${formatMessageTime(new Date(message.readAt))}`
+                                      : "Read"}
                                   </span>
                                 )}
                               </div>
@@ -972,7 +1050,7 @@ export default function ChatInterface({
         {/* Context Menu */}
         {contextMenu && (
           <div
-            className="fixed bg-white border rounded-lg shadow-lg py-2 z-50 min-w-48"
+            className="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50 min-w-48"
             style={{
               left: `${contextMenu.x}px`,
               top: `${contextMenu.y}px`,
@@ -994,16 +1072,16 @@ export default function ChatInterface({
               <Reply className="w-4 h-4 text-gray-600" />
               <span className="text-sm">Reply</span>
             </button>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  messages.find((m) => m._id === contextMenu?.messageId)
-                    ?.content || ""
-                );
-                setContextMenu(null);
-              }}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center space-x-3"
-            >
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    messages.find((m) => m._id === contextMenu?.messageId)
+                      ?.content || ""
+                  );
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3"
+              >
               <svg
                 className="w-4 h-4 text-gray-600"
                 fill="none"
@@ -1029,7 +1107,7 @@ export default function ChatInterface({
               <Forward className="w-4 h-4 text-gray-600" />
               <span className="text-sm">Forward</span>
             </button>
-            <hr className="my-1" />
+            <hr className="my-1 border-gray-200 dark:border-gray-700" />
             <div className="px-4 py-2">
               <span className="text-xs text-gray-500 font-medium">
                 React with
@@ -1133,12 +1211,12 @@ export default function ChatInterface({
                   </span>
                 )}
               </div>
-              <div className="bg-gray-100 rounded-2xl px-4 py-3 shadow-sm">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3 shadow-sm">
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
-                  <span className="text-xs text-gray-500 ml-2">typing...</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-300 ml-2">typing...</span>
                 </div>
               </div>
             </div>
@@ -1149,10 +1227,10 @@ export default function ChatInterface({
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t bg-white">
+      <div className="p-4 border-t bg-white dark:bg-gray-800">
         {/* Reply Preview */}
         {replyingTo && (
-          <div className="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-800">
@@ -1206,7 +1284,7 @@ export default function ChatInterface({
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 disabled={isSending}
               />
               <button
@@ -1243,7 +1321,7 @@ export default function ChatInterface({
 
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex flex-wrap gap-2">
               {[
                 "😀",

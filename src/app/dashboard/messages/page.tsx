@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useFriends } from "@/context/FriendsContext";
 // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,42 @@ import ChatInterface from "@/components/ChatInterface";
 // import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const getSmallStatusIcon = (status?: string) => {
+  if (!status) return null;
+  switch (status) {
+    case "sent":
+      return (
+        <svg className="w-4 h-4 text-gray-400 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      );
+    case "delivered":
+      return (
+        <div className="inline-flex -space-x-1 mr-1">
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      );
+    case "read":
+      return (
+        <div className="inline-flex -space-x-1 text-blue-400 mr-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
 interface Conversation {
   chatId: string;
   participant: {
@@ -40,6 +77,9 @@ interface Conversation {
     type: string;
     createdAt: Date;
     senderId: string;
+    status?: string;
+    deliveredAt?: string;
+    readAt?: string;
   };
   messageCount: number;
   unreadCount: number;
@@ -218,11 +258,32 @@ export default function MessagesPage() {
         return a.username.toLowerCase().localeCompare(b.username.toLowerCase());
       });
 
+    
+
+    function StatusForConversation({ conversation }: { conversation?: Conversation | null }) {
+      const { data: session } = useSession();
+      const currentUserId = session?.user?.id || session?.user?.email;
+
+      if (!conversation || !conversation.latestMessage) return null;
+      const isFromMe = String(conversation.latestMessage.senderId) === String(currentUserId);
+
+      if (isFromMe) {
+        return <>{getSmallStatusIcon(conversation.latestMessage.status)}</>;
+      }
+
+      // If not from me, optionally show unread dot when there are unread messages
+      if (conversation.unreadCount && conversation.unreadCount > 0) {
+        return <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" />;
+      }
+
+      return null;
+    }
+
     return (
-      <div className="h-full flex flex-col bg-white">
+      <div className="h-full flex flex-col bg-card">
         {/* Header - Always show on mobile, desktop gets a cleaner header */}
-        <div className="flex items-center justify-between p-4 border-b bg-white">
-          <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+        <div className="flex items-center justify-between p-4 border-b bg-card">
+          <h2 className="text-lg font-semibold text-foreground">Messages</h2>
           {isMobileView && (
             <Button
               variant="ghost"
@@ -235,14 +296,14 @@ export default function MessagesPage() {
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b bg-gray-50">
+        <div className="p-4 border-b bg-card">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white border-gray-200"
+              className="pl-10 bg-card border-border text-foreground"
             />
           </div>
         </div>
@@ -255,7 +316,7 @@ export default function MessagesPage() {
           }
           className="flex-1 flex flex-col"
         >
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-3 mb-2 bg-gray-100">
+          <TabsList className="grid w-full grid-cols-2 mx-4 mt-3 mb-2 bg-card border border-border rounded-md">
             <TabsTrigger value="conversations" className="text-sm">
               Chats ({friendsWithConversations.length})
             </TabsTrigger>
@@ -264,24 +325,24 @@ export default function MessagesPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent
+            <TabsContent
             value="conversations"
             className="flex-1 overflow-hidden mt-0"
           >
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
               {isLoadingConversations ? (
                 <div className="flex items-center justify-center p-8">
                   <RefreshCw className="h-6 w-6 animate-spin text-blue-500" />
                 </div>
               ) : friendsWithConversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <MessageCircle className="h-8 w-8 text-gray-400" />
+                <div className="flex flex-col items-center justify-center p-8 text-center bg-card">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <MessageCircle className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-600 text-sm font-medium">
+                  <p className="text-muted-foreground text-sm font-medium">
                     No friends to chat with
                   </p>
-                  <p className="text-gray-400 text-xs mt-1">
+                  <p className="text-muted-foreground text-xs mt-1">
                     Add friends to start conversations!
                   </p>
                   <Button
@@ -295,7 +356,7 @@ export default function MessagesPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-border">
                   {friendsWithConversations.map((friend) => {
                     const conversation = conversations.find(
                       (conv) => conv.participant.id === friend.id
@@ -315,9 +376,9 @@ export default function MessagesPage() {
                           }
                         }}
                         className={cn(
-                          "flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 active:bg-gray-100",
+                          "flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-muted active:bg-muted",
                           selectedConversation?.participant.id === friend.id &&
-                            "bg-blue-50 border-r-2 border-blue-500"
+                            "bg-blue-900/10 border-r-2 border-blue-500"
                         )}
                       >
                         <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
@@ -328,24 +389,27 @@ export default function MessagesPage() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-medium text-sm text-gray-900 truncate">
+                            <h3 className="font-medium text-sm text-foreground truncate">
                               {friend.username}
                             </h3>
-                            <div className="flex items-center space-x-2">
-                              {friend.hasConversation &&
-                                conversation?.latestMessage && (
-                                  <span className="text-xs text-gray-500">
-                                    {formatMessageTime(
-                                      conversation.latestMessage.createdAt
-                                    )}
-                                  </span>
+                              <div className="flex items-center space-x-2">
+                                {friend.hasConversation && conversation?.latestMessage && (
+                                  <>
+                                    {/** Show small tick icons when the latest message was sent by the current user */}
+                                    <StatusForConversation conversation={conversation} />
+                                    <span className="text-xs text-gray-500">
+                                      {formatMessageTime(
+                                        conversation.latestMessage.createdAt
+                                      )}
+                                    </span>
+                                  </>
                                 )}
-                              {friend.hasConversation && (
-                                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                              )}
-                            </div>
+                                {!conversation?.latestMessage && (
+                                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                )}
+                              </div>
                           </div>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-sm text-muted-foreground truncate">
                             {conversation?.latestMessage?.content ||
                               "Start a conversation"}
                           </p>
@@ -365,66 +429,14 @@ export default function MessagesPage() {
           </TabsContent>
 
           <TabsContent value="friends" className="flex-1 overflow-hidden mt-0">
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="h-full overflow-y-auto p-6 bg-card">
               {friendsLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <RefreshCw className="h-6 w-6 animate-spin text-blue-500" />
                 </div>
-              ) : allFriends.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <UserPlus className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <p className="text-gray-600 text-sm font-medium">
-                    No friends to chat with
-                  </p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    Add friends to start conversations
-                  </p>
-                  <Button
-                    onClick={() =>
-                      (window.location.href = "/dashboard/friends")
-                    }
-                    size="sm"
-                    className="mt-4 bg-blue-500 hover:bg-blue-600"
-                  >
-                    Find Friends
-                  </Button>
-                </div>
               ) : (
-                <div className="divide-y divide-gray-100">
-                  {allFriends.map((friend) => (
-                    <div
-                      key={friend.id}
-                      onClick={() => {
-                        createConversationWithFriend(friend.id);
-                        // Close sidebar only if it's open (when in chat mode)
-                        if (sidebarOpen) {
-                          setSidebarOpen(false);
-                        }
-                      }}
-                      className="flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 active:bg-gray-100"
-                    >
-                      <Avatar className="h-12 w-12 mr-3 ring-2 ring-white shadow-sm">
-                        <AvatarImage src={friend.profilePicture} />
-                        <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white ff-white font-medium">
-                          {friend.username?.charAt(0).toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm text-gray-900 truncate">
-                          {friend.username}
-                        </h3>
-                        <p className="text-sm text-gray-500 truncate">
-                          {friend.email}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <MessageCircle className="h-5 w-5 text-gray-400" />
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-sm text-muted-foreground">
+                  The Friends tab (simplified for debugging). Conversations and status icons will appear in the Chats tab.
                 </div>
               )}
             </div>
@@ -437,7 +449,7 @@ export default function MessagesPage() {
   // Mobile view: show either conversations list or chat
   if (isMobileView) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex overflow-hidden rounded-lg shadow-sm border border-gray-200 bg-white">
+      <div className="h-[calc(100vh-4rem)] flex overflow-hidden rounded-lg shadow-sm border border-gray-200 bg-white dark:bg-gray-900">
         {/* Mobile Sidebar Overlay - Only show when explicitly opened while in chat */}
         {sidebarOpen && selectedConversation && (
           <div className="fixed inset-0 z-50 flex">
@@ -445,7 +457,7 @@ export default function MessagesPage() {
               className="fixed inset-0 bg-black bg-opacity-50"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="relative flex flex-col w-full max-w-sm bg-white shadow-xl">
+            <div className="relative flex flex-col w-full max-w-sm bg-white dark:bg-gray-800 shadow-xl">
               <ConversationsList />
             </div>
           </div>
@@ -456,7 +468,7 @@ export default function MessagesPage() {
           {selectedConversation ? (
             <div className="h-full flex flex-col">
               {/* Mobile Chat Header */}
-              <div className="flex items-center p-3 border-b bg-white">
+              <div className="flex items-center p-3 border-b bg-white dark:bg-gray-800">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -513,11 +525,11 @@ export default function MessagesPage() {
     );
   }
 
-  // Desktop view: WhatsApp-like layout with persistent sidebar
+    // Desktop view: WhatsApp-like layout with persistent sidebar
   return (
-    <div className="h-[calc(100vh-4rem)] flex bg-white overflow-hidden rounded-lg shadow-sm border border-gray-200">
+    <div className="h-[calc(100vh-4rem)] flex bg-white dark:bg-gray-900 overflow-hidden rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       {/* Desktop Sidebar - Always visible on desktop */}
-      <div className="hidden md:flex md:w-80 lg:w-96 border-r border-gray-200 bg-white flex-col">
+      <div className="hidden md:flex md:w-80 lg:w-96 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-col">
         <ConversationsList />
       </div>
 
@@ -528,18 +540,18 @@ export default function MessagesPage() {
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="relative flex flex-col w-full max-w-sm bg-white shadow-xl h-full">
+          <div className="relative flex flex-col w-full max-w-sm bg-white dark:bg-gray-800 shadow-xl h-full">
             <ConversationsList />
           </div>
         </div>
       )}
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col">
         {selectedConversation ? (
           <div className="h-full flex flex-col">
             {/* Mobile header with back button */}
-            <div className="md:hidden flex items-center p-3 border-b bg-white">
+            <div className="md:hidden flex items-center p-3 border-b bg-white dark:bg-gray-800">
               <Button
                 variant="ghost"
                 size="sm"
@@ -573,8 +585,8 @@ export default function MessagesPage() {
               onClose={() => setSelectedConversation(null)}
             />
           </div>
-        ) : (
-          <div className="h-full flex items-center justify-center bg-gray-50">
+          ) : (
+          <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
             <div className="text-center max-w-md mx-auto px-6">
               {/* Welcome message for desktop only */}
               <div className="mb-6">

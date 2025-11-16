@@ -48,9 +48,10 @@ export default function MapPage() {
   const [isLoadingFriends, setIsLoadingFriends] = useState(true)
   const [isLoadingNearby, setIsLoadingNearby] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [showLocationPanel, setShowLocationPanel] = useState(true)
-  const [showNearbyPanel, setShowNearbyPanel] = useState(true)
-  const [showFriendsOpen, setShowFriendsOpen] = useState(true)
+  // Start right-side panels collapsed by default to match left map filters
+  const [showLocationPanel, setShowLocationPanel] = useState(false)
+  const [showNearbyPanel, setShowNearbyPanel] = useState(false)
+  const [showFriendsOpen, setShowFriendsOpen] = useState(false)
   const lastUpdateRef = useRef<number>(0)
   const [selectedFriend, setSelectedFriend] = useState<FriendLocation | null>(null)
   const [showInfoWindow, setShowInfoWindow] = useState(false)

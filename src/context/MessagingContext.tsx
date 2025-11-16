@@ -95,7 +95,7 @@ interface MessagingContextType {
   refreshChats: () => Promise<void>;
 }
 
-const MessagingContext = createContext<MessagingContextType | undefined>(
+export const MessagingContext = createContext<MessagingContextType | undefined>(
   undefined
 );
 
@@ -140,17 +140,22 @@ export function MessagingProvider({ children }: MessagingProviderProps) {
     if (!session?.user) return;
 
     try {
-      // Connect directly to Socket.IO server
-      const socketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || '3004';
-      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || `http://localhost:${socketPort}`;
-      
-      console.log('Connecting to Socket.IO server:', socketUrl);
+      // Prefer explicit env var, otherwise default to current page origin (so hosted frontends
+      // connect back to their own host) and finally fall back to localhost:3004 for dev.
+      const socketPort = process.env.NEXT_PUBLIC_SOCKET_PORT || "3004";
+      const envUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+      const pageOrigin = typeof window !== "undefined" ? window.location.origin : undefined;
+      const socketUrl = envUrl || pageOrigin || `http://localhost:${socketPort}`;
+
+      console.log("Connecting to Socket.IO server:", socketUrl);
 
       const newSocket = io(socketUrl, {
         path: "/socket.io/",
-        transports: ['websocket', 'polling'],
+        transports: ["websocket", "polling"],
         timeout: 20000,
         autoConnect: true,
+        // Ensure we include credentials when connecting across origins if needed
+        withCredentials: true,
       });
 
       newSocket.on("connect", () => {
@@ -181,23 +186,52 @@ export function MessagingProvider({ children }: MessagingProviderProps) {
         refreshChats();
       });
 
-      newSocket.on("message:delivered", (messageId: string) => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg._id === messageId
-              ? { ...msg, status: "delivered" as const }
-              : msg
-          )
-        );
-      });
+      // Support both legacy string payloads and new object payloads with timestamps
+      newSocket.on(
+        "message:delivered",
+        (payload: string | { messageId: string; deliveredAt?: string; chatId?: string }) => {
+          const messageId = typeof payload === "string" ? payload : payload.messageId;
+          const deliveredAt = typeof payload === "string" ? undefined : payload.deliveredAt;
 
-      newSocket.on("message:read", (messageId: string) => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg._id === messageId ? { ...msg, status: "read" as const } : msg
-          )
-        );
-      });
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === messageId
+                ? {
+                    ...msg,
+                    status: "delivered" as const,
+                    deliveredAt: deliveredAt ? new Date(deliveredAt) : msg.deliveredAt,
+                  }
+                : msg
+            )
+          );
+
+          // Refresh chats so conversation preview reflects delivery status
+          refreshChats();
+        }
+      );
+
+      newSocket.on(
+        "message:read",
+        (payload: string | { messageId: string; readAt?: string; chatId?: string }) => {
+          const messageId = typeof payload === "string" ? payload : payload.messageId;
+          const readAt = typeof payload === "string" ? undefined : payload.readAt;
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === messageId
+                ? {
+                    ...msg,
+                    status: "read" as const,
+                    readAt: readAt ? new Date(readAt) : msg.readAt,
+                  }
+                : msg
+            )
+          );
+
+          // Update chats list to reflect read and clear unread counts
+          refreshChats();
+        }
+      );
 
       newSocket.on(
         "typing:start",
@@ -316,21 +350,66 @@ export function MessagingProvider({ children }: MessagingProviderProps) {
     content: string,
     type: "text" | "image" | "file" = "text"
   ) => {
-    if (!socket || !currentFriendId || !currentChatId || !content.trim())
-      return;
+    if (!currentFriendId || !currentChatId || !content.trim()) return;
 
+    // Create optimistic local message so UI updates immediately
+    const optimisticId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const optimisticMsg = {
+      _id: optimisticId,
+      chatId: currentChatId,
+      senderId: {
+        _id: session?.user?.id || session?.user?.email || "me",
+        username: session?.user?.name || session?.user?.email?.split("@")[0] || "me",
+      },
+      receiverId: currentFriendId,
+      content: content.trim(),
+      type,
+      status: "sent" as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as ChatMessage;
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+
+    // Stop typing indicator
+    stopTyping();
+
+    // Prefer socket if connected
+    if (socket && isConnected) {
+      try {
+        socket.emit("message:send", {
+          chatId: currentChatId,
+          receiverId: currentFriendId,
+          content: content.trim(),
+          type,
+        });
+        return;
+      } catch (err) {
+        console.error("Socket send failed, falling back to HTTP:", err);
+      }
+    }
+
+    // Fallback: send via HTTP API so message still reaches server
     try {
-      socket.emit("message:send", {
-        chatId: currentChatId,
-        receiverId: currentFriendId,
-        content: content.trim(),
-        type,
+      const resp = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId: currentChatId, receiverId: currentFriendId, content: content.trim(), type }),
       });
 
-      // Stop typing indicator
-      stopTyping();
-    } catch (error) {
-      console.error("Failed to send message:", error);
+      if (!resp.ok) {
+        throw new Error("HTTP send failed");
+      }
+
+      const data = await resp.json();
+
+      // Replace optimistic message with server message if provided
+      if (data && data.message) {
+        setMessages((prev) => prev.map((m) => (m._id === optimisticId ? data.message : m)));
+      }
+    } catch (err) {
+      console.error("Failed to send message via API:", err);
+      // leave optimistic message as-is; UI could show failed status later
     }
   };
 
@@ -365,6 +444,25 @@ export function MessagingProvider({ children }: MessagingProviderProps) {
   const markAsRead = (messageId?: string) => {
     if (!socket || !currentChatId) return;
 
+    // Optimistically update local state so UI reflects reads immediately
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (messageId) {
+          if (msg._id === messageId) {
+            return { ...msg, status: "read" as const, readAt: new Date() };
+          }
+          return msg;
+        }
+
+        // If no messageId provided, mark all messages in current chat as read
+        if (msg.chatId === currentChatId) {
+          return { ...msg, status: "read" as const, readAt: new Date() };
+        }
+        return msg;
+      })
+    );
+
+    // Emit to server to persist and notify sender(s)
     socket.emit("message:read", {
       chatId: currentChatId,
       messageId,

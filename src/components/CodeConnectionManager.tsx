@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Hash, RefreshCw, Copy, Clock, UserPlus, Check } from "lucide-react";
+import KeyGlyph from '@/components/icons/KeyGlyph';
+import KeyIcon from '@/components/icons/KeyIcon';
 import { toast } from "sonner";
 
 interface Props {
@@ -167,15 +169,15 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
     <Card className="border-0 shadow-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
-          <Hash className="h-5 w-5 text-indigo-600" />
+          <KeyGlyph className="h-5 w-5 text-indigo-600" />
           <span>Code Connection</span>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <Hash className="h-4 w-4 text-indigo-600" />
+            <div className="flex items-center space-x-2 mb-2">
+            <KeyGlyph className="h-4 w-4 text-indigo-600" />
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Share Your Code</h3>
           </div>
 
@@ -186,14 +188,14 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                 disabled={isGenerating}
                 className="w-full h-11 bg-indigo-600 hover:bg-indigo-700"
               >
-                {isGenerating ? (
+                    {isGenerating ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                     Generating...
                   </>
                 ) : (
                   <>
-                    <Hash className="h-4 w-4 mr-2" />
+                    <KeyIcon className="h-4 w-4 mr-2" />
                     Generate Discovery Code
                   </>
                 )}
@@ -201,8 +203,8 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg p-4">
-                <div className="text-center">
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg p-4">
+                  <KeyGlyph className="h-4 w-4 mr-2" />
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Your Discovery Code</p>
                   <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 tracking-wider mb-3 font-mono">
                     {generatedCode}
@@ -218,7 +220,6 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
                     </span>
                   </div>
                 </div>
-              </div>
               <div className="flex space-x-2">
                 <Button
                   onClick={handleCopyCode}
@@ -251,8 +252,8 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
         <div className="border-t border-gray-200 dark:border-gray-700" />
 
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <Hash className="h-4 w-4 text-green-600" />
+            <div className="flex items-center space-x-2 mb-2">
+            <KeyGlyph className="h-4 w-4 text-green-600" />
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Enter Someone's Code</h3>
           </div>
 
@@ -270,32 +271,33 @@ export default function CodeConnectionManager({ onUpdated }: Props = {}) {
             disabled={isLookingUp || lookupCode.length !== 6}
             className="w-full h-11 bg-green-600 hover:bg-green-700"
           >
-            {isLookingUp ? (
+                {isLookingUp ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 Looking up...
               </>
             ) : (
               <>
-                <Hash className="h-4 w-4 mr-2" />
+                    <KeyIcon className="h-4 w-4 mr-2" />
                 Discover User
               </>
             )}
           </Button>
 
           {discoveredUser && (
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={discoveredUser.profilePicture} alt={discoveredUser.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <KeyGlyph className="h-4 w-4 mr-2" />
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={discoveredUser.profilePicture} alt={discoveredUser.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
                     {(discoveredUser.name && discoveredUser.name.charAt(0))
                       ? discoveredUser.name.charAt(0).toUpperCase()
                       : (discoveredUser.username && discoveredUser.username.charAt(0))
                         ? discoveredUser.username.charAt(0).toUpperCase()
                         : '?'}
                   </AvatarFallback>
-                </Avatar>
+                  </Avatar>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                     {discoveredUser.name || discoveredUser.username || 'Unknown'}

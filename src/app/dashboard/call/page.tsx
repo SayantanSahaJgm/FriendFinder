@@ -25,9 +25,9 @@ export default function CallPage() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   
-  const userId = searchParams.get("userId");
-  const userName = searchParams.get("userName");
-  const callType = searchParams.get("type") || "video"; // 'voice' or 'video'
+  const userId = searchParams?.get("userId") ?? "";
+  const userName = searchParams?.get("userName") ?? "";
+  const callType = searchParams?.get("type") ?? "video"; // 'voice' or 'video'
 
   const [isConnecting, setIsConnecting] = useState(true);
   const [isConnected, setIsConnected] = useState(false);

@@ -62,7 +62,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mb-3 shadow-sm">
+  <div className="bg-card border border-gray-200 dark:border-gray-700 rounded-lg mb-3 shadow-sm overflow-hidden">
       {/* Post Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
@@ -84,30 +84,30 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
 
       {/* Post Image */}
       {image && (
-        <div className="w-full aspect-square bg-gray-100 dark:bg-gray-900">
+        <div className="w-full aspect-square bg-gray-100 dark:bg-gray-900 rounded-b-lg overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt="post" className="w-full h-full object-cover" />
         </div>
       )}
 
       {/* Post Actions */}
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-3">
             <button 
               onClick={() => setLiked(!liked)}
               className="hover:scale-110 transition transform"
               aria-label={liked ? "Unlike" : "Like"}
             >
               <Heart 
-                className={`w-7 h-7 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-900 dark:text-gray-100 hover:text-gray-600'}`} 
+                className={`w-6 h-6 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-900 dark:text-gray-100 hover:text-gray-600'}`} 
               />
             </button>
             <button className="hover:scale-110 transition transform" aria-label="Comment">
-              <MessageCircle className="w-7 h-7 text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300" />
+              <MessageCircle className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300" />
             </button>
             <button className="hover:scale-110 transition transform" aria-label="Share">
-              <Send className="w-7 h-7 text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300" />
+              <Send className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300" />
             </button>
           </div>
           <button 
@@ -116,7 +116,7 @@ function Post({ author, content, image, likes, comments, timestamp }: any) {
             aria-label={saved ? "Unsave" : "Save"}
           >
             <Bookmark 
-              className={`w-7 h-7 ${saved ? 'fill-gray-900 dark:fill-gray-100 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300'}`} 
+              className={`w-6 h-6 ${saved ? 'fill-gray-900 dark:fill-gray-100 text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300'}`} 
             />
           </button>
         </div>
@@ -352,48 +352,48 @@ export default function Feed() {
       </div>
 
       {/* Bottom Navigation - Always Visible */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 shadow-2xl" role="navigation" aria-label="Main navigation">
-        <div className="max-w-md mx-auto px-3 py-2 flex items-center justify-around">
+      <nav className="fixed bottom-0 left-0 right-0 bg-transparent z-40" role="navigation" aria-label="Main navigation">
+        <div className="max-w-md mx-auto px-4 py-3 bg-card border-t border-border rounded-t-lg flex items-center justify-around">
           <button 
             onClick={() => router.push('/dashboard/discover')}
-            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[60px]"
+            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[48px]"
           >
-            <MapPin className="w-6 h-6 text-foreground" />
+            <MapPin className="w-5 h-5 text-foreground" />
             <span className="text-xs mt-1 text-foreground font-medium">Map</span>
           </button>
           <button 
             onClick={() => router.push('/dashboard/discover?method=bluetooth')}
-            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[60px]"
+            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[48px]"
           >
-            <Bluetooth className="w-6 h-6 text-foreground" />
+            <Bluetooth className="w-5 h-5 text-foreground" />
             <span className="text-xs mt-1 text-foreground font-medium">Bluetooth</span>
           </button>
           <button 
             onClick={() => router.push('/dashboard/discover?method=wifi')}
-            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[60px]"
+            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[48px]"
           >
-            <Wifi className="w-6 h-6 text-foreground" />
+            <Wifi className="w-5 h-5 text-foreground" />
             <span className="text-xs mt-1 text-foreground font-medium">WiFi</span>
           </button>
           <button 
             onClick={() => router.push('/dashboard/create')}
-            className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white ff-white rounded-full shadow-xl hover:shadow-2xl transition transform hover:scale-110 -mt-8"
+            className="flex items-center justify-center w-10 h-10 bg-card border border-border text-foreground rounded-full shadow-sm transition transform hover:scale-105 -mt-4"
             aria-label="Create Post"
           >
-            <PlusSquare className="w-7 h-7" />
+            <PlusSquare className="w-4 h-4" />
           </button>
           <button 
             onClick={() => router.push('/dashboard/search')}
-            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[60px]"
+            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[48px]"
           >
-            <Search className="w-6 h-6 text-foreground" />
+            <Search className="w-5 h-5 text-foreground" />
             <span className="text-xs mt-1 text-foreground font-medium">Search</span>
           </button>
           <button 
             onClick={() => router.push('/dashboard/random-chat')}
-            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[60px]"
+            className="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition min-w-[48px]"
           >
-            <Film className="w-6 h-6 text-foreground" />
+            <Film className="w-5 h-5 text-foreground" />
             <span className="text-xs mt-1 text-foreground font-medium">Random</span>
           </button>
         </div>

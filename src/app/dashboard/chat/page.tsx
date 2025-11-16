@@ -31,7 +31,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const userId = searchParams.get("userId");
+  const userId = searchParams?.get("userId") ?? "";
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);

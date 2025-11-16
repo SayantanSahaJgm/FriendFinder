@@ -1,13 +1,28 @@
 const { createServer } = require("http");
 
-const HEALTH_PORT = 3008; // Different from socket health port 3007
+// Determine socket port in the same way `server.js` does so we can target its health endpoint:
+// - Use explicit SOCKET_PORT if set
+// - Else if a generic PORT is provided, use PORT+1 for socket
+// - Otherwise default to 3004 (socket)
+const DEFAULT_SOCKET_PORT = 3004;
+const SOCKET_PORT = process.env.SOCKET_PORT
+  ? Number(process.env.SOCKET_PORT)
+  : process.env.PORT
+  ? Number(process.env.PORT) + 1
+  : DEFAULT_SOCKET_PORT;
+
+// Socket server exposes its health endpoint on SOCKET_PORT + 1
+const SOCKET_HEALTH_PORT = SOCKET_PORT + 1;
+
+// The monitor itself should run on a different port to avoid collisions (default 3008)
+const MONITOR_PORT = process.env.HEALTH_MONITOR_PORT ? Number(process.env.HEALTH_MONITOR_PORT) : 3008;
 
 console.log('🏥 Starting Health Monitor...');
 
-// Create health monitoring server
+// Create health monitoring server (runs on MONITOR_PORT)
 const healthServer = createServer((req, res) => {
-  const url = new URL(req.url, `http://localhost:${HEALTH_PORT}`);
-  
+  const url = new URL(req.url, `http://localhost:${MONITOR_PORT}`);
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,8 +38,8 @@ const healthServer = createServer((req, res) => {
     
     Promise.all([
       checkService('Next.js', 'http://localhost:3000'),
-      checkService('Socket.IO', 'http://localhost:3007/health'),
-      checkService('Socket.IO Health', 'http://localhost:3007/health')
+      checkService('Socket.IO', `http://localhost:${SOCKET_HEALTH_PORT}/health`),
+      checkService('Socket.IO Health', `http://localhost:${SOCKET_HEALTH_PORT}/health`)
     ]).then(results => {
       const healthStatus = {
         timestamp: new Date().toISOString(),
@@ -81,8 +96,8 @@ async function checkService(name, url) {
 setInterval(async () => {
   const services = await Promise.all([
     checkService('Next.js', 'http://localhost:3000'),
-    checkService('Socket.IO', 'http://localhost:3007/health'),
-    checkService('Socket.IO Health', 'http://localhost:3007/health')
+    checkService('Socket.IO', `http://localhost:${SOCKET_HEALTH_PORT}/health`),
+    checkService('Socket.IO Health', `http://localhost:${SOCKET_HEALTH_PORT}/health`)
   ]);
   
   const healthyCount = services.filter(s => s.healthy).length;
@@ -97,12 +112,12 @@ setInterval(async () => {
   });
 }, 30000); // Check every 30 seconds
 
-healthServer.listen(HEALTH_PORT, () => {
-  console.log(`🏥 Health Monitor running on http://localhost:${HEALTH_PORT}/health`);
+healthServer.listen(MONITOR_PORT, () => {
+  console.log(`🏥 Health Monitor running on http://localhost:${MONITOR_PORT}/health`);
   console.log('📊 Monitoring services:');
   console.log('  - Next.js (http://localhost:3000)');
-  console.log('  - Socket.IO Health (http://localhost:3007)');
-  console.log('  - Socket.IO Health (http://localhost:3007)');
+  console.log(`  - Socket.IO Health (http://localhost:${SOCKET_HEALTH_PORT})`);
+  console.log(`  - Socket.IO Health (http://localhost:${SOCKET_HEALTH_PORT})`);
 });
 
 healthServer.on('error', (error) => {

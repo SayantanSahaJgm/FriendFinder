@@ -80,12 +80,12 @@ export default function FriendsPage() {
   // Removed auto-refresh on mount - context already handles data loading and auto-refresh
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-24 bg-black text-white">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Friends</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground">Friends</h1>
+          <p className="text-muted-foreground">
             Manage your connections and friend requests
           </p>
         </div>
@@ -105,42 +105,42 @@ export default function FriendsPage() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="p-2 rounded-lg bg-blue-900/20 dark:bg-blue-800/30">
+                <Users className="h-6 w-6 text-blue-300 dark:text-blue-200" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{friends.length}</p>
-                <p className="text-sm text-gray-600">Total Friends</p>
+                <p className="text-2xl font-bold text-foreground">{friends.length}</p>
+                <p className="text-sm text-muted-foreground">Total Friends</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <UserPlus className="h-6 w-6 text-orange-600" />
+              <div className="p-2 rounded-lg bg-orange-900/20 dark:bg-orange-800/30">
+                <UserPlus className="h-6 w-6 text-orange-300 dark:text-orange-200" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{receivedRequests.length}</p>
-                <p className="text-sm text-gray-600">Pending Requests</p>
+                <p className="text-2xl font-bold text-foreground">{receivedRequests.length}</p>
+                <p className="text-sm text-muted-foreground">Pending Requests</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <UserX className="h-6 w-6 text-green-600" />
+              <div className="p-2 rounded-lg bg-green-900/20 dark:bg-green-800/30">
+                <UserX className="h-6 w-6 text-green-300 dark:text-green-200" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{sentRequests.length}</p>
-                <p className="text-sm text-gray-600">Sent Requests</p>
+                <p className="text-2xl font-bold text-foreground">{sentRequests.length}</p>
+                <p className="text-sm text-muted-foreground">Sent Requests</p>
               </div>
             </div>
           </CardContent>
@@ -218,14 +218,14 @@ export default function FriendsPage() {
           />
 
           {!friendsLoading && friends.length === 0 && !friendsError && (
-            <Card>
+            <Card className="!bg-black border-border">
               <CardContent className="p-8">
                 <div className="text-center">
-                  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     No friends yet
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Start by searching for people to connect with or use the
                     discovery feature to find nearby friends.
                   </p>

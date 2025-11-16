@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useSession } from "next-auth/react";
 import { useFriends } from "@/context/FriendsContext";
 import { useAuth } from "@/context/AuthContext";
 import { toastManager, ToastPriority } from "@/lib/toast-manager";
+import { MessagingContext } from '@/context/MessagingContext';
 import { Bell, UserPlus, MessageCircle, Users, Wifi } from "lucide-react";
 
 export default function RealTimeNotifications() {
   const { data: session } = useSession();
   const { user } = useAuth();
+  // Use context directly so this component can operate even if MessagingProvider is not present
+  const messaging = useContext(MessagingContext as any) as any | null;
   const { receivedRequests, refreshRequests } = useFriends();
   const [lastRequestCount, setLastRequestCount] = useState(0);
   const [lastMessageCheck, setLastMessageCheck] = useState(new Date());
@@ -87,11 +90,29 @@ export default function RealTimeNotifications() {
             );
           });
 
-          // Show notifications for new messages
+          // Show notifications for new messages, but skip if message is already read
+          // or if user currently has the chat open (in which case mark as read)
           newMessages.forEach((conv: any) => {
-            const messagePreview = conv.latestMessage.content.length > 50 
-              ? conv.latestMessage.content.substring(0, 50) + "..."
-              : conv.latestMessage.content;
+            const latest = conv.latestMessage;
+
+            // If the message is already read, skip notification
+            if (latest.status === 'read') return;
+
+            // If messaging context indicates user is viewing this chat, mark as read and skip toast
+            try {
+              const currentFriendId = messaging?.currentFriendId;
+              if (currentFriendId && String(currentFriendId) === String(conv.participant.id)) {
+                // Mark as read via messaging context to inform server and clear unread count
+                messaging?.markAsRead(latest._id);
+                return;
+              }
+            } catch (e) {
+              // ignore
+            }
+
+            const messagePreview = latest.content?.length > 50
+              ? latest.content.substring(0, 50) + "..."
+              : latest.content;
 
             toastManager.success(`New message from ${conv.participant.username}`, {
               description: messagePreview,

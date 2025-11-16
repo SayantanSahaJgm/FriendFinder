@@ -22,7 +22,7 @@ import {
   MapPin,
   Wifi,
   Bluetooth,
-  Hash,
+  // Hash,
   Radar,
   Users,
   ToggleLeft,
@@ -36,6 +36,7 @@ import {
   RefreshCw,
   MessageCircle,
 } from "lucide-react";
+import KeyGlyph from '@/components/icons/KeyGlyph';
 import { toast } from "sonner";
 import { useSocket } from '@/hooks/useSocket'
 
@@ -44,7 +45,7 @@ type DiscoveryMethod = "gps" | "wifi" | "bluetooth" | "code";
 export default function DiscoverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const methodParam = searchParams.get('method') as DiscoveryMethod | null;
+  const methodParam = searchParams?.get('method') as DiscoveryMethod | null;
   
   const {
     currentLocation,
@@ -544,7 +545,7 @@ export default function DiscoverPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Hash
+                  <KeyGlyph
                     className={`w-5 h-5 ${
                       activeMethod === "code" ? "text-indigo-600" : "text-gray-600"
                     }`}
