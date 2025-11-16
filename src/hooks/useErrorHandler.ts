@@ -70,10 +70,16 @@ export function useErrorHandler() {
             } catch (e) {
               // ignore
             }
+
             try {
-              window.location.reload();
+              // Emit a lightweight global retry event so UI components can re-run
+              // network operations or attempt socket reconnection without a full reload.
+              // Components can listen for 'friendfinder:retry' if they want to
+              // re-run specific logic on retry.
+              window.dispatchEvent(new CustomEvent('friendfinder:retry'))
+              toast.success('Retrying network requests')
             } catch (e) {
-              toast.info('Please refresh the page to retry');
+              toast.info('Please refresh the page to retry')
             }
           }
         }
