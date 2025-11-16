@@ -297,10 +297,13 @@ class RealtimeMessagingService {
    * Handle read receipt from another user
    */
   private handleReadReceipt = (data: any) => {
+    const messageId = typeof data === 'string' ? data : data.messageId;
+    const readAt = (typeof data === 'string' ? undefined : data.readAt) || Date.now();
+
     const receipt: ReadReceipt = {
-      messageId: data.messageId,
-      userId: data.userId,
-      readAt: data.readAt || Date.now(),
+      messageId: messageId,
+      userId: data && data.userId ? data.userId : '',
+      readAt: readAt,
     };
 
     console.log('[RealtimeMessaging] Message read:', receipt.messageId);
