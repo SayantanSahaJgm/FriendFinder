@@ -44,27 +44,35 @@ export async function GET(
 
     const isFriend = currentUser.friends.some(fid => fid.toString() === userId)
 
-    // Only allow viewing profile if self or friend or discovery enabled
+    // Only show sensitive fields (like precise location) to self or friends.
+    // However, allow a minimal public view (username + profilePicture) to everyone so
+    // user avatars are visible in the UI even when discovery is disabled.
     const isSelf = currentUser._id?.toString() === userId
-    if (!isSelf && !isFriend && !targetUser.isDiscoveryEnabled) {
-      return NextResponse.json({ error: 'Not authorized to view this profile' }, { status: 403 })
+
+    const publicUser = {
+      id: targetUser._id?.toString(),
+      username: targetUser.username,
+      profilePicture: targetUser.profilePicture || null,
+      bio: targetUser.bio || null,
+      isDiscoveryEnabled: !!targetUser.isDiscoveryEnabled,
+      isFriend: !!isFriend,
     }
 
-    // Return only plain-serializable values to avoid client-side parsing/runtime errors
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: targetUser._id?.toString(),
-        username: targetUser.username,
-        bio: targetUser.bio || null,
-        profilePicture: targetUser.profilePicture || null,
-        location: isSelf || isFriend ? (targetUser.location || null) : null,
-        createdAt: targetUser.createdAt ? new Date(targetUser.createdAt).toISOString() : null,
-        lastSeen: targetUser.lastSeen ? new Date(targetUser.lastSeen).toISOString() : null,
-        isDiscoveryEnabled: !!targetUser.isDiscoveryEnabled,
-        isFriend: !!isFriend,
-      },
-    })
+    // If requester is self or friend, include non-public fields
+    if (isSelf || isFriend) {
+      return NextResponse.json({
+        success: true,
+        user: {
+          ...publicUser,
+          location: (targetUser.location || null),
+          createdAt: targetUser.createdAt ? new Date(targetUser.createdAt).toISOString() : null,
+          lastSeen: targetUser.lastSeen ? new Date(targetUser.lastSeen).toISOString() : null,
+        },
+      })
+    }
+
+    // Otherwise return the limited public view so avatars are visible in the UI
+    return NextResponse.json({ success: true, user: publicUser })
   } catch (error) {
     console.error('Error fetching user profile:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
