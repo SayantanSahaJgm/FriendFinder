@@ -1460,6 +1460,20 @@ if (process.env.PORT) {
       return;
     }
 
+    // Respond to root path with a small landing page so PaaS health checks
+    // that request '/' receive a 200 instead of 404. This prevents some
+    // platforms from treating the container as unhealthy and stopping it.
+    if (req.url === '/' && req.method === 'GET') {
+      try {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end('<html><body><h1>FriendFinder Socket Server</h1><p>Health: <a href="/health">/health</a></p></body></html>');
+      } catch (e) {
+        console.error('Error responding to root path:', e);
+        try { if (!res.writableEnded) res.end(); } catch (e2) { /* ignore */ }
+      }
+      return;
+    }
+
     if (req.url === '/emit' && req.method === 'POST') {
       let body = '';
       req.on('data', (chunk) => { body += chunk.toString(); });
@@ -1546,6 +1560,18 @@ if (process.env.PORT) {
         },
         timestamp: new Date().toISOString()
       });
+      return;
+    }
+
+    // Respond to root path with a small landing page for local health checks
+    if (req.url === '/' && req.method === 'GET') {
+      try {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end('<html><body><h1>FriendFinder Socket Server (local)</h1><p>Health: <a href="/health">/health</a></p></body></html>');
+      } catch (e) {
+        console.error('Error responding to root path (local):', e);
+        try { if (!res.writableEnded) res.end(); } catch (e2) { /* ignore */ }
+      }
       return;
     }
 
