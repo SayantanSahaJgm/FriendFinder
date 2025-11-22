@@ -6,15 +6,18 @@ const { Server } = require("socket.io");
 // - Else if a generic PORT is provided by the host (e.g. Render assigns PORT),
 //   choose PORT+1 so Next.js can bind to PORT and the socket server uses a different port.
 // - Otherwise fall back to 3004 for local development.
-let SOCKET_PORT;
-if (process.env.SOCKET_PORT) {
-  SOCKET_PORT = Number(process.env.SOCKET_PORT);
-} else if (process.env.PORT) {
-  const parsed = Number(process.env.PORT);
-  SOCKET_PORT = Number.isFinite(parsed) ? parsed + 1 : 3004;
-} else {
-  SOCKET_PORT = 3004;
-}
+  // Prefer the platform-provided PORT when present. If a PaaS like Render
+  // or Railway sets `PORT`, use it. Only fall back to SOCKET_PORT when
+  // PORT is not available (local dev edge-case).
+  let SOCKET_PORT;
+  if (process.env.PORT) {
+    const parsed = Number(process.env.PORT);
+    SOCKET_PORT = Number.isFinite(parsed) ? parsed : 3004;
+  } else if (process.env.SOCKET_PORT) {
+    SOCKET_PORT = Number(process.env.SOCKET_PORT);
+  } else {
+    SOCKET_PORT = 3004;
+  }
 
 // Connection health tracking
 let connectionHealth = {
@@ -89,6 +92,11 @@ const allowedOrigins = isDevelopment
 console.log('Socket.IO allowed origins:', allowedOrigins);
 
 console.log('Socket.IO CORS origins:', allowedOrigins);
+
+// Toggle to disable the Random Chat / WebRTC features (useful for
+// deployments that should not host matchmaking or P2P signaling).
+const randomChatDisabled = Boolean(process.env.DISABLE_RANDOM_CHAT === '1');
+if (randomChatDisabled) console.log('Random Chat features are DISABLED via DISABLE_RANDOM_CHAT=1');
 
 const io = new Server(socketServer, {
   path: "/socket.io/",
@@ -527,6 +535,7 @@ io.on("connection", (socket) => {
   // Start searching for a random chat match
   socket.on("random-chat:search", async (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       const { mode, interests, ageRange, languages, userId } = data; // mode: 'text' | 'audio' | 'video'
       
       // Use userId from data (logged-in user) or socket.userId (anonymous)
@@ -598,6 +607,7 @@ io.on("connection", (socket) => {
   // Send a message in the current session
   socket.on("random-chat:message", async (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       const { sessionId, message } = data;
       
       if (!sessionId || !message) {
@@ -681,6 +691,7 @@ io.on("connection", (socket) => {
   // Disconnect from current session
   socket.on("random-chat:disconnect", async (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       const { sessionId } = data;
       
       if (!sessionId) {
@@ -725,6 +736,7 @@ io.on("connection", (socket) => {
   // Random Chat Events
   socket.on("random-chat:join-queue", async (preferences) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       // Use socket.userId for authenticated users or socket.anonymousId for anonymous
       const userIdentifier = socket.userId || socket.anonymousId || socket.id;
       const displayName = socket.username || socket.anonymousId || 'Anonymous';
@@ -769,6 +781,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:leave-queue", async () => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       console.log("User leaving random chat queue:", socket.userId);
       randomChatQueue.delete(socket.userId);
       socket.emit("random-chat:queue-left");
@@ -780,6 +793,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:end-session", async (sessionId) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       console.log("User ending session:", socket.userId, sessionId);
       const session = activeSessions.get(sessionId);
       if (session) {
@@ -821,6 +835,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:message-send", async (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       if (!data || !data.sessionId || !data.content) {
         socket.emit("error", "Invalid message data");
         return;
@@ -898,6 +913,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:join-session", (sessionId) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       if (!sessionId) {
         socket.emit("error", "Invalid session ID");
         return;
@@ -918,6 +934,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:typing-start", (sessionId) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       socket.to(`session-${sessionId}`).emit("random-chat:typing-start", {
         anonymousId: socket.anonymousId || "Anonymous"
       });
@@ -928,6 +945,7 @@ io.on("connection", (socket) => {
 
   socket.on("random-chat:typing-stop", (sessionId) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       socket.to(`session-${sessionId}`).emit("random-chat:typing-stop", {
         anonymousId: socket.anonymousId || "Anonymous"
       });
@@ -939,6 +957,7 @@ io.on("connection", (socket) => {
   // WebRTC Events
   socket.on('random-chat:webrtc-offer', (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'WebRTC disabled' }); return; }
       socket.to(`session-${data.sessionId}`).emit('random-chat:webrtc-offer-received', data);
     } catch (error) {
       console.error('Error handling WebRTC offer:', error);
@@ -947,6 +966,7 @@ io.on("connection", (socket) => {
 
   socket.on('random-chat:webrtc-answer', (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'WebRTC disabled' }); return; }
       socket.to(`session-${data.sessionId}`).emit('random-chat:webrtc-answer-received', data);
     } catch (error) {
       console.error('Error handling WebRTC answer:', error);
@@ -955,6 +975,7 @@ io.on("connection", (socket) => {
 
   socket.on('random-chat:webrtc-ice-candidate', (data) => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'WebRTC disabled' }); return; }
       socket.to(`session-${data.sessionId}`).emit('random-chat:webrtc-ice-candidate-received', data);
     } catch (error) {
       console.error('Error handling WebRTC ICE candidate:', error);
@@ -964,6 +985,7 @@ io.on("connection", (socket) => {
   // Debug: respond with queue and active session sizes to help clients troubleshoot matching
   socket.on('random-chat:debug', () => {
     try {
+      if (randomChatDisabled) { socket.emit('random-chat:unsupported', { message: 'Random chat disabled' }); return; }
       const queueSize = randomChatQueue.size;
       const activeSessionsCount = activeSessions.size;
       console.log(`Debug request from ${socket.id}: queueSize=${queueSize}, activeSessions=${activeSessionsCount}`);
