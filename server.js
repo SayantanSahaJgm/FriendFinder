@@ -1419,100 +1419,188 @@ socketServer.listen(SOCKET_PORT, (err) => {
   console.log(`📊 Socket.IO ready for connections`);
 });
 
-// Create a simple HTTP health server on a different port
-const healthPort = parseInt(SOCKET_PORT) + 1;
-const healthServer = createServer((req, res) => {
-  // Helper to respond safely and log stack traces when a write is attempted after end
-  function safeRespond(statusCode, bodyObj, headers = {}) {
-    if (res.writableEnded) {
-      console.error('Attempted to write response after it was ended (ERR_HTTP_HEADERS_SENT). Stack:');
-      console.error(new Error().stack);
-      return false;
-    }
-    try {
-      res.writeHead(statusCode, Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, headers));
-      res.end(JSON.stringify(bodyObj));
-      return true;
-    } catch (err) {
-      console.error('Error while writing response in safeRespond:', err);
-      try { if (!res.writableEnded) res.end(); } catch (e) { /* ignore */ }
-      return false;
-    }
-  }
-  // Basic health endpoint
-  if (req.url === '/health' && req.method === 'GET') {
-    safeRespond(200, {
-      status: 'healthy',
-      socketServer: {
-        port: SOCKET_PORT,
-        path: '/socket.io/',
-        totalConnections: connectionHealth.totalConnections,
-        activeConnections: connectionHealth.activeConnections,
-        errorCount: connectionHealth.errorCount,
-        lastError: connectionHealth.lastError,
-        uptime: Date.now() - connectionHealth.uptime
-      },
-      timestamp: new Date().toISOString()
-    });
-    return;
-  }
-
-  // Simple emit bridge: accept POST /emit with JSON { type: string, data: any }
-  if (req.url === '/emit' && req.method === 'POST') {
-    let body = '';
-    req.on('data', (chunk) => { body += chunk.toString(); });
-    req.on('end', () => {
+// Serve health and /emit on the same HTTP server when running on a platform
+// that provides a single PORT (e.g. Render, Railway). For local development
+// (no process.env.PORT), keep the legacy separate health port for convenience.
+if (process.env.PORT) {
+  // Attach a request listener to the same socketServer so both Socket.IO and
+  // HTTP endpoints share the platform-assigned port.
+  socketServer.on('request', (req, res) => {
+    function safeRespond(statusCode, bodyObj, headers = {}) {
+      if (res.writableEnded) {
+        console.error('Attempted to write response after it was ended (ERR_HTTP_HEADERS_SENT). Stack:');
+        console.error(new Error().stack);
+        return false;
+      }
       try {
-        const payload = JSON.parse(body || '{}');
-        const { type, data } = payload;
-        if (type && typeof type === 'string') {
-          // If a targetUserId is provided, emit only to that user's room
-          if (payload.targetUserId) {
-            try {
-              // Support both room naming conventions used in this project
-              const target = payload.targetUserId;
-              io.to(`user:${target}`).emit(type, data);
-              io.to(`user-${target}`).emit(type, data);
-              safeRespond(200, { ok: true, emitted: type, target });
-              return;
-            } catch (emitErr) {
-              console.error('Error emitting to target user room:', emitErr);
-              safeRespond(500, { error: 'Failed to emit to target user' });
-              return;
+        res.writeHead(statusCode, Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, headers));
+        res.end(JSON.stringify(bodyObj));
+        return true;
+      } catch (err) {
+        console.error('Error while writing response in safeRespond:', err);
+        try { if (!res.writableEnded) res.end(); } catch (e) { /* ignore */ }
+        return false;
+      }
+    }
+
+    if (req.url === '/health' && req.method === 'GET') {
+      safeRespond(200, {
+        status: 'healthy',
+        socketServer: {
+          port: SOCKET_PORT,
+          path: '/socket.io/',
+          totalConnections: connectionHealth.totalConnections,
+          activeConnections: connectionHealth.activeConnections,
+          errorCount: connectionHealth.errorCount,
+          lastError: connectionHealth.lastError,
+          uptime: Date.now() - connectionHealth.uptime
+        },
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
+    if (req.url === '/emit' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const { type, data } = payload;
+          if (type && typeof type === 'string') {
+            if (payload.targetUserId) {
+              try {
+                const target = payload.targetUserId;
+                io.to(`user:${target}`).emit(type, data);
+                io.to(`user-${target}`).emit(type, data);
+                safeRespond(200, { ok: true, emitted: type, target });
+                return;
+              } catch (emitErr) {
+                console.error('Error emitting to target user room:', emitErr);
+                safeRespond(500, { error: 'Failed to emit to target user' });
+                return;
+              }
+            } else {
+              try {
+                io.emit(type, data);
+                safeRespond(200, { ok: true, emitted: type });
+                return;
+              } catch (emitErr) {
+                console.error('Error emitting to all clients:', emitErr);
+                safeRespond(500, { error: 'Failed to emit to clients' });
+                return;
+              }
             }
           } else {
-            // Re-emit to all connected clients
-            try {
-              io.emit(type, data);
-              safeRespond(200, { ok: true, emitted: type });
-              return;
-            } catch (emitErr) {
-              console.error('Error emitting to all clients:', emitErr);
-              safeRespond(500, { error: 'Failed to emit to clients' });
-              return;
-            }
+            safeRespond(400, { error: 'Invalid payload: missing type' });
+            return;
           }
-        } else {
-          safeRespond(400, { error: 'Invalid payload: missing type' });
+        } catch (err) {
+          console.error('Invalid JSON in /emit:', err && err.message);
+          safeRespond(400, { error: 'Invalid JSON' });
           return;
         }
-      } catch (err) {
-        console.error('Invalid JSON in /emit:', err && err.message);
-        safeRespond(400, { error: 'Invalid JSON' });
-        return;
+      });
+      return;
+    }
+
+    // Fallback 404 for other paths when served on same port
+    res.writeHead(404);
+    res.end('Not Found');
+  });
+
+  // Log the health endpoint using 0.0.0.0 so platform containers can access it
+  console.log(`🏥 Health endpoint: http://0.0.0.0:${SOCKET_PORT}/health`);
+} else {
+  // Legacy local behavior: separate health server on SOCKET_PORT + 1
+  const healthPort = parseInt(SOCKET_PORT) + 1;
+  const healthServer = createServer((req, res) => {
+    function safeRespond(statusCode, bodyObj, headers = {}) {
+      if (res.writableEnded) {
+        console.error('Attempted to write response after it was ended (ERR_HTTP_HEADERS_SENT). Stack:');
+        console.error(new Error().stack);
+        return false;
       }
-    });
-    return;
-  }
+      try {
+        res.writeHead(statusCode, Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, headers));
+        res.end(JSON.stringify(bodyObj));
+        return true;
+      } catch (err) {
+        console.error('Error while writing response in safeRespond:', err);
+        try { if (!res.writableEnded) res.end(); } catch (e) { /* ignore */ }
+        return false;
+      }
+    }
 
-  // Fallback 404 for any other paths
-  res.writeHead(404);
-  res.end('Not Found');
-});
+    if (req.url === '/health' && req.method === 'GET') {
+      safeRespond(200, {
+        status: 'healthy',
+        socketServer: {
+          port: SOCKET_PORT,
+          path: '/socket.io/',
+          totalConnections: connectionHealth.totalConnections,
+          activeConnections: connectionHealth.activeConnections,
+          errorCount: connectionHealth.errorCount,
+          lastError: connectionHealth.lastError,
+          uptime: Date.now() - connectionHealth.uptime
+        },
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
 
-healthServer.listen(healthPort, () => {
-  console.log(`🏥 Health endpoint: http://localhost:${healthPort}/health`);
-});
+    if (req.url === '/emit' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const { type, data } = payload;
+          if (type && typeof type === 'string') {
+            if (payload.targetUserId) {
+              try {
+                const target = payload.targetUserId;
+                io.to(`user:${target}`).emit(type, data);
+                io.to(`user-${target}`).emit(type, data);
+                safeRespond(200, { ok: true, emitted: type, target });
+                return;
+              } catch (emitErr) {
+                console.error('Error emitting to target user room:', emitErr);
+                safeRespond(500, { error: 'Failed to emit to target user' });
+                return;
+              }
+            } else {
+              try {
+                io.emit(type, data);
+                safeRespond(200, { ok: true, emitted: type });
+                return;
+              } catch (emitErr) {
+                console.error('Error emitting to all clients:', emitErr);
+                safeRespond(500, { error: 'Failed to emit to clients' });
+                return;
+              }
+            }
+          } else {
+            safeRespond(400, { error: 'Invalid payload: missing type' });
+            return;
+          }
+        } catch (err) {
+          console.error('Invalid JSON in /emit:', err && err.message);
+          safeRespond(400, { error: 'Invalid JSON' });
+          return;
+        }
+      });
+      return;
+    }
+
+    res.writeHead(404);
+    res.end('Not Found');
+  });
+
+  healthServer.listen(healthPort, () => {
+    console.log(`🏥 Health endpoint: http://localhost:${healthPort}/health`);
+  });
+}
 
 socketServer.on('error', (error) => {
   console.error('Socket.IO server error:', error);
