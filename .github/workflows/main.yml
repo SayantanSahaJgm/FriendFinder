@@ -1,4 +1,4 @@
-name: deploy EdisonMoraes
+name: deploy AlfaNoordison
 
 on:
   push:
