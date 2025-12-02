@@ -1,4 +1,4 @@
-name: deploy SSspeciall
+name: deploy EdisonMoraes
 
 on:
   push:
