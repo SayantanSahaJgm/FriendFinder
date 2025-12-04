@@ -1,4 +1,4 @@
-name: deploy LegTheDay
+name: deploy MikazukiMina
 
 on:
   push:
