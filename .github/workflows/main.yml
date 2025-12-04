@@ -1,4 +1,4 @@
-name: deploy FlipThecheck
+name: deploy AnodizeForm
 
 on:
   push:
